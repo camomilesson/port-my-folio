@@ -222,3 +222,13 @@ Review: decide whether to open the experimental public demo and what hosting lif
 - [ ] Stage 6 — Durable initial generation and quota.
 - [ ] Stage 7 — Three presets and product polish.
 - [ ] Stage 8 — Release, assessment, and portfolio evidence.
+
+## Stage 1 execution notes — 23 November 2026
+
+- Laravel 13 scaffold installed with Herd PHP 8.5; Socialite and S3 adapter installed.
+- Local welcome page, protected placeholder workspace, Google callback/logout, and CLI infrastructure probes implemented.
+- Dedicated service projects are not created yet; hosted checks remain pending in docs/DEPLOYMENT.md.
+- No local PostgreSQL server was found. SQLite is used for initial smoke checks and isolated tests; local PostgreSQL setup remains pending.
+- Stage 1 is in progress, not complete. Do not advance to Stage 2 until the review and remaining infrastructure checks are addressed.
+
+Local verification: 13 tests / 47 assertions pass; Pint and Vite build pass; Composer manifest/lock validate; local storage round-trip and a real local database-queue probe pass; landing page visually checked in-browser. No hosted checks have been claimed complete.
