@@ -10,6 +10,14 @@
                 <a href="{{ route('login') }}" class="inline-block rounded-full bg-stone-900 px-7 py-4 font-medium text-white">Continue with Google →</a>
             @endauth
         </div>
+        @guest
+            @if(app()->environment(['local', 'testing']) && config('portmyfolio.demo_login_enabled'))
+                <form method="POST" action="{{ route('demo.login') }}" class="mt-5">
+                    @csrf
+                    <button class="text-sm font-medium underline underline-offset-4">Explore the local demo</button>
+                </form>
+            @endif
+        @endguest
         <p class="mt-4 text-sm text-stone-500">The builder is taking shape. Portfolio generation is not available yet.</p>
     </section>
     <section aria-label="How it works" class="mx-auto grid max-w-6xl gap-10 px-6 pb-24 md:grid-cols-3">
