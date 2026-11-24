@@ -10,8 +10,9 @@
 <body class="min-h-screen bg-stone-50 font-sans text-stone-900 antialiased">
     <header class="mx-auto flex max-w-6xl items-center justify-between gap-6 px-6 py-7">
         <a href="{{ route('home') }}" class="text-xl font-bold tracking-tight">portmyfolio<span class="text-orange-600">.</span></a>
-        <nav aria-label="Account">
+        <nav aria-label="Account" class="flex items-center gap-5">
             @auth
+                <a href="{{ route('dashboard') }}" class="text-sm font-semibold">Workspace</a>
                 <form method="POST" action="{{ route('logout') }}">@csrf<button class="text-sm underline underline-offset-4">Sign out</button></form>
             @else
                 <a href="{{ route('login') }}" class="text-sm font-semibold underline underline-offset-4">Sign in with Google</a>

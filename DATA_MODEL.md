@@ -162,3 +162,10 @@ Stable entry IDs support editing/reordering. Store month-level CV dates as valid
 ## Deferred decisions
 
 Exact field lengths, file limits, missing-README rules, partial-failure recovery, post-generation project addition, slug-change behavior, and retention policy are resolved in the corresponding PLAN.md stage. This document does not add regeneration, featured projects, or a public admin interface.
+
+
+## Stage 2 implementation limits
+
+Usernames are immutable after onboarding, normalized to lowercase, 3–30 characters, start with a letter, and use letters/digits separated by single hyphens; application-reserved names are rejected. Portfolio titles allow 120 characters, slugs 64, and optional focus text 5,000. Slugs are unique per owner. Creation accepts only title/slug/focus; ownership and publication fields cannot be supplied by the form.
+
+The current delete action accepts only unpublished portfolios without queued/running generations. It removes database access transactionally, preserves generation usage rows with their source/progress payloads redacted, and dispatches retryable file cleanup after commit. Full publication-aware removal remains a later-stage requirement. Seeded publication data currently serves model/dashboard demonstrations rather than public pages.

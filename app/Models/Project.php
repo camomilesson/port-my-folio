@@ -1,0 +1,42 @@
+<?php
+
+namespace App\Models;
+
+use Database\Factories\ProjectFactory;
+use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
+
+#[Fillable(['portfolio_id', 'slug', 'repository_owner', 'repository_name', 'author_role', 'readme_content', 'readme_fetched_at', 'title', 'summary', 'overview', 'technologies', 'live_url', 'position'])]
+class Project extends Model implements HasMedia
+{
+    /** @use HasFactory<ProjectFactory> */
+    use HasFactory;
+
+    use InteractsWithMedia;
+    use SoftDeletes;
+
+    protected function casts(): array
+    {
+        return ['readme_fetched_at' => 'datetime', 'technologies' => 'array', 'position' => 'integer'];
+    }
+
+    public function portfolio(): BelongsTo
+    {
+        return $this->belongsTo(Portfolio::class);
+    }
+
+    public function repositoryUrl(): string
+    {
+        return 'https://github.com/'.rawurlencode($this->repository_owner).'/'.rawurlencode($this->repository_name);
+    }
+
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('gallery')->useDisk(config('portmyfolio.image_disk'));
+    }
+}
