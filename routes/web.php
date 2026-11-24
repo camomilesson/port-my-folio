@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\GoogleAuthController;
 use App\Http\Controllers\Auth\LocalDemoLoginController;
 use App\Http\Controllers\Userzone\DashboardController;
+use App\Http\Controllers\Userzone\PortfolioController;
 use App\Http\Controllers\Userzone\UsernameController;
 use App\Http\Controllers\WelcomeController;
 use App\Http\Middleware\EnsureUsernameIsSet;
@@ -20,4 +21,7 @@ Route::middleware('auth')->group(function () {
 });
 Route::middleware(['auth', EnsureUsernameIsSet::class])->group(function () {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
+    Route::prefix('user')->name('userzone.')->group(function () {
+        Route::resource('portfolios', PortfolioController::class)->only(['create', 'store', 'show', 'destroy']);
+    });
 });
