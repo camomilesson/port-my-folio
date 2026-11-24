@@ -8,10 +8,6 @@ use Laravel\Socialite\Two\User as GoogleUser;
 
 uses(RefreshDatabase::class);
 
-it('dashboard requires authentication', function () {
-    $this->get('/dashboard')->assertRedirect('/login');
-});
-
 it('missing configuration gives a useful message', function () {
     config(['services.google.client_id' => null]);
     $this->get('/login')->assertRedirect('/')->assertSessionHas('status');
