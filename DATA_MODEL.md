@@ -2,7 +2,7 @@
 
 Status: agreed architecture, 23 November 2026. Implements [VISION.md](VISION.md); delivery stages are in [PLAN.md](PLAN.md).
 
-Six application models. Use relational records for ownership, projects, uploaded files, and generation. Use validated JSON for nested page content and the current published snapshot. Framework infrastructure tables for sessions, cache, and queues are separate from this model list.
+Five application-owned models plus Spatie’s Media model. Use relational records for ownership, projects, uploaded files, and generation. Use validated JSON for nested page content and the current published snapshot. Framework infrastructure tables for sessions, cache, and queues are separate from this model list.
 
 ## Relationships
 
@@ -12,7 +12,7 @@ erDiagram
     USER ||--o{ GENERATION : requests
     PORTFOLIO ||--o| CV_DOCUMENT : has
     PORTFOLIO ||--o{ PROJECT : contains
-    PROJECT ||--o{ PROJECT_IMAGE : has
+    PROJECT ||--o{ MEDIA : gallery
     PORTFOLIO o|--o{ GENERATION : records
 ```
 
@@ -82,21 +82,26 @@ No is_featured: show every project on the homepage in position order, using id a
 
 Maximum five projects is enforced transactionally in application actions; it is not a simple row-level database constraint. Post-generation project addition remains a product decision and must not accidentally expose another AI-generation flow.
 
-## ProjectImage
+## Media (Spatie Media Library)
 
-| Field | Shape / constraint |
+Use Spatie's standard `media` table and model instead of a parallel ProjectImage table. Projects will implement HasMedia and use InteractsWithMedia, with a `gallery` collection. CvDocument remains our separate private PDF/extraction model.
+
+| Media field | Purpose |
 | --- | --- |
-| project_id | Project foreign key |
-| storage_path | Immutable generated path on the configured image disk |
-| original_filename | Owner-facing filename |
-| mime_type, size_bytes | File metadata |
-| width, height | Image dimensions |
-| caption, alt_text | Editable descriptions |
-| position | Integer gallery order |
+| model_type, model_id | Polymorphic association with the owning Project |
+| collection_name | `gallery` |
+| disk, conversions_disk, file_name | Storage location managed by Spatie |
+| mime_type, size | File metadata |
+| order_column | Gallery ordering; first active image is the cover |
+| custom_properties.caption, custom_properties.alt_text | Editable presentation metadata |
+| custom_properties.draft_removed | Tombstone excluding an image from the draft without deleting published files |
+| custom_properties.width, custom_properties.height | Dimensions recorded during upload processing |
 
-The first image is the cover. Set as cover moves an image to the first position; no separate boolean. Reordering uses explicit controls, not drag-and-drop.
+No separate ProjectImage model/table. Reordering uses explicit controls rather than drag-and-drop. Freeze caption, alt text, order, and immutable file references in the published snapshot, rather than reading mutable Media properties for public rendering.
 
-Never overwrite a stored object when replacing an image. Deleting a draft image removes its row, but does not delete a file referenced by the published snapshot. File cleanup checks live draft references and current published snapshots. Deleting a project must likewise leave its published representation intact until publication/unpublication. Use a deferred cleanup action/job rather than unconditional model-delete file hooks.
+Removing an image from a draft marks it removed; it must not call Media::delete(), clearMediaCollection(), or another file-deleting operation while a published snapshot references the image. Physically delete only after neither draft nor published content needs the file. Never overwrite existing objects when replacing an image.
+
+Spatie automatically cleans up media when a HasMedia owner is deleted. Therefore draft project removal must retain the owner while its published representation exists (a soft-delete/tombstone strategy will be implemented with Project in Stage 2). Publication cleanup may force-delete that owner only after the old snapshot is replaced and its media is no longer referenced. Portfolio deletion first removes public access, then deletes projects/media through the coordinated deletion action. The exact cleanup job/transaction boundaries are implemented and tested in Stages 3–4, before public galleries ship.
 
 ## Generation
 
@@ -151,7 +156,7 @@ Stable entry IDs support editing/reordering. Store month-level CV dates as valid
 - DeletePortfolio coordinates active jobs, quota preservation, published references, and file cleanup.
 - Complete initial generation atomically exposes its assembled draft; disallow conflicting edits while initial generation is active.
 - Use database constraints for foreign keys/uniqueness and application transactions for cross-record invariants. Add indexes for portfolio ordering and quota lookups.
-- Keep deterministic local demo fixtures and factories for all six models; do not require external providers to seed the database.
+- Keep deterministic local demo fixtures and factories for all application-owned models, with Spatie media fixtures; do not require external providers to seed the database.
 
 ## Deferred decisions
 

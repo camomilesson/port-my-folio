@@ -9,6 +9,7 @@ Work through stages in order. Each stage ends with a working demonstration, appr
 ## Working approach
 
 - Build one Laravel application with Blade/Tailwind, Google authentication, Supabase PostgreSQL/storage, and Laravel Cloud hosting.
+- Use Pest for tests and Spatie Media Library for project galleries. Treat class examples as references, including teaching simplifications, not a blueprint. Do not add relationships just to mirror the class project.
 - Pin compatible framework/runtime/package versions during setup after checking current official documentation; do not assume the newest release is required by the course.
 - Keep credentials out of source control; commit .env.example with descriptions and safe placeholders.
 - Prefer small, coherent commits and ordinary Laravel conventions. Add abstractions for actual boundaries, especially AI providers, rather than a general CMS/agent framework.
@@ -42,10 +43,10 @@ Review: confirm the foundation and deployment fit before investing in product fe
 
 ### Work
 
-- Implement six model migrations, constraints, relationships, indexes, and factories from DATA_MODEL.md, plus necessary framework tables.
+- Implement five application model migrations, constraints, relationships, indexes, and factories plus Spatie’s media schema from DATA_MODEL.md, plus necessary framework tables.
 - Finish Google identity handling using google_id, session management, username onboarding, and reserved-name validation.
 - Add an owner dashboard listing multiple portfolios; implement basic title/slug/focus draft creation and deletion.
-- Add ownership policies and properly scoped nested routes.
+- Add ownership policies and properly scoped nested routes. Separate owner controllers/views under Userzone; retain distinct public rendering controllers.
 - Seed realistic users, portfolios, CV evidence, projects, images, and generation states without external calls.
 - Provide a documented local/testing-only demo sign-in path for assessment; it must be unavailable in production. Seed the requested admin@example.com demo identity without introducing a production admin role.
 
@@ -71,10 +72,10 @@ Review: inspect the schema and account/dashboard behavior.
 - Build owner forms for home content and all CV entries, with validation feedback and explicit save behavior.
 - Build repository-backed project forms for title, summary, role, overview, technologies, and live URL; enforce a five-project maximum.
 - Show every project on the home page in chosen order. Implement ordering with buttons/select controls, not drag-and-drop.
-- Add gallery uploads, captions, alt text, delete/reorder, and first-image-as-cover behavior.
+- Build gallery uploads, captions, alt text, delete/reorder, and first-image-as-cover behavior through Spatie Media Library. Do not add a parallel ProjectImage model.
 - Validate and privately store the source PDF; direct AI extraction comes later.
 - Build one shared preset and owner-only preview routes using draft content.
-- Establish immutable file paths and safe cleanup boundaries before introducing publishing.
+- Establish immutable file paths and safe cleanup boundaries before introducing publishing. Use media tombstones and retained/soft-deleted Project owners so package deletion hooks cannot break published snapshots.
 
 ### Completion criteria
 
@@ -232,3 +233,7 @@ Review: decide whether to open the experimental public demo and what hosting lif
 - Stage 1 is in progress, not complete. Do not advance to Stage 2 until the review and remaining infrastructure checks are addressed.
 
 Local verification: 13 tests / 47 assertions pass; Pint and Vite build pass; Composer manifest/lock validate; local storage round-trip and a real local database-queue probe pass; landing page visually checked in-browser. No hosted checks have been claimed complete.
+
+## Agreed refinements — 24 November 2026
+
+Adopt Pest, separate owner controllers/views under Userzone, and use Spatie Media Library instead of ProjectImage. Keep CvDocument and publication snapshots. These choices follow product needs rather than reproducing the class blog. Stage 1 hosted verification remains pending.

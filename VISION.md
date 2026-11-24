@@ -10,6 +10,8 @@ Portmyfolio turns a PDF CV and selected public GitHub repositories into an edita
 
 The application generates structured content once and renders it through predefined templates. Users control the final wording, project images, appearance, and publication.
 
+The class blog is a reference for solutions, not a blueprint; some choices intentionally simplify teaching.
+
 The project is being built for the Modern Web Application course, with Laravel backend development as its technical focus. Assessment criteria are guidelines: requirements can be omitted when they do not fit the product's actual logic. We should be able to explain those decisions rather than invent features to satisfy a checklist.
 
 ## Core journey
@@ -163,6 +165,8 @@ The real contact email has not been chosen. Existing portfolios remain editable 
 | --- | --- |
 | Application | One Laravel application |
 | Templates and styling | Blade and Tailwind |
+| Testing | Pest |
+| Project galleries | Spatie Media Library; no parallel ProjectImage model |
 | Small interactive controls | Alpine.js where useful |
 | Production database | Supabase PostgreSQL, accessed by Laravel through normal database connections and Eloquent |
 | Authentication | Google via Laravel Socialite, with Laravel sessions |
