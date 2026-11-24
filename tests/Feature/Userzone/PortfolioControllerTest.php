@@ -17,7 +17,7 @@ it('requires authentication for portfolio management', function () {
     $portfolio = Portfolio::factory()->create();
     $this->get(route('userzone.portfolios.create'))->assertRedirect(route('login'));
     $this->post(route('userzone.portfolios.store'), [])->assertRedirect(route('login'));
-    $this->get(route('userzone.portfolios.show', $portfolio))->assertRedirect(route('login'));
+    $this->get(route('userzone.portfolios.show', $portfolio))->assertNotFound();
     $this->delete(route('userzone.portfolios.destroy', $portfolio))->assertRedirect(route('login'));
     $this->assertModelExists($portfolio);
 });
