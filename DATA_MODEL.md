@@ -77,6 +77,7 @@ The extraction record is evidence. Portfolio.cv_content is editable presentation
 | technologies | Validated JSON string array |
 | live_url | Nullable validated HTTP(S) URL |
 | position | Integer ordering key |
+| deleted_at | Nullable soft-delete timestamp, preserving published media until cleanup |
 
 No is_featured: show every project on the homepage in position order, using id as a deterministic tie-breaker. Repository URLs are derived from normalized identity. Projects in separate portfolios remain separate records, even when they describe the same repository. No shared Repository or Technology model is needed in the MVP. README fetch caching uses normalized repository identity.
 

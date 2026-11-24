@@ -84,9 +84,13 @@ Pest uses the PHPUnit configuration to force an in-memory SQLite database and cl
 
 `migrate:fresh --seed` is destructive: use it only against a disposable local database. Rich application factories/fixtures and the assessment-only sign-in mechanism arrive in Stage 2.
 
+## Media Library foundation
+
+Spatie Media Library 11 manages future project galleries through its standard `media` table. Its default disk follows `IMAGE_FILESYSTEM_DISK`; original CV files remain on the separate private CV disk. The package and migration are installed, but the Project model, upload forms, conversions, and publication-aware cleanup are not implemented yet. Gallery removal must preserve media referenced by the published snapshot; see DATA_MODEL.md.
+
 ## Current limitations
 
 - No portfolio schema/editor, publishing, PDF parsing, GitHub import, AI generation, or usage limits yet.
 - Supabase, real Google sign-in, local PostgreSQL, and Laravel Cloud deployment have not been verified.
-- The framework scaffold still contains nullable password infrastructure for compatibility; there is no public password authentication feature. The six-model schema is introduced in Stage 2.
+- The framework scaffold still contains nullable password infrastructure for compatibility; there is no public password authentication feature. The application-owned schema is introduced in Stage 2.
 - This is an experimental course/demo project; permanent hosted availability is not promised.
