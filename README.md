@@ -1,6 +1,6 @@
 # Portmyfolio
 
-A Laravel portfolio builder that turns a PDF CV and up to five public GitHub READMEs into an editable personal website. **Stage 1 is complete:** local foundation and hosted infrastructure verified. Generation and portfolio editing are not implemented yet.
+A Laravel portfolio builder that turns a PDF CV and up to five public GitHub READMEs into an editable personal website. **Stage 1 is complete. Stage 2 is implemented on `feat/portfolio-models`, awaiting review:** schema, username onboarding, owner dashboard, and private draft creation/deletion. Content editing and generation are not implemented yet.
 
 - [Product vision](VISION.md)
 - [Data model](DATA_MODEL.md)
@@ -44,7 +44,7 @@ Local data, sessions, cache, and queue jobs use PostgreSQL. CV files use `storag
 
 Set `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and `GOOGLE_REDIRECT_URI` in your ignored `.env`. Register the exact callback URL `http://127.0.0.1:8000/auth/google/callback` in the Google OAuth client. Use the same hostname consistently for sign-in and callback; switching between localhost and 127.0.0.1 loses the session context. Restart/reload cached configuration after changing settings.
 
-Google-only production sign-in is implemented. There is no password-login endpoint or local assessment login yet. Accounts use Google IDs and do not automatically link on matching email addresses.
+Google-only production sign-in is implemented. There is no password-login endpoint. A separate assessment login is available only locally or in tests when explicitly enabled. Accounts use Google IDs and do not automatically link on matching email addresses.
 
 ### Local PostgreSQL
 
@@ -96,15 +96,21 @@ The `/up` endpoint checks application boot; it does not claim to check storage o
 
 `composer test` uses `phpunit.xml` to force in-memory SQLite and clear `DB_URL`. `composer test:postgres` uses `phpunit.postgres.xml` to force PostgreSQL at `127.0.0.1:5432`, the `portmyfolio` role, and the disposable `portmyfolio_test` database, also clearing `DB_URL`. It reads only the role password from your local `.env`; never point the normal development configuration at a hosted database while running local checks. The PostgreSQL suite uses the real schema and may recreate tables inside that dedicated test database. Tests are written in Pest and cover OAuth account creation, stable identity matching, refusal to link by email, invalid OAuth state, logout, protected access, file probe cleanup, and a real database-queue worker round trip. They fake Google responses; they do not establish that a real OAuth client works.
 
-`migrate:fresh --seed` is destructive: use it only against a disposable local database. Rich application factories/fixtures and the assessment-only sign-in mechanism arrive in Stage 2.
+### Offline demo
+
+Set `DEMO_LOGIN_ENABLED=true` in a local `.env`, migrate, then run `php artisan db:seed` once on an unseeded local database. The landing page's **Explore the local demo** button signs in the seeded `admin@example.com` identity (Sam Example). This is a fictional assessment account, with no administrator privileges. The shortcut returns 404 in production even if the flag is enabled.
+
+Fixtures include two owners, multiple portfolios, project records, synthetic images, a fictional PDF CV, and completed generation history. No external requests or AI calls are made. The published fixture exercises model/dashboard states; public rendering arrives later. Start the local queue worker to process draft-file cleanup.
+
+`migrate:fresh --seed` is destructive: use it only against a disposable local database. Do not use it on an existing development or hosted database. The seeder is for a fresh/unseeded local database and refuses production.
 
 ## Media Library foundation
 
-Spatie Media Library 11 manages future project galleries through its standard `media` table. Its default disk follows `IMAGE_FILESYSTEM_DISK`; original CV files remain on the separate private CV disk. The package and migration are installed, but the Project model, upload forms, conversions, and publication-aware cleanup are not implemented yet. Gallery removal must preserve media referenced by the published snapshot; see DATA_MODEL.md.
+Spatie Media Library 11 manages future project galleries through its standard `media` table. Its default disk follows `IMAGE_FILESYSTEM_DISK`; original CV files remain on the separate private CV disk. The package and migration are installed, but the Project model and its gallery collection exist. Upload forms, conversions, and publication-aware cleanup arrive in later stages. Gallery removal must preserve media referenced by the published snapshot; see DATA_MODEL.md.
 
 ## Current limitations
 
-- No portfolio schema/editor, publishing, PDF parsing, GitHub import, AI generation, or usage limits yet.
+- Private draft creation, viewing, and deletion are available. No content editor, publishing, PDF parsing, GitHub import, AI generation, or usage limits yet. Published or actively generating portfolios cannot be deleted through this stage’s draft-only action.
 - Hosted Google sign-in/logout, direct Supabase PostgreSQL, private CV storage, managed queue processing, and the health endpoint have been verified. Image bucket setup/delivery remains deferred to the gallery stage.
-- The framework scaffold still contains nullable password infrastructure for compatibility; there is no public password authentication feature. The application-owned schema is introduced in Stage 2.
+- The framework scaffold still contains nullable password infrastructure for compatibility; there is no public password authentication feature. The application-owned schema is now implemented. Ownership policies cover portfolios, projects, CV evidence, generations, and gallery media; future nested editor routes must apply them.
 - This is an experimental course/demo project; permanent hosted availability is not promised.

@@ -260,3 +260,12 @@ Foundation and infrastructure proof are complete. The historical pending notes a
 - Branch workflow is active: significant changes on branches, atomic type/emoji commits, validation before merge. Production uses main; push-to-deploy was disabled during setup, so release changes require a deliberate deploy.
 
 Next review boundary: begin Stage 2 on a new feature branch when requested. No Stage 2 implementation is included in this closure.
+
+
+## Stage 2 implementation — 24 November 2026 (awaiting review)
+
+Branch: `feat/portfolio-models`. Five application models/migrations, relationship constraints, factories, and offline fixtures are implemented. Username onboarding normalizes input and enforces reserved names and uniqueness. The owner workspace lists multiple portfolios and supports private title/slug/focus draft creation, viewing, and deletion. Ownership policies deny foreign resources with 404; future nested editor routes remain in Stage 3.
+
+Draft deletion preserves generation usage history while redacting input/progress payloads, clears foreign-key pointers, and queues file cleanup after commit. Published and active-generation records are intentionally rejected by this draft-only action; publication-aware deletion follows in Stages 4–6. Project soft deletion preserves gallery media for future snapshots.
+
+Local migrations and seeding completed without resetting existing development accounts. Local-only demo login, dashboard layout, and private draft creation were checked in-browser. Full suite: 70 tests / 273 assertions on both SQLite and PostgreSQL; production frontend build passes. Tests cover identity onboarding, owner isolation, constraints, deletion/file cleanup, and production rejection of the demo login. No hosted Stage 2 deployment is claimed. Stage 2 stays unchecked until user review; do not start Stage 3 automatically.
