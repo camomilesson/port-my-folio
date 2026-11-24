@@ -216,7 +216,7 @@ Review: decide whether to open the experimental public demo and what hosting lif
 - [x] Agree initial data architecture; remove featured-project selection.
 - [x] Write staged development plan.
 - [x] Stage 1 — Foundation and infrastructure proof (completed 24 November 2026; hosted image delivery explicitly deferred).
-- [ ] Stage 2 — Schema, account onboarding, and ownership.
+- [x] Stage 2 — Schema, account onboarding, and ownership (reviewed, merged, and verified live).
 - [ ] Stage 3 — Manual draft editor and galleries.
 - [ ] Stage 4 — Publishing and default portfolio routing.
 - [ ] Stage 5 — Input collection and provider contracts.
@@ -269,3 +269,20 @@ Branch: `feat/portfolio-models`. Five application models/migrations, relationshi
 Draft deletion preserves generation usage history while redacting input/progress payloads, clears foreign-key pointers, and queues file cleanup after commit. Published and active-generation records are intentionally rejected by this draft-only action; publication-aware deletion follows in Stages 4–6. Project soft deletion preserves gallery media for future snapshots.
 
 Local migrations and seeding completed without resetting existing development accounts. Local-only demo login, dashboard layout, and private draft creation were checked in-browser. Full suite: 70 tests / 273 assertions on both SQLite and PostgreSQL; production frontend build passes. Tests cover identity onboarding, owner isolation, constraints, deletion/file cleanup, and production rejection of the demo login. No hosted Stage 2 deployment is claimed. Stage 2 stays unchecked until user review; do not start Stage 3 automatically.
+
+
+## Stage 2 closure and subsequent fix — 24 November 2026
+
+User approved Stage 2, it was merged with atomic commits preserved, and the user reported all hosted smoke checks passing. Push-to-deploy on main is now enabled by agreement. The later portfolio-not-found change was also merged and user-verified live: signed-out owner overview requests show a 404 with a sign-in suggestion instead of redirecting immediately to Google. These updates supersede the earlier awaiting-review notes.
+
+## Stage 3 agreed decisions and implementation — 24 November 2026 (awaiting review)
+
+Branch: `codex/stage-3-editor`. Home personal information is name/headline/introduction with a prominent web-CV link; all projects remain visible. CV owns detailed background and contacts. Shared identity stays synchronized within the portfolio; home introduction and CV summary remain separate. Dates permit year or year-month, unknown dates, and explicit current entries. Generous bounded text lengths and repeated-entry limits are recorded in DATA_MODEL.md.
+
+JPEG/PNG/WebP uploads: ten images per project, ten MB each, 12,000 pixels per side and 24 megapixels; no animation. Decode/reorient/resize within 2,400 pixels and keep only the metadata-free WebP. Decorative checkbox means empty alt text; otherwise require a description. First active image is cover. Processed galleries use private storage and authorized delivery. User confirmed creation of the separate private portmyfolio-images bucket; Cloud gallery configuration and live upload/delivery checks are still pending.
+
+One immutable source PDF per portfolio, ten MB, private by default, with no replacement. Public-download preference is part of draft CV content and only becomes effective through later publication snapshots. Manual repository-backed project additions are allowed within the five-project cap, with no AI calls; existing repository identity stays fixed and generation evidence is retained separately. Contacts use optional email/phone plus labeled HTTP(S) links.
+
+Implemented owner forms, nested authorization, CV repeaters/order controls, project CRUD/order, gallery upload/metadata/order/tombstones, private PDF upload/download, and a shared minimal home/CV/project preview. No publishing or provider integration is added. Mutations lock owner/portfolio and reject active generation; real PostgreSQL multi-process tests cover simultaneous additions at both caps. Cleanup retries preserve records on storage failure and conservatively retain removed media whenever a published snapshot exists; Stage 4 must implement reference-aware cleanup after publication changes.
+
+Validation: PostgreSQL 124 tests / 534 assertions; SQLite 122 passing / 524 assertions plus two PostgreSQL-only concurrency cases skipped. Pint, Composer validation, and Vite build pass. Local additive migration applied without resetting accounts. Browser checks confirmed shared-identity saving, add/reorder/save CV entries, project creation, and home/project preview layout. Browser upload automation stalled at the file picker; user will perform the remaining browser walkthrough, including uploads, CV preview and responsive layout. Backend upload/file-error tests pass. No hosted Stage 3 deployment is claimed; do not merge/deploy or advance to Stage 4 before review.

@@ -54,7 +54,7 @@ The snapshot includes schema_version, publication time, preset/accent, home cont
 | Field | Shape / constraint |
 | --- | --- |
 | portfolio_id | Unique foreign key; at most one source PDF per portfolio |
-| storage_path | Private file path on the configured CV disk |
+| storage_disk, storage_path | Private disk and immutable file path; older rows without a stored disk fall back to configured CV disk |
 | original_filename | Owner-facing filename |
 | mime_type, size_bytes | Validated file metadata |
 | status | uploaded / processing / ready / failed |
@@ -81,7 +81,7 @@ The extraction record is evidence. Portfolio.cv_content is editable presentation
 
 No is_featured: show every project on the homepage in position order, using id as a deterministic tie-breaker. Repository URLs are derived from normalized identity. Projects in separate portfolios remain separate records, even when they describe the same repository. No shared Repository or Technology model is needed in the MVP. README fetch caching uses normalized repository identity.
 
-Maximum five projects is enforced transactionally in application actions; it is not a simple row-level database constraint. Post-generation project addition remains a product decision and must not accidentally expose another AI-generation flow.
+Maximum five projects is enforced transactionally in application actions; it is not a simple row-level database constraint. Manual post-generation repository-backed additions are allowed, without any AI call or quota use. Repository identity and slug remain fixed on an existing project. A removed repository can be restored as a manual draft project; generation evidence is never rewritten.
 
 ## Media (Spatie Media Library)
 
@@ -133,20 +133,20 @@ Persist schema versions and validate nested keys and limits. All rendered text i
 home_content
   schema_version
   name, headline, introduction
-  contact: email?, location?, links[{id, label, url}]
 
 cv_content
   schema_version
   name, headline, summary
-  contact: email?, location?, links[{id, label, url}]
-  experience[{id, organization, role, start_date?, end_date?, description}]
-  education[{id, institution, qualification, start_date?, end_date?, description}]
-  skills[string]
+  contact: email?, phone?, location?, links[{id, label, url}]
+  experience[{id, organization, role, location?, start_date?, end_date?, current, description}]
+  education[{id, institution, qualification, location?, start_date?, end_date?, current, description}]
+  skills[{id, name, items[string]}]
   languages[{id, name, proficiency?}]
+  certifications[{id, name, issuer?, date?, url?}]
   allow_original_download: boolean
 ```
 
-Stable entry IDs support editing/reordering. Store month-level CV dates as validated YYYY-MM values, not invented exact days. Nullable end dates can represent ongoing entries; the UI must distinguish unknown from ongoing when needed. Final required fields, text limits, and date semantics are settled before building the CV forms. No per-employer, per-skill, or per-education tables are needed because these entries are edited/rendered as a document, not queried across users.
+Stable entry IDs support editing/reordering. Dates accept YYYY or YYYY-MM, with no invented day/month. The current boolean explicitly distinguishes ongoing entries from unknown end dates; current entries have no end date. End-date bounds account for year-only precision. No per-employer, per-skill, or per-education tables are needed because these entries are edited/rendered as a document, not queried across users.
 
 ## Application boundaries
 
@@ -161,7 +161,7 @@ Stable entry IDs support editing/reordering. Store month-level CV dates as valid
 
 ## Deferred decisions
 
-Exact field lengths, file limits, missing-README rules, partial-failure recovery, post-generation project addition, slug-change behavior, and retention policy are resolved in the corresponding PLAN.md stage. This document does not add regeneration, featured projects, or a public admin interface.
+Stage 3 settles editor field lengths, gallery/file limits, and manual project addition below. Missing-README rules, partial-failure recovery, slug-change behavior, and evidence retention remain assigned to their corresponding PLAN.md stages. This document does not add regeneration, featured projects, or a public admin interface.
 
 
 ## Stage 2 implementation limits
@@ -169,3 +169,16 @@ Exact field lengths, file limits, missing-README rules, partial-failure recovery
 Usernames are immutable after onboarding, normalized to lowercase, 3–30 characters, start with a letter, and use letters/digits separated by single hyphens; application-reserved names are rejected. Portfolio titles allow 120 characters, slugs 64, and optional focus text 5,000. Slugs are unique per owner. Creation accepts only title/slug/focus; ownership and publication fields cannot be supplied by the form.
 
 The current delete action accepts only unpublished portfolios without queued/running generations. It removes database access transactionally, preserves generation usage rows with their source/progress payloads redacted, and dispatches retryable file cleanup after commit. Full publication-aware removal remains a later-stage requirement. Seeded publication data currently serves model/dashboard demonstrations rather than public pages.
+
+
+## Stage 3 content and file contracts
+
+Name and headline are required (120 characters each) when saving page content; both home/CV JSON copies are updated atomically. Home is otherwise just introduction (optional, 3,000); CV summary is independent (optional, 5,000). Contact detail appears on CV only. Contact email allows 254 characters, phone 40, location 120, and up to ten labeled HTTP(S) links (label 80, URL 2,048). Each experience/education section allows 30 entries; required organization/role or institution/qualification fields allow 160, location 120, description 5,000. Skills allow 30 named groups with 40 skills each (80 characters per skill). Languages and certifications allow 30 entries each. These nested arrays reject undeclared keys and retain stable entry IDs in submitted order.
+
+Project title is required (120), role required (255), summary optional (1,000), overview optional (10,000), technologies up to 30 strings (80 each), live URL optional HTTP(S) (2,048). Source README and other input evidence cannot be overwritten through editor payloads. Five active projects maximum under the owner/portfolio lock. No manual editor endpoint publishes or generates content.
+
+Source CV is one immutable private PDF up to ten MB, with MIME/signature/completeness checks (not content extraction or malware scanning). Replacing it is prohibited, including after successful generation. Existing source rows remain compatible with the new nullable storage_disk field. Source evidence and editable web CV remain independent. Public-download preference does not grant access through owner routes or make the bucket public.
+
+Gallery inputs are still JPEG/PNG/WebP, ten MB maximum, 12,000 pixels per side and 24 megapixels total; ten active images per project. GD decodes/reorients/resizes to fit 2,400 pixels and encodes WebP at quality 85 without metadata. Only that processed file is persisted under an immutable UUID filename. Captions/alt text allow 500 characters. custom_properties.decorative=true implies empty alt_text; otherwise a description is required. Use private images_local or images_s3 storage, never a public bucket. Owner previews deliver files via authorized non-cacheable routes.
+
+Draft image deletion sets draft_removed; project deletion soft-deletes its owner. Queued cleanup physically removes unreferenced draft tombstones but retains all media when the portfolio has any published snapshot. Public delivery and precise post-publication cleanup are Stage 4 obligations. Row locks serialize cap checks and ordering; draft mutations reject queued/running generation. File operations account for failures independently of database rollback, with retryable cleanup jobs.

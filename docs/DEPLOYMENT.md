@@ -130,3 +130,16 @@ Local PostgreSQL is already configured and verified on this machine. The remaini
 - Supabase S3 credentials: https://supabase.com/docs/guides/storage/s3/authentication
 - Google sign-in configuration: https://developers.google.com/identity/openid-connect/openid-connect
 - Laravel Cloud deployment: https://laravel.com/cloud/deploy-a-laravel-app
+
+
+## Stage 3 gallery deployment (pending review)
+
+The user created private portmyfolio-images with ten MB limit and explicit image/jpeg, image/png and image/webp MIME restrictions on 24 November 2026. This is bucket creation only; hosted app uploads/delivery remain unverified.
+
+After Stage 3 review, before deployment, set IMAGE_FILESYSTEM_DISK=images_s3 and AWS_IMAGE_BUCKET=portmyfolio-images in Laravel Cloud. Preserve AWS_BUCKET=portmyfolio-cvs and all existing S3 credentials/endpoint/region. The new disk is independent of the CV disk. Both buckets remain private; no public policies or browser credentials are needed. images_local and the old public local disk are not durable hosted gallery storage.
+
+Deploy main only after merge approval; push-to-deploy is now enabled. Deploy command remains php artisan migrate --force (nullable CV disk column, no destructive reset). Verify GD with WebP support and EXIF, PHP memory of at least 256 MB, and request/upload limits that admit ten MB plus multipart overhead. For the maximum CV form set max_input_vars to at least 2,000; a final form marker detects truncated submissions. Keep managed workers active for cleanup jobs.
+
+Hosted smoke checks: save home/CV and shared identity; create/reorder/remove manual projects; upload JPEG/PNG/WebP and verify processed image plus cover/caption/alt behavior; verify a second account and signed-out visitor cannot read preview/media/PDF routes; upload one PDF and verify replacement rejection; verify cleanup completes for an unpublished draft. Do not use infrastructure:check --disk=images_s3: that probe intentionally uploads a PDF and would be rejected by the image bucket. Use the app gallery with a non-personal test image.
+
+Publication and original-PDF public downloads remain unavailable until Stage 4. The private bucket must stay private when published-image delivery is implemented.
