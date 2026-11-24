@@ -237,3 +237,11 @@ Local verification: 13 tests / 47 assertions pass; Pint and Vite build pass; Com
 ## Agreed refinements — 24 November 2026
 
 Adopt Pest, separate owner controllers/views under Userzone, and use Spatie Media Library instead of ProjectImage. Keep CvDocument and publication snapshots. These choices follow product needs rather than reproducing the class blog. Stage 1 hosted verification remains pending.
+
+## Local PostgreSQL branch — 24 November 2026
+
+Branch: `chore/local-postgres`, kept separate from main until review. Local PostgreSQL 17.12 installed and started through Homebrew. Dedicated portmyfolio and portmyfolio_test databases created with a non-superuser application role. The ignored local .env holds its generated password; existing SQLite data was left unchanged.
+
+PostgreSQL is now the example/default development configuration. SQLite remains the default isolated test backend, with a separate fixed-loopback PostgreSQL test profile. Both suites pass (14 tests, 51 assertions each). Migrations, local file round-trip, and PostgreSQL-backed development queue processing pass. Supabase, real OAuth, hosted storage/queue, and Laravel Cloud checks remain pending; Stage 1 is not complete.
+
+Subsequent significant changes use branches and focused commits. Preserve atomic commits when merging after validation; do not squash them. The cloud-deployment branch starts after the local PostgreSQL branch is reviewed/merged.

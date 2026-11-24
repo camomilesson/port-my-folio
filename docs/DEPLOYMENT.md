@@ -4,7 +4,7 @@ Status: prepared, **not deployed or verified**. Dedicated Portmyfolio resources 
 
 ## Resources to create
 
-1. A Git repository containing this application, with `.env`, vendor, node_modules, built assets, and local databases excluded.
+1. The Git repository already exists: https://github.com/camomilesson/port-my-folio. Secrets, dependencies, built assets, and local databases are excluded.
 2. A dedicated Supabase project. Keep the application tables accessible through Laravel's server-side database connection, not an unauthenticated browser data API. Restrict/disable unneeded Data API exposure.
 3. A private CV bucket and an image bucket with an explicit public delivery policy. Configure S3 credentials server-side; these are not browser API keys. This Stage 1 scaffold has one S3 disk, so verify the CV bucket first and document the image bucket setup before gallery implementation.
 4. A Google OAuth client with local and hosted callback URLs. Configure the consent screen and test-user access as needed. Reusing the Google account is fine; create dedicated client credentials for this app.
@@ -87,3 +87,38 @@ Record deployment URL, date, runtime versions, queue configuration, and actual r
 Laravel Cloud's base plan and resource usage, Supabase database/storage allowances, and future AI usage must be budgeted independently. Review current pricing before enabling resources; the earlier $5 Cloud plan discussion is not a total deployment estimate.
 
 To sunset later: notify demo users, capture screenshots/video, export needed database/files, stop workers, remove the app and all separately billable resources/subscriptions, review Supabase resources, and revoke dedicated OAuth/storage credentials. Merely deleting a domain or disconnecting Git does not stop every billable resource. A detailed release/sunset runbook is completed in Stage 8.
+
+## Your setup checklist — 24 November 2026
+
+Local PostgreSQL is already configured and verified on this machine. The remaining work is dedicated hosted resources and real OAuth credentials. Reuse your existing provider accounts; create separate Portmyfolio resources inside them.
+
+### 1. Supabase
+
+- Create a project named Portmyfolio in a European region close to the eventual Laravel Cloud region. Save the database password in a password manager.
+- From Connect, retain the session-pooler host, port, database, and username. Copy exact dashboard values rather than guessing the endpoint. These go into Laravel Cloud, not the local development database settings.
+- In Storage, create `portmyfolio-cvs` as a private bucket. You may also create `portmyfolio-images` as private for now; its eventual public-delivery configuration belongs to the gallery/cloud work, not account creation.
+- Under Storage S3 configuration, generate server-side S3 access credentials and save the endpoint and region. They are different from Supabase publishable/anon keys. Do not enable Supabase Auth's Google provider; Laravel Socialite handles Google sign-in.
+- Keep the database password and S3 secret out of chat/Git. Do not put production DB values in the local `.env`; we will enter hosted secrets in Laravel Cloud.
+
+### 2. Google
+
+- In Google Cloud Console, create a dedicated Portmyfolio project (or at least a separate Web application OAuth client in an existing project).
+- Configure Google Auth Platform branding/audience for Portmyfolio. If keeping the app in testing mode, add your Google account as a test user where the dashboard requires it.
+- Create an OAuth client of type Web application. Add the exact local redirect URI: `http://127.0.0.1:8000/auth/google/callback`.
+- Save the client ID and secret in a password manager. Enter them in the ignored local `.env` as GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET, then run `php artisan config:clear`. Do not paste them into chat.
+- Once Laravel Cloud assigns a hostname, add `https://YOUR-HOST/auth/google/callback` as another authorized redirect and use that URI in the hosted environment. This is a server-side sign-in flow; no Drive/Gmail scopes are needed.
+
+### 3. Laravel Cloud
+
+- Create/sign into a Laravel Cloud account and connect GitHub with access to `camomilesson/port-my-folio`.
+- Create a Portmyfolio application in a nearby European region. Keep the production branch on main; use the later cloud-deployment branch/environment for setup validation rather than auto-publishing unreviewed work.
+- Review billing and resource estimates. We already use Supabase, so do not provision another database or object store just to satisfy a default wizard. A queue resource will be configured for the hosted checks.
+- Pause before the first deliberate deployment so the environment can receive database, app key, OAuth, storage, and queue configuration. An initial automatic build may fail until that configuration is present.
+- Report the app's public hostname and which resources are ready. No secrets are needed in your reply. We will wire the settings, run the hosted verification checklist above, and review the deployment branch before merging.
+
+### Sources checked
+
+- Supabase Laravel connection guide: https://supabase.com/docs/guides/getting-started/quickstarts/laravel
+- Supabase S3 credentials: https://supabase.com/docs/guides/storage/s3/authentication
+- Google sign-in configuration: https://developers.google.com/identity/openid-connect/openid-connect
+- Laravel Cloud deployment: https://laravel.com/cloud/deploy-a-laravel-app
