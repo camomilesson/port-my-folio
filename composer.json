@@ -44,7 +44,6 @@
             "composer install",
             "@php -r \"file_exists('.env') || copy('.env.example', '.env');\"",
             "@php artisan key:generate",
-            "@php -r \"file_exists('database/database.sqlite') || touch('database/database.sqlite');\"",
             "@php artisan migrate",
             "pnpm install --frozen-lockfile",
             "pnpm build"
@@ -76,7 +75,11 @@
             "Illuminate\\Foundation\\ComposerScripts::prePackageUninstall"
         ],
         "format": "pint",
-        "format:check": "pint --test"
+        "format:check": "pint --test",
+        "test:postgres": [
+            "@php artisan config:clear --ansi @no_additional_args",
+            "@php vendor/bin/pest --configuration=phpunit.postgres.xml"
+        ]
     },
     "extra": {
         "laravel": {
