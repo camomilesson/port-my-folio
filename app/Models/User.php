@@ -7,15 +7,32 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'email', 'google_id', 'email_verified_at'])]
+#[Fillable(['name', 'email', 'google_id', 'email_verified_at', 'username'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
+
+    public function portfolios(): HasMany
+    {
+        return $this->hasMany(Portfolio::class);
+    }
+
+    public function defaultPortfolio(): BelongsTo
+    {
+        return $this->belongsTo(Portfolio::class, 'default_portfolio_id');
+    }
+
+    public function generations(): HasMany
+    {
+        return $this->hasMany(Generation::class);
+    }
 
     /**
      * Get the attributes that should be cast.
