@@ -25,11 +25,12 @@ class DeleteDraftPortfolio
             $projectIds = $locked->projects()->withTrashed()->pluck('id');
             $mediaIds = Media::where('model_type', (new Project)->getMorphClass())->whereIn('model_id', $projectIds)->pluck('id')->all();
             $cvPath = $locked->cvDocument?->storage_path;
+            $cvDisk = $locked->cvDocument?->storageDisk();
             $locked->generations()->update(['input_snapshot' => null, 'progress' => null]);
             $locked->delete();
 
             if ($mediaIds !== [] || $cvPath !== null) {
-                DeletePortfolioFiles::dispatch($mediaIds, $cvPath ? config('portmyfolio.cv_disk') : null, $cvPath)->afterCommit();
+                DeletePortfolioFiles::dispatch($mediaIds, $cvDisk, $cvPath)->afterCommit();
             }
         });
     }

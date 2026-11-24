@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Storage;
 uses(RefreshDatabase::class);
 
 it('restricts each nested resource to its portfolio owner', function (string $type, string $ability) {
-    Storage::fake('public');
+    Storage::fake('images_local');
     $portfolio = Portfolio::factory()->create();
     $project = Project::factory()->for($portfolio)->create();
     $resource = match ($type) {
@@ -38,7 +38,7 @@ it('restricts each nested resource to its portfolio owner', function (string $ty
 ]);
 
 it('does not authorize private access to removed draft projects or their retained media', function () {
-    Storage::fake('public');
+    Storage::fake('images_local');
     $project = Project::factory()->create();
     $owner = $project->portfolio->user;
     $media = $project->addMedia(UploadedFile::fake()->image('sample.png'))->toMediaCollection('gallery');

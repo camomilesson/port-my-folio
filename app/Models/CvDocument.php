@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['portfolio_id', 'storage_path', 'original_filename', 'mime_type', 'size_bytes', 'status', 'extracted_content', 'error_code'])]
+#[Fillable(['storage_disk', 'portfolio_id', 'storage_path', 'original_filename', 'mime_type', 'size_bytes', 'status', 'extracted_content', 'error_code'])]
 class CvDocument extends Model
 {
     /** @use HasFactory<CvDocumentFactory> */
@@ -17,6 +17,11 @@ class CvDocument extends Model
     protected function casts(): array
     {
         return ['size_bytes' => 'integer', 'extracted_content' => 'array'];
+    }
+
+    public function storageDisk(): string
+    {
+        return $this->storage_disk ?? config('portmyfolio.cv_disk');
     }
 
     public function portfolio(): BelongsTo

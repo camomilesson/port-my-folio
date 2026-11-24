@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Storage;
 uses(RefreshDatabase::class);
 
 it('cleans up deleted portfolio files without touching another portfolio and tolerates retries', function () {
-    Storage::fake('public');
+    Storage::fake('images_local');
     Storage::fake('local');
     $project = Project::factory()->create();
     $media = $project->addMedia(UploadedFile::fake()->image('sample.png'))->toMediaCollection('gallery');
@@ -25,8 +25,8 @@ it('cleans up deleted portfolio files without touching another portfolio and tol
     $job->handle();
 
     $this->assertModelMissing($media);
-    Storage::disk('public')->assertMissing($path);
+    Storage::disk('images_local')->assertMissing($path);
     Storage::disk('local')->assertMissing($document->storage_path);
     $this->assertModelExists($other);
-    Storage::disk('public')->assertExists($other->getPathRelativeToRoot());
+    Storage::disk('images_local')->assertExists($other->getPathRelativeToRoot());
 });
