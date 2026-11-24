@@ -78,7 +78,7 @@ The last command prints a probe token. Process it with the worker above, then ch
 php artisan infrastructure:queue TOKEN_FROM_PREVIOUS_COMMAND
 ```
 
-The `/up` endpoint checks application boot; it does not claim to check storage or the database. Infrastructure commands are CLI-only and print no credentials. Storage probes create and delete a disposable text object under `infrastructure-probes/`.
+The `/up` endpoint checks application boot; it does not claim to check storage or the database. Infrastructure commands are CLI-only and print no credentials. Storage probes create and delete a disposable PDF object under `infrastructure-probes/`.
 
 Pest uses the PHPUnit configuration to force an in-memory SQLite database and clears `DB_URL`, keeping tests away from hosted databases. Tests are written in Pest and cover OAuth account creation, stable identity matching, refusal to link by email, invalid OAuth state, logout, protected access, file probe cleanup, and a real database-queue worker round trip. They fake Google responses; they do not establish that a real OAuth client works.
 

@@ -18,10 +18,10 @@ Artisan::command('infrastructure:check {--disk= : Also test a configured storage
 
     if ($diskName = $this->option('disk')) {
         $disk = Storage::disk($diskName);
-        $path = 'infrastructure-probes/'.Str::uuid().'.txt';
-        $fixture = 'Portmyfolio infrastructure probe';
+        $path = 'infrastructure-probes/'.Str::uuid().'.pdf';
+        $fixture = file_get_contents(resource_path('fixtures/infrastructure-probe.pdf'));
         try {
-            if (! $disk->put($path, $fixture) || $disk->get($path) !== $fixture) {
+            if (! $disk->put($path, $fixture, ['ContentType' => 'application/pdf']) || $disk->get($path) !== $fixture) {
                 throw new RuntimeException('Storage round-trip failed.');
             }
             $this->info('Storage write/read: OK');
@@ -32,7 +32,7 @@ Artisan::command('infrastructure:check {--disk= : Also test a configured storage
         }
         $this->info('Storage cleanup: OK');
     }
-})->purpose('Check database and optionally storage using a disposable text fixture');
+})->purpose('Check database and optionally storage using a disposable PDF fixture');
 
 Artisan::command('infrastructure:queue {token?}', function () {
     if ($token = $this->argument('token')) {
