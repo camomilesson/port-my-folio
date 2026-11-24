@@ -1,6 +1,6 @@
 # Stage 1 — Hosted setup and verification
 
-Status: prepared, **not deployed or verified**. Dedicated Portmyfolio resources do not exist yet. Existing projects must not be repurposed or altered implicitly.
+Status: **Stage 1 verified on 24 November 2026**, except hosted image delivery, explicitly deferred until gallery implementation. Dedicated Portmyfolio Supabase, Google OAuth, and Laravel Cloud resources are configured. The steps below remain setup/reference instructions; see the verification record for actual results.
 
 ## Resources to create
 
@@ -14,7 +14,7 @@ Use nearby regions for Laravel Cloud and Supabase. Laravel Cloud hosting does no
 
 ## Configuration
 
-Set secrets through the hosting dashboard, never committed files or chat messages. Use the framework's PostgreSQL connection settings and Supabase's documented connection details. A session-pooler connection is a practical starting point where direct IPv6 connectivity is unavailable. Require TLS (`DB_SSLMODE=require`) and verify the connection from the actual hosted environment.
+Set secrets through the hosting dashboard, never committed files or chat messages. Use the framework's PostgreSQL connection settings and Supabase's documented connection details. The direct connection is verified for this deployment. Session pooling is the fallback if direct IPv6 connectivity becomes unavailable. Require TLS (`DB_SSLMODE=require`) and verify the connection from the actual hosted environment.
 
 ```dotenv
 APP_NAME=Portmyfolio
@@ -56,31 +56,39 @@ Configure `QUEUE_CONNECTION` and any queue environment variables using the curre
 
 ## Build and deployment
 
-Use PHP 8.5 or a compatible supported PHP version and a supported Node version. Install Composer production dependencies from the lockfile, then:
+Verified runtime: PHP 8.5 and Node 26. Configured build commands:
 
 ```sh
+composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
+npm install -g pnpm@12.16.1
 pnpm install --frozen-lockfile
-pnpm build
+pnpm run build
 ```
 
 Confirm pnpm is available in the Cloud build environment and provision the pinned version if necessary. Use `php artisan migrate --force` as a controlled deployment command against the dedicated application's database; never run `migrate:fresh` there. Apply the platform's recommended Laravel optimization commands after environment variables are set. Ensure the queue uses the new release/configuration after deploys.
 
-No deploy commands have been executed against a hosted environment yet.
+The hosted deployment completed successfully, including migrations. Push-to-deploy was disabled during setup. Keep the Cloud Git branch on main after validation/merge; deploy deliberately when automatic deployment is disabled.
 
 ## Verification record
 
-Run these only after resource setup:
+Results below combine user-performed dashboard/terminal checks and the assistant’s explicit hosted health request.
 
-- [ ] `/` renders Portmyfolio with compiled assets; `/up` returns success.
-- [ ] `php artisan infrastructure:check` succeeds against Supabase PostgreSQL.
-- [ ] `php artisan infrastructure:check --disk=s3` writes, reads, and deletes the CV-bucket fixture.
-- [ ] A direct unauthenticated request cannot retrieve a private CV object.
-- [ ] Image bucket delivery works with a disposable image and its intended public URL; remove the fixture afterward.
-- [ ] Dispatch `php artisan infrastructure:queue`, let the managed worker process it, and check the printed token with the same command.
-- [ ] Complete actual Google login, reach the protected dashboard, sign out, and confirm dashboard access redirects to login.
-- [ ] Confirm callback URLs, secure sessions, APP_DEBUG=false, and absence of secrets from application output.
+- [x] User confirmed the styled homepage; assistant independently checked `/up`: HTTP 200.
+- [x] Hosted infrastructure command reports Database connection: OK using Supabase direct PostgreSQL.
+- [x] User confirmed PDF probe write/read/cleanup all OK. Probe uses a real PDF and application/pdf, matching the CV bucket restriction.
+- [x] User tested the uploaded fixture’s unsigned public URL: 404 NoSuchBucket. This verifies that public download path is blocked; signed URLs intentionally behave differently.
+- [ ] Deferred by agreement: no image bucket created yet. Verify hosted image delivery before galleries ship in Stages 3–4.
+- [x] User configured Cloud’s managed worker and confirmed Queue probe completed using the printed status command.
+- [x] User confirmed real hosted Google sign-in, workspace access, logout, and renewed authentication requirement.
+- [x] Hosted callback registered in Google; production environment configured with APP_DEBUG=false and secure database-backed sessions. Secret values are not reproduced in this record.
 
-Record deployment URL, date, runtime versions, queue configuration, and actual results here after verification. Automated tests with faked Google/storage services do not count as hosted verification.
+Deployment: https://portmyfolio-production-ksrkiz.laravel.cloud/ · verified 24 November 2026 · Ireland · PHP 8.5 / Node 26. Supabase direct PostgreSQL with DB_SSLMODE=require; database-backed sessions/cache; private portmyfolio-cvs bucket (PDF only, 10 MB maximum). Queue setup followed Cloud managed-queue instructions: Standard/Flex, default queue, 256 MiB, 0–1 workers. Worker completion is user-reported; settings were not independently read through the Cloud API.
+
+Remove the custom QUEUE_CONNECTION=database override in the hosted environment when using managed queues; allow Cloud to inject its managed connection. Do not change the local development queue configuration.
+
+Managed Flex job-duration and message-delay limits must be accounted for when designing the AI pipeline and GitHub rate-limit retries in Stages 5–6; do not assume that a single hour-long delayed job or unbounded AI job is supported.
+
+Automated fakes do not count as hosted verification. The broad final release/security and restore checks remain in Stage 8.
 
 ## Costs and shutdown
 

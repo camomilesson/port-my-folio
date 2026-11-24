@@ -215,7 +215,7 @@ Review: decide whether to open the experimental public demo and what hosting lif
 - [x] Freeze product vision.
 - [x] Agree initial data architecture; remove featured-project selection.
 - [x] Write staged development plan.
-- [ ] Stage 1 — Foundation and infrastructure proof.
+- [x] Stage 1 — Foundation and infrastructure proof (completed 24 November 2026; hosted image delivery explicitly deferred).
 - [ ] Stage 2 — Schema, account onboarding, and ownership.
 - [ ] Stage 3 — Manual draft editor and galleries.
 - [ ] Stage 4 — Publishing and default portfolio routing.
@@ -224,7 +224,7 @@ Review: decide whether to open the experimental public demo and what hosting lif
 - [ ] Stage 7 — Three presets and product polish.
 - [ ] Stage 8 — Release, assessment, and portfolio evidence.
 
-## Stage 1 execution notes — 23 November 2026
+## Stage 1 execution notes — 23 November 2026 (historical; superseded below)
 
 - Laravel 13 scaffold installed with Herd PHP 8.5; Socialite and S3 adapter installed.
 - Local welcome page, protected placeholder workspace, Google callback/logout, and CLI infrastructure probes implemented.
@@ -245,3 +245,18 @@ Branch: `chore/local-postgres`, kept separate from main until review. Local Post
 PostgreSQL is now the example/default development configuration. SQLite remains the default isolated test backend, with a separate fixed-loopback PostgreSQL test profile. Both suites pass (14 tests, 51 assertions each). Migrations, local file round-trip, and PostgreSQL-backed development queue processing pass. Supabase, real OAuth, hosted storage/queue, and Laravel Cloud checks remain pending; Stage 1 is not complete.
 
 Subsequent significant changes use branches and focused commits. Preserve atomic commits when merging after validation; do not squash them. The cloud-deployment branch starts after the local PostgreSQL branch is reviewed/merged.
+
+## Stage 1 completion — 24 November 2026
+
+Foundation and infrastructure proof are complete. The historical pending notes above record earlier states, not outstanding blockers.
+
+- Local PostgreSQL 17.12 and isolated development/test databases verified; chore/local-postgres merged into main with its atomic commits preserved.
+- Pest suite passes on SQLite and PostgreSQL after merge: 15 tests / 56 assertions on each. Composer validation passes.
+- Laravel Cloud production deployed with PHP 8.5 / Node 26 in Ireland, using Supabase's direct PostgreSQL connection with TLS. User confirmed styled homepage, real Google login/logout, and protected dashboard access. Hosted /up independently returns HTTP 200.
+- CV bucket is private, PDF-only, maximum 10 MB. User confirmed the known fixture's public download URL returns 404 NoSuchBucket; this is an anonymous public-path check, not a comprehensive storage policy audit.
+- PDF storage probe successfully writes, reads, and deletes its fixture in the hosted bucket. The text-fixture mismatch was fixed and regression-tested on fix/pdf-storage-probe, validated in Cloud, then merged into main.
+- User configured the hosted managed worker and confirmed Queue probe completed. Local database queues remain separate from Cloud's managed queue configuration.
+- Image bucket setup and public-image delivery checks are deliberately deferred to Stages 3–4, before galleries ship.
+- Branch workflow is active: significant changes on branches, atomic type/emoji commits, validation before merge. Production uses main; push-to-deploy was disabled during setup, so release changes require a deliberate deploy.
+
+Next review boundary: begin Stage 2 on a new feature branch when requested. No Stage 2 implementation is included in this closure.

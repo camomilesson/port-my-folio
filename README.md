@@ -1,6 +1,6 @@
 # Portmyfolio
 
-A Laravel portfolio builder that turns a PDF CV and up to five public GitHub READMEs into an editable personal website. Currently at **Stage 1: local foundation**. Generation and portfolio editing are not implemented yet.
+A Laravel portfolio builder that turns a PDF CV and up to five public GitHub READMEs into an editable personal website. **Stage 1 is complete:** local foundation and hosted infrastructure verified. Generation and portfolio editing are not implemented yet.
 
 - [Product vision](VISION.md)
 - [Data model](DATA_MODEL.md)
@@ -105,6 +105,6 @@ Spatie Media Library 11 manages future project galleries through its standard `m
 ## Current limitations
 
 - No portfolio schema/editor, publishing, PDF parsing, GitHub import, AI generation, or usage limits yet.
-- Supabase, real Google sign-in, and Laravel Cloud deployment have not been verified.
+- Hosted Google sign-in/logout, direct Supabase PostgreSQL, private CV storage, managed queue processing, and the health endpoint have been verified. Image bucket setup/delivery remains deferred to the gallery stage.
 - The framework scaffold still contains nullable password infrastructure for compatibility; there is no public password authentication feature. The application-owned schema is introduced in Stage 2.
 - This is an experimental course/demo project; permanent hosted availability is not promised.
