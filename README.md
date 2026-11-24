@@ -11,7 +11,7 @@ A Laravel portfolio builder that turns a PDF CV and up to five public GitHub REA
 
 - PHP 8.5 with Composer 2 for the currently verified lockfile; development uses Herd PHP 8.5.
 - Node.js 22.12+ (development currently uses Node 26) and pnpm 12.16.1.
-- SQLite for the initial local scaffold. PostgreSQL is the target development/production database; it has not yet been verified locally.
+- PostgreSQL 17 for local development and database integration tests. SQLite remains the fast, isolated default test database.
 
 Composer and pnpm lockfiles pin actual dependency versions. The application currently uses Laravel 13 and Tailwind 4.
 
@@ -23,10 +23,9 @@ cp .env.example .env
 php artisan key:generate
 ```
 
-Create the SQLite file if absent:
+Create the local database role and databases using the PostgreSQL instructions below. Put the role password in your ignored `.env`, then:
 
 ```sh
-php -r "file_exists('database/database.sqlite') || touch('database/database.sqlite');"
 php artisan migrate
 pnpm install --frozen-lockfile
 pnpm build
@@ -39,7 +38,7 @@ Open http://127.0.0.1:8000. For frontend changes run `pnpm dev` in another termi
 php artisan queue:work --tries=2 --timeout=60
 ```
 
-The local defaults use SQLite for data, sessions, cache, and the queue. CV files use `storage/app/private`; public-image files use `storage/app/public`. No external credentials are required to view the landing page or run automated tests. Google sign-in shows a configuration message until a dedicated OAuth client is added. Local image serving will need `php artisan storage:link` when the gallery is implemented.
+Local data, sessions, cache, and queue jobs use PostgreSQL. CV files use `storage/app/private`; public-image files use `storage/app/public`. No hosted service credentials are required to view the landing page or run automated tests. Google sign-in shows a configuration message until a dedicated OAuth client is added. Local image serving will need `php artisan storage:link` when the gallery is implemented.
 
 ### Google sign-in
 
@@ -47,9 +46,20 @@ Set `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and `GOOGLE_REDIRECT_URI` in you
 
 Google-only production sign-in is implemented. There is no password-login endpoint or local assessment login yet. Accounts use Google IDs and do not automatically link on matching email addresses.
 
-### Local PostgreSQL (pending)
+### Local PostgreSQL
 
-Install/start a local PostgreSQL service, create a dedicated development database and user, then configure:
+On macOS with Homebrew:
+
+```sh
+brew install postgresql@17
+brew services start postgresql@17
+export PATH="$(brew --prefix postgresql@17)/bin:$PATH"
+createuser --login --no-superuser --no-createdb --no-createrole --pwprompt portmyfolio
+createdb --owner=portmyfolio portmyfolio
+createdb --owner=portmyfolio portmyfolio_test
+```
+
+Run role/database creation once; do not overwrite existing resources. The password prompt keeps the password out of shell history. Set that password as `DB_PASSWORD` in `.env`. The application role owns these two databases and is not a PostgreSQL superuser.
 
 ```dotenv
 DB_CONNECTION=pgsql
@@ -57,15 +67,19 @@ DB_HOST=127.0.0.1
 DB_PORT=5432
 DB_DATABASE=portmyfolio
 DB_USERNAME=portmyfolio
-DB_PASSWORD=your-local-password
+DB_PASSWORD=YOUR-LOCAL-ROLE-PASSWORD
+DB_SSLMODE=prefer
 ```
 
-Remove an existing `DB_URL` if switching from a hosted connection. Run `php artisan config:clear`, `php artisan migrate`, and `php artisan infrastructure:check`. This setup is not marked verified until a local PostgreSQL server is available. Do not substitute a production database for local/testing work.
+Remove an existing hosted `DB_URL` when switching to local development. Run `php artisan config:clear`, `php artisan migrate`, and `php artisan infrastructure:check`. Homebrew keeps the cluster outside the repository; its service starts again at login. Stop it with `brew services stop postgresql@17` when desired. Homebrew's fresh local cluster uses local trust authentication by default; this is a loopback development service, not a configuration to deploy to a remote server.
+
+Verified locally on 24 November 2026 using PostgreSQL 17.12 and Herd PHP 8.5: migrations, local file round-trip, database queue processing, and the full test suite. Existing SQLite files were left untouched; their contents are not copied into PostgreSQL. The current local `.env` already has the generated role password, so no repeat setup is needed on this machine.
 
 ## Verification
 
 ```sh
 composer test
+composer test:postgres
 composer format:check
 pnpm build
 php artisan infrastructure:check --disk=local
@@ -80,7 +94,7 @@ php artisan infrastructure:queue TOKEN_FROM_PREVIOUS_COMMAND
 
 The `/up` endpoint checks application boot; it does not claim to check storage or the database. Infrastructure commands are CLI-only and print no credentials. Storage probes create and delete a disposable PDF object under `infrastructure-probes/`.
 
-Pest uses the PHPUnit configuration to force an in-memory SQLite database and clears `DB_URL`, keeping tests away from hosted databases. Tests are written in Pest and cover OAuth account creation, stable identity matching, refusal to link by email, invalid OAuth state, logout, protected access, file probe cleanup, and a real database-queue worker round trip. They fake Google responses; they do not establish that a real OAuth client works.
+`composer test` uses `phpunit.xml` to force in-memory SQLite and clear `DB_URL`. `composer test:postgres` uses `phpunit.postgres.xml` to force PostgreSQL at `127.0.0.1:5432`, the `portmyfolio` role, and the disposable `portmyfolio_test` database, also clearing `DB_URL`. It reads only the role password from your local `.env`; never point the normal development configuration at a hosted database while running local checks. The PostgreSQL suite uses the real schema and may recreate tables inside that dedicated test database. Tests are written in Pest and cover OAuth account creation, stable identity matching, refusal to link by email, invalid OAuth state, logout, protected access, file probe cleanup, and a real database-queue worker round trip. They fake Google responses; they do not establish that a real OAuth client works.
 
 `migrate:fresh --seed` is destructive: use it only against a disposable local database. Rich application factories/fixtures and the assessment-only sign-in mechanism arrive in Stage 2.
 
@@ -91,6 +105,6 @@ Spatie Media Library 11 manages future project galleries through its standard `m
 ## Current limitations
 
 - No portfolio schema/editor, publishing, PDF parsing, GitHub import, AI generation, or usage limits yet.
-- Supabase, real Google sign-in, local PostgreSQL, and Laravel Cloud deployment have not been verified.
+- Supabase, real Google sign-in, and Laravel Cloud deployment have not been verified.
 - The framework scaffold still contains nullable password infrastructure for compatibility; there is no public password authentication feature. The application-owned schema is introduced in Stage 2.
 - This is an experimental course/demo project; permanent hosted availability is not promised.
