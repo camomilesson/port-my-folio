@@ -1,6 +1,6 @@
 # Portmyfolio
 
-A Laravel portfolio builder that turns a PDF CV and up to five public GitHub READMEs into an editable personal website. **Stages 1–5 are deployed; Stage 6 passed local end-to-end review and is approved for production promotion.** Generation now runs through durable queued steps with private checkpoints, quota reservation, retry/recovery and owner-only progress. The full hosted generation-to-publication journey still needs deployment and verification.
+A Laravel portfolio builder that turns a PDF CV and up to five public GitHub READMEs into an editable personal website. **Stages 1–6 are deployed and verified. Stage 6.1 is implemented locally on `codex/stage-6-1-demo-flow`, awaiting review:** minimal inputs lead straight into an owner-only portfolio that fills from generation checkpoints, with required Technical details on new projects. Inline pencil editing follows in Stage 6.2.
 
 - [Product vision](VISION.md)
 - [Data model](DATA_MODEL.md)
@@ -164,3 +164,16 @@ Processing order: validate frozen evidence, extract CV, generate each project in
 Deletion terminalizes active work, revokes leases, detaches quota history, redacts inputs/checkpoints and queues files for deletion. An already-sent provider request can still incur cost, but its late result is discarded. Completed-request usage/model/prompt metadata is recorded per checkpoint; a worker crash after a charged request but before checkpoint commit can require repeating that request.
 
 `php artisan gemini:check --scanned --no-interaction` sends the bundled image-only fictional CV. The controlled live check passed on 25 November 2026 with gemini-3.5-flash-lite: professional headline, contact, dates, experience, education and skills matched the fixture. Automated tests continue to use fakes. User completed local generation/content/publication review and approved promotion. Hosted worker/recovery configuration and the production generation journey still need verification.
+
+
+## Stage 6.1 local review
+
+Keep the app, queue worker and scheduler running as described above. Restart an already-running queue worker after switching to this branch so it loads the new provider contract (`php artisan queue:restart`, then restart a manually managed worker if it exits). The additive technical_details migration is applied locally; no provider credential or dependency change is required.
+
+New portfolio now asks for a PDF and repository URLs; optional focus is collapsed. Generate creates the title/address, stores the PDF/repository identities and reserves/queues generation in the same transaction. GitHub fetching and README preflight run in the queued Checking inputs step so the form can open the portfolio promptly. A failed quota reservation rolls back the new portfolio and its PDF. The two predefined demo repositories use the previously confirmed Solo developer roles; other repositories use Contribution not specified. The former explicit-title/role draft endpoint remains supporting functionality, outside the primary input screen.
+
+The owner is redirected to the portfolio's private preview with placeholders. Completed CV extraction and individual projects appear from checkpoints; profile wording follows later. Polling refreshes the portfolio content without navigating away or publishing it. Refresh/revisit reconstructs saved progress. A failed attempt keeps completed sections visible and offers Retry remaining steps. Existing backend edits remain blocked while active, and final draft assembly remains atomic.
+
+New project generation must return technical_details (required plain text, maximum 10,000 characters), covering supported implementation details beyond the overview/tags. It is persisted and included in public snapshots. The existing project editor can edit it; inline editing is Stage 6.2. Legacy finished portfolios/snapshots remain readable with empty technical details and are not regenerated or rewritten.
+
+Review with a fresh portfolio and the selected demo CV/repositories: confirm direct transition, CV/project filling, refresh/revisit, final home/CV wording and substantive Technical details on both project pages. Publish explicitly and confirm that public content stays isolated from draft edits. Full live generation through the redesigned screen remains the user's review checkpoint; automated HTTP/provider fakes prove the step-by-step projection and failure behavior without spending quota or sending personal PDFs.
