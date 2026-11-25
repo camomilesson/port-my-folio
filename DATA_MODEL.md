@@ -85,7 +85,7 @@ Maximum five projects is enforced transactionally in application actions; it is 
 
 ## Media (Spatie Media Library)
 
-Use Spatie's standard `media` table and model instead of a parallel ProjectImage table. Projects will implement HasMedia and use InteractsWithMedia, with a `gallery` collection. CvDocument remains our separate private PDF/extraction model.
+Use Spatie's standard `media` table and model instead of a parallel ProjectImage table. Projects implement HasMedia and use InteractsWithMedia, with a `gallery` collection. CvDocument remains our separate private PDF/extraction model.
 
 | Media field | Purpose |
 | --- | --- |
@@ -167,7 +167,7 @@ Stage 3 settles editor field lengths, gallery/file limits, and manual project ad
 
 Usernames are immutable after onboarding, normalized to lowercase, 3–30 characters, start with a letter, and use letters/digits separated by single hyphens; application-reserved names are rejected. Portfolio titles allow 120 characters, slugs 64, and optional focus text 5,000. Slugs are unique per owner. Creation accepts only title/slug/focus; ownership and publication fields cannot be supplied by the form.
 
-The current delete action accepts only unpublished portfolios without queued/running generations. It removes database access transactionally, preserves generation usage rows with their source/progress payloads redacted, and dispatches retryable file cleanup after commit. Full publication-aware removal remains a later-stage requirement. Seeded publication data currently serves model/dashboard demonstrations rather than public pages.
+Historical Stage 2 behavior: deletion accepted only unpublished portfolios without queued/running generations. Stage 4 now supports published deletion; active-generation deletion remains blocked until Stage 6. It removes database access transactionally, preserves generation usage rows with their source/progress payloads redacted, and dispatches retryable file cleanup after commit. Full publication-aware removal remains a later-stage requirement. Historical Stage 2 fixtures served model/dashboard demonstrations; fresh Stage 4 fixtures also support public pages.
 
 
 ## Stage 3 content and file contracts
@@ -180,7 +180,7 @@ Source CV is one immutable private PDF up to ten MB, with MIME/signature/complet
 
 Gallery inputs are still JPEG/PNG/WebP, ten MB maximum, 12,000 pixels per side and 24 megapixels total; ten active images per project. GD decodes/reorients/resizes to fit 2,400 pixels and encodes WebP at quality 85 without metadata. Only that processed file is persisted under an immutable UUID filename. Captions/alt text allow 500 characters. custom_properties.decorative=true implies empty alt_text; otherwise a description is required. Use private images_local or images_s3 storage, never a public bucket. Owner previews deliver files via authorized non-cacheable routes.
 
-Draft image deletion sets draft_removed; project deletion soft-deletes its owner. Queued cleanup physically removes unreferenced draft tombstones but retains all media when the portfolio has any published snapshot. Public delivery and precise post-publication cleanup are Stage 4 obligations. Row locks serialize cap checks and ordering; draft mutations reject queued/running generation. File operations account for failures independently of database rollback, with retryable cleanup jobs.
+Draft image deletion sets draft_removed; project deletion soft-deletes its owner. Stage 3 cleanup retained all media while a snapshot existed. Stage 4 supersedes that behavior with reference-aware cleanup across draft and publication, plus controlled public delivery. Row locks serialize cap checks and ordering; draft mutations reject queued/running generation. File operations account for failures independently of database rollback, with retryable cleanup jobs.
 
 
 ## Stage 4 publication invariants — 25 November 2026
@@ -192,3 +192,10 @@ If the owner has no default, publication assigns this portfolio atomically. Publ
 The original PDF is downloadable whenever published: no permission toggle or separate revocation action. New CV content and snapshots omit allow_original_download; any legacy value is ignored. Publish confirmation explains both portfolio and original-PDF exposure. Unpublish disables new public page/media/PDF requests. Already downloaded files cannot be recalled.
 
 Publication cleanup runs after commit and checks current draft and snapshot references again under a lock. It may remove tombstoned media or force-delete a soft-deleted project only after neither version references them. Initial-generation eligibility is enforced server-side; local fixtures simulate success without exposing a production bypass. No shared public cache is introduced, avoiding stale published content/download access after unpublish.
+
+
+## Stage 5 collection and provider boundary — 25 November 2026
+
+Focus is optional (5,000 characters). Creation validates and collects one immutable PDF (10 MB, 1–20 pages) and 1–5 normalized public repositories/roles together. Project title/summary/overview start empty; README evidence and fetched_at are stored separately. No Generation record exists until Stage 6 starts the durable pipeline. No AI request is made during collection.
+
+Full READMEs must contain more than 200 meaningful characters and fewer than 100,000 bytes. Public evidence caches for one hour; saved project evidence lasts with the portfolio. Portfolio deletion cascades CV/project evidence deletion, redacts generation input/progress and queues file cleanup. Shared public README caches expire after one hour. Provider results carry validated content, provider/model/prompt version and usage. Stage 6 will persist extraction/checkpoints and atomically assemble editable content; Stage 5 exposes no paid extraction web endpoint or regeneration action.
