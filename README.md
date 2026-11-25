@@ -195,3 +195,12 @@ Open a generated portfolio from the workspace. After generation succeeds, use it
 On a project, Add images accepts multiple JPEG/PNG/WebP files. Give each image a description or explicitly mark it decorative, with an optional caption. The whole selection is validated before appending; failure leaves the gallery unchanged. The cap is ten active images per project, at 10 MB per uploaded file. Gallery caption, description and decorative choices can be edited in place; saving a description makes the image non-decorative. Images keep the existing private, metadata-stripped WebP processing.
 
 Saved edits update only the private draft. Publish / Publish changes opens the original-PDF disclosure and explicit confirmation, then returns to the portfolio. View published opens the public snapshot, which has no editing controls. Edits do not call Gemini. No new environment variables, migrations or dependencies are needed for this stage; check the combined upload limits above before reviewing a large image batch.
+
+
+### Stage 6.2 pre-review changes
+
+Project roles have been removed from inputs, settings, presentation and generation context. New project prompts describe repository functionality without claiming personal authorship (prompt version portfolio-v4). Restart the queue worker before generating after this update.
+
+On the ready portfolio home, Add photo uploads one JPEG/PNG/WebP file (10 MB maximum), processed privately like gallery images. It appears on the right at desktop widths and below the introduction on mobile. Change photo replaces the draft version; the public photo changes only when you Publish changes. The original photo upload is not retained. Existing worker processing cleans unused replaced photos, while preserving current/published references.
+
+Project galleries now appear after the title, summary and technologies, before Overview and Technical details. Click the left/right side controls to move through images; navigation wraps, with no automatic rotation. The existing multi-upload and image-detail pencils remain available. No migration or new environment variable is needed.

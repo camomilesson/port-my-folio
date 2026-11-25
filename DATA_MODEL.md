@@ -233,3 +233,10 @@ No rolling-window queries, reserved slots or account exemptions remain. Earlier 
 Owner-only pencils edit existing content on the rendered portfolio after successful generation. Home: shared name/headline and introduction. Projects: title, summary, overview, required technical details and comma-separated technology tags. CV: existing content fields, with fixed section headings; entry identities, array structure and ordering cannot be edited. Use appropriate short/paragraph/date/link/boolean inputs with in-place Save/Cancel and validation. Shared name/headline remain synchronized between home and CV. Address/repository identity and source evidence stay fixed.
 
 Project galleries gain Add images with multiple selection, preserving the ten-image cap and existing processed-only private storage. Validate the complete batch first and append atomically; preserve per-image captions, descriptions and decorative choices, editable on the project page. No gallery reorder controls, no CV/project add/remove/reorder controls, no AI calls from editing. Public pages contain no owner controls, and saved edits stay private until Publish changes.
+
+
+### Stage 6.2 photo and role simplification
+
+Project author_role is now a compatibility-only database column, blank on newly created projects. It is no longer accepted as editable content, presented, copied into new snapshots or supplied as generation context; submitted legacy values are ignored. Existing stored values need no destructive migration.
+
+A portfolio's optional home_content.photo holds the immutable photo identity, private disk/path, image/webp MIME type and processed dimensions. Published snapshots copy this into optional top-level photo; old snapshots may omit it. Served URLs identify the version with an opaque UUID, check ownership for private drafts and check the exact published photo identity for public access. Replacements retain publicly referenced bytes until republishing or unpublishing. Cleanup checks both references under the portfolio lock, and deletion queues both current and published photo files. Carousel position is browser presentation state, not persisted gallery ordering.

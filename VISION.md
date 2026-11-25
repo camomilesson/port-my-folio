@@ -263,3 +263,8 @@ User explicitly removed the application generation quota for the demo. This supe
 Owner-only pencils edit existing content on the rendered portfolio after successful generation. Home: shared name/headline and introduction. Projects: title, summary, overview, required technical details and comma-separated technology tags. CV: existing content fields, with fixed section headings; entry identities, array structure and ordering cannot be edited. Use appropriate short/paragraph/date/link/boolean inputs with in-place Save/Cancel and validation. Shared name/headline remain synchronized between home and CV. Address/repository identity and source evidence stay fixed.
 
 Project galleries gain Add images with multiple selection, preserving the ten-image cap and existing processed-only private storage. Validate the complete batch first and append atomically; preserve per-image captions, descriptions and decorative choices, editable on the project page. No gallery reorder controls, no CV/project add/remove/reorder controls, no AI calls from editing. Public pages contain no owner controls, and saved edits stay private until Publish changes.
+
+
+### Stage 6.2 pre-review refinements
+
+Project roles are removed from the demo inputs and presentation. Generated project prose describes repository functionality without assigning personal contributions to the portfolio owner. Home supports one uploaded portfolio photo beside the introduction, on the right for desktop and stacked for mobile. The project gallery sits immediately below the project name, summary and technologies, using manual left/right wraparound carousel navigation. Photo and gallery edits follow private-draft publication semantics. These decisions supersede the earlier project-role requirements.
