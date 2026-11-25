@@ -10,7 +10,7 @@ class GeminiPortfolioProvider implements PortfolioGenerationProvider
     /** @param array<string, mixed> $evidence */
     public function generateProject(array $evidence): ProviderResult
     {
-        $result = $this->request([['text' => 'Write only this repository-backed project. Respect the supplied author role. Evidence: '.json_encode($evidence, JSON_THROW_ON_ERROR)]], false, 'project');
+        $result = $this->request([['text' => 'Write only this repository-backed project. The overview explains functionality at a birds-eye level. The required technical_details section explains how the project works: architecture, components, data flow, integrations, storage or deployment, strictly where supported by the README. It must add substantive detail rather than repeat the overview or list technology names. Never invent implementation details. Respect the supplied author role; Contribution not specified means make no personal contribution claims. Evidence: '.json_encode($evidence, JSON_THROW_ON_ERROR)]], false, 'project');
         foreach (['repository_owner', 'repository_name'] as $field) {
             if (strtolower($result->content[$field]) !== strtolower($evidence['project'][$field])) {
                 throw new ProviderFailure('invalid_output', 'The provider changed the repository identity.');
@@ -111,6 +111,6 @@ class GeminiPortfolioProvider implements PortfolioGenerationProvider
             default => GenerationContent::validate($content, $extraction),
         };
 
-        return new ProviderResult($content, 'gemini', $model, 'portfolio-v2', $response->json('usageMetadata', []));
+        return new ProviderResult($content, 'gemini', $model, 'portfolio-v3', $response->json('usageMetadata', []));
     }
 }

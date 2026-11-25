@@ -16,6 +16,7 @@
             <x-form-input name="author_role" label="Your role" :value="$project?->author_role" required maxlength="255" />
             <x-form-textarea name="summary" label="Short summary" :value="$project?->summary" rows="3" maxlength="1000" />
             <x-form-textarea name="overview" label="Project overview" :value="$project?->overview" rows="8" maxlength="10000" />
+            <x-form-textarea name="technical_details" label="Technical details" :value="$project?->technical_details" rows="8" maxlength="10000" required />
             <x-form-textarea name="technologies_text" label="Technologies (one per line)" :value="implode(chr(10), $project?->technologies ?? [])" rows="4" maxlength="3000" />
             <x-form-input name="live_url" label="Live demo URL (optional)" type="url" :value="$project?->live_url" maxlength="2048" />
             <button class="rounded-full bg-stone-900 px-6 py-3 font-semibold text-white">{{ $project ? 'Save project draft' : 'Add project' }}</button>

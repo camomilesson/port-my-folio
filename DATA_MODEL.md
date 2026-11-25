@@ -35,8 +35,8 @@ No production password login. Portfolio display names remain independent of the 
 | Field | Shape / constraint |
 | --- | --- |
 | user_id | Owner foreign key |
-| title | Dashboard title |
-| slug | Normalized public slug; unique with user_id |
+| title | Dashboard title; generated from account identity in the primary demo flow |
+| slug | Automatically generated stable public slug in the primary flow; unique with user_id |
 | focus | Target audience / job context |
 | preset | Validated preset identifier |
 | accent_color | Valid hex color, without contrast restrictions |
@@ -74,6 +74,7 @@ The extraction record is evidence. Portfolio.cv_content is editable presentation
 | readme_content | Nullable collected evidence before fetching finishes |
 | readme_fetched_at | Nullable evidence timestamp |
 | title, summary, overview | Editable content; may be empty during input collection |
+| technical_details | Required new generation output; editable text up to 10,000 characters; empty compatibility default for older rows |
 | technologies | Validated JSON string array |
 | live_url | Nullable validated HTTP(S) URL |
 | position | Integer ordering key |
@@ -81,7 +82,7 @@ The extraction record is evidence. Portfolio.cv_content is editable presentation
 
 No is_featured: show every project on the homepage in position order, using id as a deterministic tie-breaker. Repository URLs are derived from normalized identity. Projects in separate portfolios remain separate records, even when they describe the same repository. No shared Repository or Technology model is needed in the MVP. README fetch caching uses normalized repository identity.
 
-Maximum five projects is enforced transactionally in application actions; it is not a simple row-level database constraint. Manual post-generation repository-backed additions are allowed, without any AI call or quota use. Repository identity and slug remain fixed on an existing project. A removed repository can be restored as a manual draft project; generation evidence is never rewritten.
+Maximum five projects is enforced transactionally in application actions; it is not a simple row-level database constraint. Manual post-generation repository-backed additions are allowed, without any AI call. Repository identity and slug remain fixed on an existing project. A removed repository can be restored as a manual draft project; generation evidence is never rewritten.
 
 ## Media (Spatie Media Library)
 
@@ -121,9 +122,9 @@ Spatie automatically cleans up media when a HasMedia owner is deleted. Therefore
 
 One generation is the initial pipeline, not one provider request. Automatic retries continue that record and reuse completed steps. Successful generation cannot be restarted. A failed initial attempt may be resumed/retried under a defined recovery policy, without regenerating an already completed portfolio.
 
-Quota reservation locks the user row in a transaction. Count all queued/running reservations plus successes completed in the previous seven days; permit a new attempt only below three. Success starts the seven-day usage window; permanent failure releases the reservation. Portfolio deletion preserves the quota record. Recovery of abandoned queued/running records needs bounded timeouts so reservations cannot remain stuck indefinitely.
+Generation start locks the user and portfolio rows to reject duplicate starts and coordinate draft writes/deletion. There is no account quota or slot reservation. Retain generation status/timestamps and provider usage for processing/debugging. Recovery still terminalizes abandoned work with bounded attempts and deadlines.
 
-Deleting a portfolio during active processing must cancel/terminalize its work before detaching it. Jobs check that the target still exists and is eligible before writing. Retained quota records must not indefinitely retain deleted CV content, focus, or README evidence: redact input/progress payloads on deletion while preserving quota timestamps/status/owner.
+Deleting a portfolio during active processing must cancel/terminalize its work before detaching it. Jobs check that the target still exists and is eligible before writing. Retained generation records must not indefinitely retain deleted CV content, focus, or README evidence: redact input/progress payloads on deletion while preserving processing timestamps/status/owner.
 
 ## Initial JSON contracts
 
@@ -150,12 +151,12 @@ Stable entry IDs support editing/reordering. Dates accept YYYY or YYYY-MM, with 
 ## Application boundaries
 
 - Form requests validate inputs; policies enforce ownership, including nested resource ownership.
-- StartPortfolioGeneration validates eligibility, reserves quota, freezes inputs, and dispatches durable work.
+- StartPortfolioGeneration validates eligibility, freezes inputs, and dispatches durable work.
 - PublishPortfolio validates complete content and atomically captures a consistent snapshot; coordinate with draft mutations to avoid mixed versions.
 - UnpublishPortfolio and SetDefaultPortfolio maintain the default-selection invariant.
-- DeletePortfolio coordinates active jobs, quota preservation, published references, and file cleanup.
+- DeletePortfolio coordinates active jobs, history redaction, published references, and file cleanup.
 - Complete initial generation atomically exposes its assembled draft; disallow conflicting edits while initial generation is active.
-- Use database constraints for foreign keys/uniqueness and application transactions for cross-record invariants. Add indexes for portfolio ordering and quota lookups.
+- Use database constraints for foreign keys/uniqueness and application transactions for cross-record invariants. Add indexes for portfolio ordering and generation status lookups.
 - Keep deterministic local demo fixtures and factories for all application-owned models, with Spatie media fixtures; do not require external providers to seed the database.
 
 ## Deferred decisions
@@ -211,3 +212,17 @@ Progress is saved and polled: Checking inputs, Reading CV, Writing projects (com
 
 
 Stage 6 implementation adds run_version, lease_token, lease_expires_at and next_run_at to Generation. Queue payloads contain only generation ID/run version; source content remains in private database snapshots. progress.done and progress.checkpoints track validated extraction/project/profile completion; attempts counts technical calls per step per run. usage stores per-step provider/model/prompt/usage metadata. Terminal deletion clears source/progress and all lease/schedule fields, increments run_version and marks active work failed/cancelled while preserving succeeded usage history. Frozen failed-attempt inputs are protected from editor mutations; retries reuse the same record and checkpoints. Assembly writes CV extraction evidence plus home/CV/project presentation atomically under owner/portfolio/generation locks.
+
+
+## Stage 6.1 demo-flow revision — 25 November 2026
+
+The primary demo journey is now PDF/repository inputs → private portfolio filling from generation checkpoints → ready draft, with inline pencil editing reserved for Stage 6.2. Title/address are generated automatically; optional focus is secondary. Existing backend authorization, quota, frozen inputs, retries and publication isolation remain. The two agreed camomilesson demo repositories retain their previously supplied Solo developer context; unknown repositories have no assumed personal contribution.
+
+Technical details is a required field on newly generated projects, separate from the functionality overview and technology tags. The existing per-project call returns technical_details grounded in the full README; no additional provider call. Persist the field and include it in publication snapshots and editor validation. Older portfolios/snapshots remain readable with an empty compatibility value; existing generated portfolios cannot regenerate to populate it.
+
+During generation, owner-only previews derive a transient presentation from completed extraction, project and profile checkpoints. Pending sections show explicit placeholders rather than fabricated content. Reload/revisit reconstructs the presentation; terminal failure retains completed sections and offers retry in place. Final draft assembly remains atomic. Public requests never read checkpoints and existing publication snapshots remain unchanged until Publish changes. The current separate editor remains supporting navigation until Stage 6.2 replaces it.
+
+
+## Quota removal — 25 November 2026
+
+No rolling-window queries, reserved slots or account exemptions remain. Earlier quota-specific descriptions are historical. Generation rows/usage and deletion redaction remain useful processing history and require no schema change.

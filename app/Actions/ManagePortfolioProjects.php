@@ -42,7 +42,7 @@ class ManagePortfolioProjects
                 }
                 $project->position = ($locked->projects()->max('position') ?? -1) + 1;
             }
-            $project->fill(collect($data)->only(['title', 'author_role', 'summary', 'overview', 'technologies', 'live_url'])->all());
+            $project->fill(collect($data)->only(['title', 'author_role', 'summary', 'overview', 'technical_details', 'technologies', 'live_url'])->all());
             $project->save();
 
             return $project;

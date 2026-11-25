@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Userzone;
 use App\Actions\CollectPortfolioInputs;
 use App\Actions\DeletePortfolio;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Userzone\StartPortfolioRequest;
 use App\Http\Requests\Userzone\StorePortfolioRequest;
 use App\Models\Portfolio;
 use Illuminate\Http\RedirectResponse;
@@ -25,6 +26,13 @@ class PortfolioController extends Controller
         $portfolio = $collect->handle($request->user(), $request->validated(), $request->file('pdf'));
 
         return to_route('userzone.portfolios.show', $portfolio)->with('status', 'Your PDF and repository evidence are saved privately. Open Generation & progress to review inputs and generate your portfolio.');
+    }
+
+    public function generate(StartPortfolioRequest $request, CollectPortfolioInputs $collect): RedirectResponse
+    {
+        $portfolio = $collect->handle($request->user(), $request->validated(), $request->file('pdf'), true);
+
+        return to_route('userzone.preview.home', $portfolio);
     }
 
     public function show(Portfolio $portfolio): View

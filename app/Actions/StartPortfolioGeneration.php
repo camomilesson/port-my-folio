@@ -5,7 +5,6 @@ namespace App\Actions;
 use App\Models\Generation;
 use App\Models\Portfolio;
 use App\Models\User;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
@@ -25,10 +24,6 @@ class StartPortfolioGeneration
             if ($locked->generations()->whereIn('status', ['queued', 'running'])->exists()) {
                 throw ValidationException::withMessages(['generation' => 'Generation is already in progress.']);
             }
-            $quota = self::quota($owner);
-            if ($quota['available'] < 1) {
-                throw ValidationException::withMessages(['generation' => 'Your three generation slots are in use. '.($quota['next_slot'] ? 'Next slot: '.$quota['next_slot'].' UTC.' : 'Wait for an active attempt to finish.')]);
-            }
             if ($previous && $previous->status === 'failed' && $previous->input_snapshot !== null) {
                 $progress = $previous->progress ?? [];
                 $progress['attempts'] = [];
@@ -44,21 +39,11 @@ class StartPortfolioGeneration
                 throw ValidationException::withMessages(['generation' => 'Add a source PDF and one to five repository-backed projects first.']);
             }
             $inputs = ['schema_version' => 1, 'focus' => $locked->focus, 'pdf' => ['id' => $document->id, 'disk' => $document->storageDisk(), 'path' => $document->storage_path],
-                'projects' => $projects->map(fn ($project): array => ['id' => $project->id, 'repository_owner' => $project->repository_owner, 'repository_name' => $project->repository_name, 'author_role' => $project->author_role, 'readme_content' => $project->readme_content])->all()];
-            $generation = $locked->generations()->create(['user_id' => $owner->id, 'status' => 'queued', 'current_step' => 'checking', 'input_snapshot' => $inputs, 'progress' => ['attempts' => [], 'projects' => [], 'deadline_at' => now()->addDay()->toIso8601String()], 'usage' => [], 'provider' => 'gemini', 'model' => config('services.gemini.model'), 'prompt_version' => 'portfolio-v2', 'next_run_at' => now()]);
+                'projects' => $projects->map(fn ($project): array => ['id' => $project->id, 'repository_owner' => $project->repository_owner, 'repository_name' => $project->repository_name, 'author_role' => $project->author_role, 'readme_content' => $project->readme_content, 'readme_fetched_at' => $project->readme_fetched_at?->toIso8601String()])->all()];
+            $generation = $locked->generations()->create(['user_id' => $owner->id, 'status' => 'queued', 'current_step' => 'checking', 'input_snapshot' => $inputs, 'progress' => ['attempts' => [], 'projects' => [], 'deadline_at' => now()->addDay()->toIso8601String()], 'usage' => [], 'provider' => 'gemini', 'model' => config('services.gemini.model'), 'prompt_version' => 'portfolio-v3', 'next_run_at' => now()]);
             GenerationState::dispatch($generation);
 
             return $generation;
         });
-    }
-
-    /** @return array{available: int, next_slot: ?string} */
-    public static function quota(User $owner): array
-    {
-        $successes = $owner->generations()->where('status', 'succeeded')->where('completed_at', '>', now()->subDays(7));
-        $active = $owner->generations()->whereIn('status', ['queued', 'running'])->count();
-        $first = (clone $successes)->min('completed_at');
-
-        return ['available' => max(0, 3 - $active - $successes->count()), 'next_slot' => $first ? Carbon::parse($first)->addDays(7)->format('d M Y H:i') : null];
     }
 }

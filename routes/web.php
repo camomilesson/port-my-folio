@@ -59,6 +59,7 @@ Route::middleware(['auth', EnsureUsernameIsSet::class])->group(function () {
             Route::delete('projects/{project}/gallery/{media}', [GalleryController::class, 'destroy'])->name('gallery.destroy');
             Route::post('projects/{project}/gallery/{media}/move', [GalleryController::class, 'move'])->name('gallery.move');
         });
+        Route::post('generate-portfolio', [PortfolioController::class, 'generate'])->middleware('throttle:6,1')->name('portfolios.generate');
         Route::resource('portfolios', PortfolioController::class)->only(['create', 'store', 'show', 'destroy']);
     });
 });

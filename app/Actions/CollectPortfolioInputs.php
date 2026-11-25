@@ -15,7 +15,7 @@ class CollectPortfolioInputs
     public function __construct(private FetchGithubReadme $readmes, private StorePortfolioCv $storeCv, private ValidateCvPdf $pdfs) {}
 
     /** @param array{title: string, slug: string, focus?: ?string, repositories: array<int, array{repository_url: string, author_role: string}>} $data */
-    public function handle(User $owner, array $data, UploadedFile $pdf): Portfolio
+    public function handle(User $owner, array $data, UploadedFile $pdf, bool $generate = false): Portfolio
     {
         $this->pdfs->handle(file_get_contents($pdf->getRealPath()));
         $evidence = [];
@@ -28,7 +28,8 @@ class CollectPortfolioInputs
                     throw ValidationException::withMessages(["repositories.$index.repository_url" => 'Choose each repository only once.']);
                 }
                 $seen[$key] = true;
-                $evidence[] = $this->readmes->handle($repository['repository_url']) + ['author_role' => $repository['author_role']];
+                $collected = $generate ? $identity + ['content' => null, 'fetched_at' => null] : $this->readmes->handle($repository['repository_url']);
+                $evidence[] = $collected + ['author_role' => $repository['author_role']];
             } catch (ProviderFailure $failure) {
                 throw ValidationException::withMessages(["repositories.$index.repository_url" => $failure->getMessage()]);
             } catch (ValidationException $exception) {
@@ -38,7 +39,7 @@ class CollectPortfolioInputs
         $portfolio = null;
         $document = null;
         try {
-            return DB::transaction(function () use ($owner, $data, $pdf, $evidence, &$portfolio, &$document): Portfolio {
+            return DB::transaction(function () use ($owner, $data, $pdf, $evidence, $generate, &$portfolio, &$document): Portfolio {
                 $portfolio = $owner->portfolios()->create(collect($data)->only(['title', 'slug', 'focus'])->all());
                 foreach ($evidence as $position => $repository) {
                     $portfolio->projects()->create([
@@ -50,6 +51,10 @@ class CollectPortfolioInputs
                 }
                 $this->storeCv->handle($portfolio, $pdf);
                 $document = $portfolio->cvDocument()->firstOrFail();
+
+                if ($generate) {
+                    app(StartPortfolioGeneration::class)->handle($portfolio);
+                }
 
                 return $portfolio;
             });

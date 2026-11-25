@@ -24,7 +24,7 @@ class BuildPortfolioSnapshot
                     'decorative' => (bool) $media->getCustomProperty('decorative', false)];
             }
             $projects[] = ['id' => $project->id, 'slug' => $project->slug, 'repository_owner' => $project->repository_owner, 'repository_name' => $project->repository_name,
-                'title' => $project->title, 'author_role' => $project->author_role, 'summary' => $project->summary, 'overview' => $project->overview,
+                'title' => $project->title, 'author_role' => $project->author_role, 'summary' => $project->summary, 'overview' => $project->overview, 'technical_details' => $project->technical_details ?? '',
                 'technologies' => $project->technologies ?? [], 'live_url' => $project->live_url, 'gallery' => $gallery];
         }
         $document = $portfolio->cvDocument;
@@ -61,6 +61,7 @@ class BuildPortfolioSnapshot
             'projects.*.repository_name' => ['required', 'string', 'max:100', 'regex:/^[a-zA-Z0-9_.-]+$/'],
             'projects.*.author_role' => ['required', 'string', 'max:255'],
             'projects.*.title' => ['nullable', 'string', 'max:120'], 'projects.*.summary' => ['nullable', 'string', 'max:1000'],
+            'projects.*.technical_details' => ['nullable', 'string', 'max:10000'],
             'projects.*.overview' => ['nullable', 'string', 'max:10000'], 'projects.*.live_url' => ['nullable', 'url:http,https', 'max:2048'],
             'projects.*.technologies' => ['present', 'array', 'list', 'max:30'], 'projects.*.technologies.*' => ['string', 'max:80'],
             'projects.*.gallery' => ['present', 'array', 'list', 'max:10'],

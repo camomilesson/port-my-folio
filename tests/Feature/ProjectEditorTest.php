@@ -12,12 +12,13 @@ uses(RefreshDatabase::class);
 it('adds a normalized repository-backed project manually without generation', function () {
     $portfolio = Portfolio::factory()->create();
 
-    $this->actingAs($portfolio->user)->post(route('userzone.projects.store', $portfolio), ['repository_url' => 'https://github.com/Example/Project.git', 'title' => 'My project', 'author_role' => 'Backend developer', 'technologies_text' => "PHP\nLaravel", 'live_url' => 'https://example.com', 'readme_content' => 'injected', 'portfolio_id' => 999])->assertRedirect()->assertSessionHasNoErrors();
+    $this->actingAs($portfolio->user)->post(route('userzone.projects.store', $portfolio), ['repository_url' => 'https://github.com/Example/Project.git', 'title' => 'My project', 'technical_details' => 'The server validates requests and stores application data.', 'author_role' => 'Backend developer', 'technologies_text' => "PHP\nLaravel", 'live_url' => 'https://example.com', 'readme_content' => 'injected', 'portfolio_id' => 999])->assertRedirect()->assertSessionHasNoErrors();
 
     $project = $portfolio->projects()->sole();
     expect($project->repository_owner)->toBe('example');
     expect($project->repository_name)->toBe('project');
     expect($project->technologies)->toBe(['PHP', 'Laravel']);
+    expect($project->technical_details)->toBe('The server validates requests and stores application data.');
     expect($project->readme_content)->toBeNull();
     $this->assertDatabaseCount('generations', 0);
 });
@@ -25,16 +26,16 @@ it('adds a normalized repository-backed project manually without generation', fu
 it('enforces the project cap and duplicate repository rule', function () {
     $portfolio = Portfolio::factory()->create();
     $project = Project::factory()->for($portfolio)->create();
-    $this->actingAs($portfolio->user)->post(route('userzone.projects.store', $portfolio), ['repository_url' => $project->repositoryUrl(), 'title' => 'Duplicate', 'author_role' => 'Me'])->assertSessionHasErrors('repository_url');
+    $this->actingAs($portfolio->user)->post(route('userzone.projects.store', $portfolio), ['repository_url' => $project->repositoryUrl(), 'title' => 'Duplicate', 'technical_details' => 'The server validates requests and stores application data.', 'author_role' => 'Me'])->assertSessionHasErrors('repository_url');
     Project::factory()->for($portfolio)->count(4)->create();
 
-    $this->post(route('userzone.projects.store', $portfolio), ['repository_url' => 'https://github.com/example/new', 'title' => 'Sixth', 'author_role' => 'Me'])->assertSessionHasErrors('repository_url');
+    $this->post(route('userzone.projects.store', $portfolio), ['repository_url' => 'https://github.com/example/new', 'title' => 'Sixth', 'technical_details' => 'The server validates requests and stores application data.', 'author_role' => 'Me'])->assertSessionHasErrors('repository_url');
     expect($portfolio->projects()->count())->toBe(5);
 });
 
 it('refuses unsafe repository and demo URLs', function (array $override) {
     $portfolio = Portfolio::factory()->create();
-    $input = array_replace(['repository_url' => 'https://github.com/example/app', 'title' => 'Project', 'author_role' => 'Me'], $override);
+    $input = array_replace(['repository_url' => 'https://github.com/example/app', 'title' => 'Project', 'technical_details' => 'The server validates requests and stores application data.', 'author_role' => 'Me'], $override);
 
     $this->actingAs($portfolio->user)->post(route('userzone.projects.store', $portfolio), $input)->assertSessionHasErrors();
     $this->assertDatabaseCount('projects', 0);
@@ -51,13 +52,13 @@ it('updates text without changing repository identity, evidence, slug, or publis
     $snapshot = $portfolio->published_snapshot;
     $this->actingAs($portfolio->user);
 
-    $this->put(route('userzone.projects.update', [$portfolio, $project]), ['title' => 'New title', 'author_role' => 'New role', 'repository_owner' => 'injected', 'slug' => 'injected', 'readme_content' => 'Changed'])->assertSessionHasNoErrors();
+    $this->put(route('userzone.projects.update', [$portfolio, $project]), ['title' => 'New title', 'technical_details' => 'The server validates requests and stores application data.', 'author_role' => 'New role', 'repository_owner' => 'injected', 'slug' => 'injected', 'readme_content' => 'Changed'])->assertSessionHasNoErrors();
     expect($project->fresh()->title)->toBe('New title');
     expect($project->fresh()->repository_owner)->toBe($project->repository_owner);
     expect($project->fresh()->slug)->toBe($project->slug);
     expect($project->fresh()->readme_content)->toBe('Evidence');
     expect($portfolio->fresh()->published_snapshot)->toBe($snapshot);
-    $this->put(route('userzone.projects.update', [$portfolio, $project]), ['title' => 'Another', 'author_role' => 'Me', 'repository_url' => 'https://github.com/example/different'])->assertSessionHasErrors('repository_url');
+    $this->put(route('userzone.projects.update', [$portfolio, $project]), ['title' => 'Another', 'technical_details' => 'The server validates requests and stores application data.', 'author_role' => 'Me', 'repository_url' => 'https://github.com/example/different'])->assertSessionHasErrors('repository_url');
 });
 
 it('reorders and soft-removes projects without erasing published state', function () {
@@ -82,7 +83,7 @@ it('rejects mismatched nested IDs even when both portfolios have the same owner'
     $this->actingAs($project->portfolio->user);
 
     $this->get(route('userzone.projects.edit', [$other, $project]))->assertNotFound();
-    $this->put(route('userzone.projects.update', [$other, $project]), ['title' => 'Injected', 'author_role' => 'Me'])->assertNotFound();
+    $this->put(route('userzone.projects.update', [$other, $project]), ['title' => 'Injected', 'technical_details' => 'The server validates requests and stores application data.', 'author_role' => 'Me'])->assertNotFound();
     $this->delete(route('userzone.projects.destroy', [$other, $project]))->assertNotFound();
     $this->post(route('userzone.projects.move', [$other, $project]), ['direction' => 'up'])->assertNotFound();
 });
@@ -93,4 +94,11 @@ it('denies foreign project edits and renders the owner project forms', function 
     $this->actingAs(User::factory()->create())->get(route('userzone.projects.edit', [$portfolio, $project]))->assertNotFound();
     $this->actingAs($portfolio->user)->get(route('userzone.projects.edit', [$portfolio, $project]))->assertOk()->assertSee('Save project draft');
     $this->get(route('userzone.projects.create', $portfolio))->assertOk()->assertSee('Add project');
+});
+
+it('requires technical details when saving a project and preserves the draft on invalid input', function () {
+    $project = Project::factory()->create(['technical_details' => 'Existing explanation.']);
+    $this->actingAs($project->portfolio->user)->put(route('userzone.projects.update', [$project->portfolio, $project]), ['title' => 'Changed title', 'author_role' => 'Solo developer', 'technical_details' => ''])->assertSessionHasErrors('technical_details');
+    expect($project->fresh()->technical_details)->toBe('Existing explanation.');
+    expect($project->fresh()->title)->toBe($project->title);
 });

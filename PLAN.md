@@ -141,7 +141,7 @@ Review: demonstrate two independent portfolios, switching the default, and draft
 
 Review: inspect actual extracted content and agree that evidence handling is sufficient.
 
-## Stage 6 — Durable initial generation and quota
+## Stage 6 — Durable initial generation and recovery
 
 ### Decisions before implementation
 
@@ -151,27 +151,81 @@ Review: inspect actual extracted content and agree that evidence handling is suf
 
 ### Work
 
-- Implement StartPortfolioGeneration with user-row locking, quota reservation, frozen inputs, and durable dispatch after transaction commit.
+- Implement StartPortfolioGeneration with user/portfolio-row locking, frozen inputs, and durable dispatch after transaction commit.
 - Orchestrate collection/extraction, independent project drafts, and focus-aware home/CV content. Reuse validated completed checkpoints on retry.
 - Assemble the initial editable draft consistently, preventing concurrent edits during generation and duplicate completion writes.
 - Record provider/model/prompt version, usage, progress, and safe errors.
 - Poll progress from owner-authorized endpoints; show completion and recovery states.
-- Enforce three successful generations per rolling seven days, count active reservations, release permanent failures, and calculate the next slot time.
-- Preserve usage on portfolio deletion while cancelling its jobs and redacting deleted source payloads.
+- Preserve redacted processing history on portfolio deletion while cancelling its jobs and redacting deleted source payloads.
 - Require successful initial generation for normal first publication in the completed product; demo fixtures satisfy the same state invariants.
 
 ### Completion criteria
 
 - The full input → queued generation → editable draft → publication journey works.
-- Concurrent starts cannot exceed quota; deletion doesn't refund successful usage.
+- Concurrent starts for the same portfolio cannot create duplicate attempts.
 - Retries don't duplicate projects or reprocess completed steps unnecessarily. A worker crash cannot leave a reservation indefinitely stuck.
 - Failures preserve recoverable progress; deleted targets cannot be recreated by late jobs.
-- Existing portfolios remain editable at quota exhaustion.
 - Completed portfolios have no user-triggered regeneration flow.
 
 Review: try both the successful journey and deliberately injected failures.
 
+## Stage 6.1 — Simple inputs and a portfolio that fills during generation
+
+### Agreed direction
+
+- Prioritize a convincing course demo with a preselected CV and repositories over a comprehensive portfolio-management product.
+- Keep the current home and CV content/layout. Add a required Technical details section to project pages, below the functionality-focused overview.
+- Reuse Stage 6's durable generation, checkpoints, quota, authorization and publication boundaries. Three-preset work waits until Stages 6.1 and 6.2 have been reviewed.
+
+### Work
+
+- Replace the main creation journey with one minimal PDF/repository input screen and a Generate action. Suggest/create the portfolio title and address automatically; keep optional focus out of the primary path.
+- Supply the agreed author-role context for the preselected demo repositories without extra form clutter. Do not infer personal contributions from repository ownership or functionality.
+- Take the user directly into the owner-only portfolio layout with placeholders, rather than a separate editor overview or generation-status page.
+- Reveal CV information after extraction and project content as individual checkpoints finish; apply final home/CV wording when profile generation completes. Use saved checkpoints and polling, not token-by-token streaming.
+- Keep a small progress indicator in the portfolio. Reloading or returning must reconstruct the same partial preview from saved state. Show recoverable failure/retry controls in that experience.
+- Extend the existing project provider call, schema, validation, persistence and rendering with required technical_details. Explain actual workings supported by the full README, distinct from the overview and technology tags. Use demo repositories with sufficient technical evidence; no optional/hidden-section branch and no additional AI call.
+- Keep progressive content read-only until generation completes. This is a private checkpoint presentation; final draft assembly remains atomic and public pages continue reading published snapshots only.
+
+### Completion criteria
+
+- The selected demo inputs lead straight to an initially empty portfolio that visibly fills as generation advances.
+- CV extraction, completed projects, and final profile wording appear in the correct places without inventing placeholder facts.
+- Every generated demo project has a substantive Technical details section grounded in its README.
+- Refresh/revisit preserves progress; existing retry, quota and draft/public isolation guarantees remain intact.
+- Run affected regression tests and visually review the chosen demo journey at desktop and mobile widths.
+
+Review: user walkthrough of the minimal input screen and progressively filled portfolio before starting inline editing.
+
+## Stage 6.2 — Pencil editing and publication on the portfolio
+
+### Scope
+
+- Let the owner refine existing content on the rendered portfolio itself. Avoid a general document editor or a comprehensive set of content-management controls.
+- Preserve the current home/CV structure and Stage 6.1's required project Technical details section.
+- Adding, deleting and reordering structured CV entries or projects is outside this pass; existing supporting screens can remain during the transition.
+
+### Work
+
+- Add owner-only pencil buttons beside editable text or grouped sections across home, CV and project pages, including Technical details.
+- Open a suitable input, textarea or compact section editor in place, with explicit Save/Cancel and validation feedback. Reuse existing save actions and validation where possible.
+- Enable editing after successful generation; keep inputs locked while generation is active so checkpoint updates cannot overwrite edits.
+- Update the rendered private draft after saving without navigating to a separate editor page. Preserve shared name/headline consistency between home and CV.
+- Present a clear Publish / Publish changes action within the portfolio experience, retaining the original-PDF publication warning and explicit snapshot semantics.
+- Simplify owner navigation and move separate editor screens out of the primary journey after their inline replacements work. Keep workspace access for selecting portfolios.
+
+### Completion criteria
+
+- The demo journey is inputs → progressively generated portfolio → pencil refinements → explicit publication.
+- Owners can edit the agreed existing fields, save/cancel on the same screen and receive useful validation feedback; no owner controls appear publicly.
+- Saved draft edits remain private until Publish changes; public pages, default routing and original-PDF access continue to work.
+- Complete keyboard/focus and responsive checks for inline controls, affected regression tests and the selected end-to-end demo walkthrough.
+
+Review: user approves the complete demo flow before resuming Stage 7's visual presets and broader polish.
+
 ## Stage 7 — Three presets and product polish
+
+Starts after Stages 6.1 and 6.2 are reviewed; apply presets to the redesigned portfolio experience.
 
 ### Work
 
@@ -219,8 +273,10 @@ Review: decide whether to open the experimental public demo and what hosting lif
 - [x] Stage 2 — Schema, account onboarding, and ownership (reviewed, merged, and verified live).
 - [x] Stage 3 — Manual draft editor and galleries (local review, merge, and hosted image/PDF checks complete).
 - [x] Stage 4 — Publishing and default portfolio routing (local lifecycle review and hosted smoke checks passed; full hosted generation-to-publication check deferred to Stage 6).
-- [ ] Stage 5 — Input collection and provider contracts.
-- [ ] Stage 6 — Durable initial generation and quota.
+- [x] Stage 5 — Input collection and provider contracts (deployed and verified).
+- [x] Stage 6 — Durable initial generation and quota (local walkthrough and hosted generation/publication verified by user).
+- [x] Stage 6.1 — Simple inputs and a portfolio that fills during generation (user reviewed locally and approved promotion; hosted checks pending).
+- [ ] Stage 6.2 — Pencil editing and publication on the portfolio.
 - [ ] Stage 7 — Three presets and product polish.
 - [ ] Stage 8 — Release, assessment, and portfolio evidence.
 
@@ -358,3 +414,30 @@ Stage 5 hosted deployment was confirmed green by the user before Stage 6 began. 
 ## Stage 6 promotion approval — 25 November 2026
 
 User completed the local end-to-end walkthrough, including real generation, content review, editing, publication and default routing under the sam-example demo account, and confirmed that everything appears to work. User explicitly approved promotion to main and requested checking the resulting deployment. Earlier awaiting-review/no-promotion notes are historical. Preserve the atomic implementation commits; hosted deployment, generation and recovery configuration still require verification.
+
+## Stage 6 closure and demo-flow revision — 25 November 2026
+
+Stage 6 was promoted as b4b10c8. After adding the production Gemini environment variables, the user confirmed hosted generation and the preview/publication/public-PDF journey work. This closes the earlier pending functional verification; it does not independently certify every hosted recovery setting. The user then agreed to prioritize a simpler demo flow and required project Technical details, scheduled above as Stages 6.1 and 6.2 before visual-preset work. These sections supersede the earlier separate-editor main journey for the redesign; implementation has not started.
+
+
+## Stage 6.1 implementation review — 25 November 2026
+
+Implemented the primary PDF/repository form with generated title/address, collapsed optional focus and automatic generation start. It stores inputs and reserves quota transactionally; quota rejection removes the newly stored PDF and records. GitHub fetching/preflight runs in the queued Checking inputs step, before paid processing, so submission opens the private portfolio promptly. Existing explicit-title/role draft endpoints remain supporting paths.
+
+Owner previews now project completed extraction/project/profile checkpoints into the existing home/CV/project templates without changing the saved draft before atomic assembly. Pending content uses placeholders. Browser polling replaces the portfolio content as checkpoint revisions change; reload/revisit reconstructs the saved state. Failed attempts retain completed sections and offer retry within the portfolio. Publication remains explicit and snapshot-only. Pencil editing is not included; it remains Stage 6.2.
+
+Added required technical_details to new provider output/schema, project storage, existing editor validation, publication snapshots and rendering. Prompt version is portfolio-v3. The additive local migration is applied; no dependencies changed. Older finished portfolios and public snapshots remain readable without invented technical descriptions or regeneration. The selected demo repository roles reuse the user's previous Solo developer input; unknown roles remain unspecified.
+
+Verification: PostgreSQL 208 tests / 965 assertions; SQLite 203 passing / 936 assertions with five PostgreSQL-only cases skipped. Pint, Composer validation, Blade compilation, Vite build and diff checks pass. Tests cover the primary queued workflow, quota rollback/file cleanup, checkpoint reveal/revisit, failure/retry, private/public isolation, required technical content and existing editor persistence/validation. Browser checked the minimal form and repository controls at desktop and mobile viewport; full live generation through the new screen remains for user review. No personal PDF or live Gemini request was sent during this implementation.
+
+Implemented on codex/stage-6-1-demo-flow. Do not mark 6.1 complete, promote it or start 6.2 until the user reviews the selected demo journey. Restart the local queue worker before reviewing so it loads the new output schema.
+
+
+## Demo simplification: quota removed — 25 November 2026
+
+Before promoting Stage 6.1, the user explicitly removed the generation quota altogether because this is a controlled demo, not a public product. Remove account slot checks, rolling-window counting, slot UI and the temporary camomilesson exemption. Keep processing history/redaction, per-portfolio one-time generation and concurrent-start protection, bounded retries/leases and input limits. This supersedes all earlier quota/reservation requirements and quota-specific completion criteria; no generation-table migration is needed. Promotion remains paused until this change is verified.
+
+
+## Stage 6.1 promotion approval — 25 November 2026
+
+User confirmed the local flow works, removed all account generation quotas, and explicitly resumed promotion to main. Final checks: 208 PostgreSQL tests / 963 assertions; SQLite 203 passing with five PostgreSQL-only skips; frontend build, formatting and diff checks pass. Promote the reviewed branch with atomic commits preserved. Hosted migration, worker restart and the redesigned generation journey still require verification after deployment.
