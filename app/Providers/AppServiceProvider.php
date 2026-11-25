@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Actions\GeminiPortfolioProvider;
+use App\Actions\PortfolioGenerationProvider;
 use App\Policies\ProjectMediaPolicy;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
@@ -14,7 +16,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->bind(PortfolioGenerationProvider::class, GeminiPortfolioProvider::class);
     }
 
     /**
