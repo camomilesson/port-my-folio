@@ -32,11 +32,12 @@ class GenerationContent
                 'content.home_content.headline' => ['present', 'nullable', 'string', 'max:120'],
                 'content.home_content.introduction' => ['present', 'nullable', 'string', 'max:3000'],
                 'content.projects' => ['required', 'array', 'list', 'min:1', 'max:5'],
-                'content.projects.*' => ['required', 'array:repository_owner,repository_name,title,summary,overview,technologies,live_url'],
+                'content.projects.*' => ['required', 'array:repository_owner,repository_name,title,summary,overview,technical_details,technologies,live_url'],
                 'content.projects.*.repository_owner' => ['required', 'string', 'regex:/^[a-zA-Z0-9-]+$/', 'max:39'],
                 'content.projects.*.repository_name' => ['required', 'string', 'regex:/^[a-zA-Z0-9_.-]+$/', 'max:100'],
                 'content.projects.*.title' => ['present', 'nullable', 'string', 'max:120'],
                 'content.projects.*.summary' => ['present', 'nullable', 'string', 'max:1000'],
+                'content.projects.*.technical_details' => ['required', 'string', 'max:10000'],
                 'content.projects.*.overview' => ['present', 'nullable', 'string', 'max:10000'],
                 'content.projects.*.technologies' => ['present', 'array', 'list', 'max:30'],
                 'content.projects.*.technologies.*' => ['string', 'max:80'],
@@ -83,7 +84,7 @@ class GenerationContent
     /** @return array<string, mixed> */
     private static function emptyProject(): array
     {
-        return ['repository_owner' => 'placeholder', 'repository_name' => 'placeholder', 'title' => '', 'summary' => '', 'overview' => '', 'technologies' => [], 'live_url' => null];
+        return ['repository_owner' => 'placeholder', 'repository_name' => 'placeholder', 'title' => '', 'summary' => '', 'overview' => '', 'technical_details' => 'Validation placeholder.', 'technologies' => [], 'live_url' => null];
     }
 
     /** @return array<string, mixed> */
@@ -108,7 +109,7 @@ class GenerationContent
         return self::object([
             'home_content' => self::object(['name' => $optional, 'headline' => $optional, 'introduction' => $optional]),
             'cv_content' => $cv,
-            'projects' => $entry(['repository_owner' => $text, 'repository_name' => $text, 'title' => $optional, 'summary' => $optional, 'overview' => $optional, 'technologies' => ['type' => 'array', 'items' => $text], 'live_url' => $optional]),
+            'projects' => $entry(['repository_owner' => $text, 'repository_name' => $text, 'title' => $optional, 'summary' => $optional, 'overview' => $optional, 'technical_details' => $text, 'technologies' => ['type' => 'array', 'items' => $text], 'live_url' => $optional]),
         ]);
     }
 

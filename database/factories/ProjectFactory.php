@@ -20,6 +20,7 @@ class ProjectFactory extends Factory
             'title' => fake()->words(3, true),
             'summary' => 'A fictional project presentation for the local demo.',
             'overview' => 'Demonstrates how a project will appear in a portfolio. This is seeded content, not a repository analysis.',
+            'technical_details' => 'The fictional application validates requests in Laravel, persists records in PostgreSQL and renders its pages with Blade templates.',
             'readme_content' => '# Demo evidence\nNo external repository was fetched for this fixture.',
             'readme_fetched_at' => null,
             'technologies' => ['PHP', 'Laravel'],
