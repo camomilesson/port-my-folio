@@ -32,6 +32,12 @@ pnpm build
 php artisan serve --host=127.0.0.1 --port=8000
 ```
 
+The stock Artisan server uses your PHP upload limits. For image-batch review when those defaults are too small, stop that server and run this project-local alternative from the repository root. It uses Laravel's existing development router and changes limits only for this process:
+
+```sh
+(cd public && php -d upload_max_filesize=10M -d post_max_size=128M -d max_input_vars=2000 -d memory_limit=256M -S 127.0.0.1:8000 ../vendor/laravel/framework/src/Illuminate/Foundation/resources/server.php)
+```
+
 Open http://127.0.0.1:8000. For frontend changes run `pnpm dev` in another terminal. To process queued work, run:
 
 ```sh
@@ -124,7 +130,7 @@ Projects require a normalized https://github.com/owner/repository URL and a role
 
 Galleries accept still JPEG/PNG/WebP up to 10 MB, 12,000 pixels per side and 24 megapixels. Maximum ten active images per project. Decorative images have empty alt text; other images require an image description. Only processed files are retained. Existing publication snapshots are never changed by draft actions. Editing is blocked during queued/running generation. Cleanup needs a queue worker.
 
-After review/merge, hosted galleries need `IMAGE_FILESYSTEM_DISK=images_s3` and `AWS_IMAGE_BUCKET=portmyfolio-images`. Keep `AWS_BUCKET` pointing at the private CV bucket. The image disk shares existing server-side S3 credentials/region/endpoint; do not make either bucket public. Apply `php artisan migrate --force` during deployment. Configure HTTP/PHP upload limits to admit a 10 MB file plus form overhead and `max_input_vars` to at least 2,000 for the largest CV form. An end-of-form marker rejects truncated CV submissions rather than wiping omitted entries. Test profiles force local storage disks and never upload to Supabase.
+After review/merge, hosted galleries need `IMAGE_FILESYSTEM_DISK=images_s3` and `AWS_IMAGE_BUCKET=portmyfolio-images`. Keep `AWS_BUCKET` pointing at the private CV bucket. The image disk shares existing server-side S3 credentials/region/endpoint; do not make either bucket public. Apply `php artisan migrate --force` during deployment. Configure HTTP/PHP limits to admit up to ten 10 MB images in one request plus form overhead (for example, `post_max_size=128M`, `upload_max_filesize=10M`, `max_file_uploads` at least 10, and a matching proxy request-body limit). Keep `max_input_vars` at least 2,000 for the supporting CV form. An end-of-form marker rejects truncated CV submissions rather than wiping omitted entries. Test profiles force local storage disks and never upload to Supabase.
 
 
 ## Stage 4 local review
@@ -180,3 +186,12 @@ Review with a fresh portfolio and the selected demo CV/repositories: confirm dir
 
 
 Generation quotas have been removed for this controlled demo. All accounts can start new portfolios; duplicate starts and regeneration of an already successful portfolio remain prohibited. There is no account-specific unlimited override or slot UI. Earlier historical quota notes are superseded.
+
+
+### Stage 6.2: edit on the portfolio
+
+Open a generated portfolio from the workspace. After generation succeeds, use its pencils to edit existing home, CV and project fields with Save/Cancel. Name/title are shared between home and CV; the introduction and CV summary remain separate. Technologies and skill items use comma-separated inputs. Fixed section headers and entry/project ordering have no pencils. The separate editor remains under Portfolio settings for supporting tasks.
+
+On a project, Add images accepts multiple JPEG/PNG/WebP files. Give each image a description or explicitly mark it decorative, with an optional caption. The whole selection is validated before appending; failure leaves the gallery unchanged. The cap is ten active images per project, at 10 MB per uploaded file. Gallery caption, description and decorative choices can be edited in place; saving a description makes the image non-decorative. Images keep the existing private, metadata-stripped WebP processing.
+
+Saved edits update only the private draft. Publish / Publish changes opens the original-PDF disclosure and explicit confirmation, then returns to the portfolio. View published opens the public snapshot, which has no editing controls. Edits do not call Gemini. No new environment variables, migrations or dependencies are needed for this stage; check the combined upload limits above before reviewing a large image batch.

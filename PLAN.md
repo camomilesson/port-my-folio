@@ -275,7 +275,7 @@ Review: decide whether to open the experimental public demo and what hosting lif
 - [x] Stage 4 — Publishing and default portfolio routing (local lifecycle review and hosted smoke checks passed; full hosted generation-to-publication check deferred to Stage 6).
 - [x] Stage 5 — Input collection and provider contracts (deployed and verified).
 - [x] Stage 6 — Durable initial generation and quota (local walkthrough and hosted generation/publication verified by user).
-- [x] Stage 6.1 — Simple inputs and a portfolio that fills during generation (user reviewed locally and approved promotion; hosted checks pending).
+- [x] Stage 6.1 — Simple inputs and a portfolio that fills during generation (user reviewed locally, approved promotion and confirmed it works live).
 - [ ] Stage 6.2 — Pencil editing and publication on the portfolio.
 - [ ] Stage 7 — Three presets and product polish.
 - [ ] Stage 8 — Release, assessment, and portfolio evidence.
@@ -441,3 +441,23 @@ Before promoting Stage 6.1, the user explicitly removed the generation quota alt
 ## Stage 6.1 promotion approval — 25 November 2026
 
 User confirmed the local flow works, removed all account generation quotas, and explicitly resumed promotion to main. Final checks: 208 PostgreSQL tests / 963 assertions; SQLite 203 passing with five PostgreSQL-only skips; frontend build, formatting and diff checks pass. Promote the reviewed branch with atomic commits preserved. Hosted migration, worker restart and the redesigned generation journey still require verification after deployment.
+
+
+## Stage 6.2 inline-edit scope agreed — 25 November 2026
+
+Owner-only pencils edit existing content on the rendered portfolio after successful generation. Home: shared name/headline and introduction. Projects: title, summary, overview, required technical details and comma-separated technology tags. CV: existing content fields, with fixed section headings; entry identities, array structure and ordering cannot be edited. Use appropriate short/paragraph/date/link/boolean inputs with in-place Save/Cancel and validation. Shared name/headline remain synchronized between home and CV. Address/repository identity and source evidence stay fixed.
+
+Project galleries gain Add images with multiple selection, preserving the ten-image cap and existing processed-only private storage. Validate the complete batch first and append atomically; preserve per-image captions, descriptions and decorative choices, editable on the project page. No gallery reorder controls, no CV/project add/remove/reorder controls, no AI calls from editing. Public pages contain no owner controls, and saved edits stay private until Publish changes.
+
+
+## Stage 6.2 implementation review — 25 November 2026
+
+Implemented the agreed existing-field pencils on the private home, CV and project pages. Editors support in-place Save/Cancel, server validation, keyboard focus/Escape cancellation, unsaved-navigation protection and refresh without losing other open edits. Shared name/headline stay synchronized; edits merge into the latest locked draft by stable CV entry ID. CV section headings, structure/order, project role and repository/source identities are not editable here. Generation must have succeeded; queued/running/failed pages expose no pencils and reject inline writes. No AI calls are made by editing.
+
+Project Add images supports multiple selection with individual descriptions/decorative choices and optional captions. The whole batch is validated and processed before appending under the portfolio lock, retaining the ten-image cap, private processed WebP storage and existing file handling. Storage failure rolls back every new record and cleans partial files while preserving existing gallery media. Existing image metadata can be edited without replacing bytes; saving a description explicitly marks an image non-decorative.
+
+Workspace links open generated portfolios directly. Separate forms remain supporting settings. Publish / Publish changes keeps explicit original-PDF disclosure and snapshot publication, returns to the portfolio and offers View published. Public rendering contains no owner controls; saving never updates the published snapshot. No migrations, dependencies, provider/prompt changes or new environment variables. README includes combined upload requirements and a local server command because the installed CLI PHP defaults to 2 MB uploads; global PHP configuration was not changed.
+
+Verification: PostgreSQL 240 tests / 1,165 assertions; SQLite 235 passing / 1,134 assertions with five PostgreSQL-only cases skipped. Pint, Composer validation, Blade compilation, Vite build and diff checks pass. Browser checked real field save/identity refresh, validation retention, independent open editors, Escape cancellation, mobile overflow, multi-select details and a successful two-image upload preserving an unsaved caption. The upload added two labelled synthetic review images to the local seeded Backend developer draft only. Its name was restored after testing, unsaved text was cancelled and nothing was published. Workspace navigation, publication disclosure/back link and public absence of pencils were verified. No personal CV or live provider call was sent.
+
+Implemented on codex/stage-6-2-inline-editing, ready for the user's selected-demo walkthrough. Keep Stage 6.2 unchecked until review. Do not promote/push or begin Stage 7 until the user approves.
