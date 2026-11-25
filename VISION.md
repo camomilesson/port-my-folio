@@ -148,20 +148,9 @@ Every portfolio has a canonical URL, including the default portfolio:
 
 ## Generation limits
 
-- Three successfully generated portfolios per Google account in a rolling seven-day period.
-- Reserve a quota slot when generation starts to prevent concurrent requests from exceeding the limit.
-- Permanently failed generations release their reserved slot; automatic retries remain part of the same attempt.
-- Deleting a generated portfolio does not restore its slot.
-- Editing, publishing, or changing the default does not consume generation quota.
-- Show when the next generation slot becomes available.
-- Maximum five repository-backed projects per portfolio.
-- PDF and README input limits will be defined before implementation to bound cost and processing time.
+This is a controlled demo, not a public self-service product. There is no per-account generation quota, rolling usage window, slot reservation, or privileged unlimited-account override. All accounts can create additional portfolios regardless of past successes or other active portfolios.
 
-Suggested quota message:
-
-> You've used your three portfolio generations for this week. Your next slot opens on [date]. Enjoying Portmyfolio? Email us at [project email] if you'd like to create more.
-
-The real contact email has not been chosen. Existing portfolios remain editable when generation quota is exhausted.
+Each portfolio still has one successful initial generation. Duplicate concurrent starts for the same portfolio are rejected; failed initial attempts can resume completed checkpoints. Keep bounded input sizes, technical retries, leases, cleanup and provider rate-limit handling. Maximum five repository-backed projects per portfolio; PDF and README limits remain as agreed.
 
 ## Technical direction
 
@@ -262,3 +251,8 @@ The primary demo journey is now PDF/repository inputs → private portfolio fill
 Technical details is a required field on newly generated projects, separate from the functionality overview and technology tags. The existing per-project call returns technical_details grounded in the full README; no additional provider call. Persist the field and include it in publication snapshots and editor validation. Older portfolios/snapshots remain readable with an empty compatibility value; existing generated portfolios cannot regenerate to populate it.
 
 During generation, owner-only previews derive a transient presentation from completed extraction, project and profile checkpoints. Pending sections show explicit placeholders rather than fabricated content. Reload/revisit reconstructs the presentation; terminal failure retains completed sections and offers retry in place. Final draft assembly remains atomic. Public requests never read checkpoints and existing publication snapshots remain unchanged until Publish changes. The current separate editor remains supporting navigation until Stage 6.2 replaces it.
+
+
+## Quota removal — 25 November 2026
+
+User explicitly removed the application generation quota for the demo. This supersedes all earlier quota/reservation decisions, including the temporary camomilesson override. Generation history remains for processing, debugging and safe deletion, not account eligibility.

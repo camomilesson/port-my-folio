@@ -141,7 +141,7 @@ Review: demonstrate two independent portfolios, switching the default, and draft
 
 Review: inspect actual extracted content and agree that evidence handling is sufficient.
 
-## Stage 6 — Durable initial generation and quota
+## Stage 6 — Durable initial generation and recovery
 
 ### Decisions before implementation
 
@@ -151,22 +151,20 @@ Review: inspect actual extracted content and agree that evidence handling is suf
 
 ### Work
 
-- Implement StartPortfolioGeneration with user-row locking, quota reservation, frozen inputs, and durable dispatch after transaction commit.
+- Implement StartPortfolioGeneration with user/portfolio-row locking, frozen inputs, and durable dispatch after transaction commit.
 - Orchestrate collection/extraction, independent project drafts, and focus-aware home/CV content. Reuse validated completed checkpoints on retry.
 - Assemble the initial editable draft consistently, preventing concurrent edits during generation and duplicate completion writes.
 - Record provider/model/prompt version, usage, progress, and safe errors.
 - Poll progress from owner-authorized endpoints; show completion and recovery states.
-- Enforce three successful generations per rolling seven days, count active reservations, release permanent failures, and calculate the next slot time.
-- Preserve usage on portfolio deletion while cancelling its jobs and redacting deleted source payloads.
+- Preserve redacted processing history on portfolio deletion while cancelling its jobs and redacting deleted source payloads.
 - Require successful initial generation for normal first publication in the completed product; demo fixtures satisfy the same state invariants.
 
 ### Completion criteria
 
 - The full input → queued generation → editable draft → publication journey works.
-- Concurrent starts cannot exceed quota; deletion doesn't refund successful usage.
+- Concurrent starts for the same portfolio cannot create duplicate attempts.
 - Retries don't duplicate projects or reprocess completed steps unnecessarily. A worker crash cannot leave a reservation indefinitely stuck.
 - Failures preserve recoverable progress; deleted targets cannot be recreated by late jobs.
-- Existing portfolios remain editable at quota exhaustion.
 - Completed portfolios have no user-triggered regeneration flow.
 
 Review: try both the successful journey and deliberately injected failures.
@@ -433,3 +431,8 @@ Added required technical_details to new provider output/schema, project storage,
 Verification: PostgreSQL 208 tests / 965 assertions; SQLite 203 passing / 936 assertions with five PostgreSQL-only cases skipped. Pint, Composer validation, Blade compilation, Vite build and diff checks pass. Tests cover the primary queued workflow, quota rollback/file cleanup, checkpoint reveal/revisit, failure/retry, private/public isolation, required technical content and existing editor persistence/validation. Browser checked the minimal form and repository controls at desktop and mobile viewport; full live generation through the new screen remains for user review. No personal PDF or live Gemini request was sent during this implementation.
 
 Implemented on codex/stage-6-1-demo-flow. Do not mark 6.1 complete, promote it or start 6.2 until the user reviews the selected demo journey. Restart the local queue worker before reviewing so it loads the new output schema.
+
+
+## Demo simplification: quota removed — 25 November 2026
+
+Before promoting Stage 6.1, the user explicitly removed the generation quota altogether because this is a controlled demo, not a public product. Remove account slot checks, rolling-window counting, slot UI and the temporary camomilesson exemption. Keep processing history/redaction, per-portfolio one-time generation and concurrent-start protection, bounded retries/leases and input limits. This supersedes all earlier quota/reservation requirements and quota-specific completion criteria; no generation-table migration is needed. Promotion remains paused until this change is verified.

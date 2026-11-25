@@ -183,7 +183,7 @@ Stage 6 requires the additive generation-lease migration (`php artisan migrate -
 
 Configure managed worker timeout to 120 seconds and retry/visibility strictly above 120 seconds (180 seconds recommended); provider HTTP timeout is 90 seconds and each processing lease lasts 180 seconds. Recovery must keep running when the web process scales down. Restart workers on deployment so they load current code. Review the Cloud queue/scheduler configuration before production rollout; the local database queue round-trip does not verify hosted managed-queue behavior.
 
-Before promotion, the user reviews local generation, edits, publication and failure recovery. After deployment, verify one genuine generation → editable draft → explicit publication, plus return-to-progress, quota display and unpublish. Scanned fictional-PDF native extraction has passed locally; it does not prove every scanned CV will extract correctly.
+Before promotion, the user reviews local generation, edits, publication and failure recovery. After deployment, verify one genuine generation → editable draft → explicit publication, plus return-to-progress and unpublish. Scanned fictional-PDF native extraction has passed locally; it does not prove every scanned CV will extract correctly.
 
 
 User approved Stage 6 promotion after local end-to-end checks on 25 November 2026. Retain migration deployment, the working pinned npx pnpm commands and the queue/scheduler requirements above. A green build/deployment alone does not verify production Gemini credentials or scheduled recovery.
@@ -194,3 +194,6 @@ User approved Stage 6 promotion after local end-to-end checks on 25 November 202
 Stage 6.1 adds the projects.technical_details column; deploy with the normal migration command when promotion is approved. Restart workers to load the new portfolio-v3 project output contract. Finish any existing attempts before rollout, since older completed project checkpoints may lack the new required output field. Existing successful portfolios/public snapshots remain readable and are never regenerated automatically.
 
 No new service or dependency is introduced. Keep the Stage 6 Gemini key/model and worker/scheduler settings. The new primary form starts generation immediately after preflight and opens the private checkpoint-derived portfolio; it still requires explicit publication. This branch awaits local demo-flow review before promotion or Stage 6.2 work.
+
+
+Application generation quotas were removed for the controlled demo on 25 November 2026. No quota schema migration or account exemption configuration is required. Per-portfolio duplicate-start/one-time generation rules and worker recovery remain.
