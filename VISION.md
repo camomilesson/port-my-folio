@@ -17,15 +17,13 @@ The project is being built for the Modern Web Application course, with Laravel b
 ## Core journey
 
 1. Sign in with Google and choose a username.
-2. Create a portfolio with a title and user-chosen URL slug.
-3. Upload a required PDF CV.
-4. Optionally provide a portfolio focus, such as a target industry, role, or pasted job posting.
-5. Add up to five public GitHub repository links and state the author's role for each project.
-6. Generate the initial portfolio in the background.
-7. Review the generated draft and edit its content through forms.
-8. Add and organize project images, choose a preset, and choose an accent color.
-9. Preview and publish the portfolio. The first publication becomes the default when none is selected.
-10. Return to edit drafts and publish changes.
+2. Submit one PDF CV and one to five public GitHub repository links; optional focus sits behind a secondary control.
+3. Generate the portfolio title/address automatically and open the private portfolio layout immediately after basic input validation.
+4. Watch CV information and individual projects appear as saved generation checkpoints complete, followed by final home/CV wording.
+5. Review the ready draft; Stage 6.2 adds pencil controls for editing existing content on these same pages. Existing form editors remain supporting functionality during the transition.
+6. Publish explicitly. The first publication becomes the default when none is selected.
+7. Return to refine the private draft and publish changes. Appearance customization follows in Stage 7.
+
 
 There is no extra AI context pass after generation. Users correct and expand the generated content themselves.
 
@@ -58,7 +56,7 @@ The user may supply the audience or purpose of the portfolio before generation (
 
 - Every portfolio project requires a public GitHub repository.
 - Maximum five projects per portfolio.
-- Repository submission includes a required free-text field describing the user's role, for example, solo developer or backend developer in a three-person team.
+- Keep author-role evidence, but omit role input from the primary demo form: the preselected demo repositories use the previously confirmed Solo developer role. Unknown repositories use Contribution not specified, and generation must not claim individual contributions without evidence.
 - The README is the substantive source of project information. Minimal repository metadata may also be fetched.
 - There is no source-code or dependency-file inspection, private repository access, or project creation without a repository.
 - Missing or insufficient README content should produce actionable feedback before paid content generation begins. The exact sufficiency check remains to be designed.
@@ -99,15 +97,16 @@ The initial content structure is documented in DATA_MODEL.md; editor validation 
 
 1. Header: title, short summary, author's role, and technology tags supported by the supplied material.
 2. Overview: what the project does, who it serves, and the problem it addresses, where supported by the README.
-3. Gallery: owner-managed images; hidden when empty.
-4. Links: required repository link and optional live-demo link.
+3. Technical details: a required explanation of actual implementation workings, grounded in the README and distinct from the overview/tags.
+4. Gallery: owner-managed images; hidden when empty.
+5. Links: required repository link and optional live-demo link.
 
 There is no highlights section and no mandatory metrics, impact, challenges, or lessons section.
 
 ## Editing and images
 
-- Owners edit content through forms, accessed from the dashboard or owner controls on a page.
-- No click-to-edit document editor or drag-and-drop layout builder.
+- Stage 6.2 puts pencil-triggered field/section forms on the rendered portfolio. Existing separate editors remain available during the transition.
+- No arbitrary document editor or drag-and-drop layout builder. Adding/removing/reordering structured entries is outside the inline-editing pass.
 - Owners can edit generated text, manage project ordering, and remove projects. Every project appears on the homepage.
 - Images are entirely user managed: upload, delete, reorder (first image is the cover), and edit captions and alt text. A decorative-image option produces empty alt text; other images require a description.
 - Keep only processed, resized, metadata-free gallery images; discard original image uploads.
@@ -254,3 +253,12 @@ Explicit Generate freezes source PDF, focus, normalized repositories/roles and e
 Independent project checkpoints remain private until all work can be assembled atomically. Three successful generations in rolling seven days, plus active reservations, exhaust quota. Permanent failure releases a reservation; deleting success never refunds it. Processing leases fence duplicate/late workers, with scheduled recovery of stale work. Active deletion terminalizes work before detaching/redacting source payloads; late responses are discarded. Already-sent requests may incur costs.
 
 Progress is saved and polled: Checking inputs, Reading CV, Writing projects (completed/total), Assembling portfolio, Ready. Scanned fictional-CV quality verification remains pending before end-to-end acceptance. Stage 6 implementation proceeds on codex/stage-6-generation; no merge/deployment is implied.
+
+
+## Stage 6.1 demo-flow revision — 25 November 2026
+
+The primary demo journey is now PDF/repository inputs → private portfolio filling from generation checkpoints → ready draft, with inline pencil editing reserved for Stage 6.2. Title/address are generated automatically; optional focus is secondary. Existing backend authorization, quota, frozen inputs, retries and publication isolation remain. The two agreed camomilesson demo repositories retain their previously supplied Solo developer context; unknown repositories have no assumed personal contribution.
+
+Technical details is a required field on newly generated projects, separate from the functionality overview and technology tags. The existing per-project call returns technical_details grounded in the full README; no additional provider call. Persist the field and include it in publication snapshots and editor validation. Older portfolios/snapshots remain readable with an empty compatibility value; existing generated portfolios cannot regenerate to populate it.
+
+During generation, owner-only previews derive a transient presentation from completed extraction, project and profile checkpoints. Pending sections show explicit placeholders rather than fabricated content. Reload/revisit reconstructs the presentation; terminal failure retains completed sections and offers retry in place. Final draft assembly remains atomic. Public requests never read checkpoints and existing publication snapshots remain unchanged until Publish changes. The current separate editor remains supporting navigation until Stage 6.2 replaces it.
