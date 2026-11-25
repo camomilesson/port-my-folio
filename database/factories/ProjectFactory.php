@@ -16,7 +16,6 @@ class ProjectFactory extends Factory
             'slug' => fake()->unique()->slug(2),
             'repository_owner' => 'example',
             'repository_name' => fake()->unique()->slug(2),
-            'author_role' => 'Solo developer (fictional demo)',
             'title' => fake()->words(3, true),
             'summary' => 'A fictional project presentation for the local demo.',
             'overview' => 'Demonstrates how a project will appear in a portfolio. This is seeded content, not a repository analysis.',

@@ -136,10 +136,12 @@ class ProcessGenerationStep
         if (str_starts_with($step, 'project:')) {
             $project = collect($inputs['projects'])->firstWhere('id', (int) substr($step, 8));
 
+            unset($project['author_role']);
+
             return $this->provider->generateProject(['focus' => $inputs['focus'], 'project' => $project]);
         }
         if ($step === 'profile') {
-            return $this->provider->generateProfile(['focus' => $inputs['focus'], 'cv' => $generation->progress['checkpoints']['extracting'], 'projects' => collect($inputs['projects'])->map(fn (array $project): array => $generation->progress['checkpoints']['project:'.$project['id']] + ['author_role' => $project['author_role']])->all()]);
+            return $this->provider->generateProfile(['focus' => $inputs['focus'], 'cv' => $generation->progress['checkpoints']['extracting'], 'projects' => collect($inputs['projects'])->map(fn (array $project): array => $generation->progress['checkpoints']['project:'.$project['id']])->all()]);
         }
 
         return null;

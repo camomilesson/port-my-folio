@@ -153,13 +153,24 @@ async function refreshInlineContent(savedForm) {
     if (!response.ok || response.redirected) throw new Error('Saved. Reload the page to see the latest content.');
     const html = new DOMParser().parseFromString(await response.text(), 'text/html');
     const savedKey = savedForm.closest('[data-inline-key]')?.dataset.inlineKey;
+    if (savedForm.matches('[data-photo-form]')) {
+        document.querySelector('[data-portfolio-photo]').replaceWith(document.importNode(html.querySelector('[data-portfolio-photo]'), true));
+        document.querySelector('[data-photo-upload] summary')?.focus({ preventScroll: true });
+    }
     if (savedForm.matches('[data-upload-form]')) {
         const gallery = document.querySelector('[data-inline-gallery]');
         const replacement = document.importNode(html.querySelector('[data-inline-gallery]'), true);
+        const selected = gallery.querySelector('[data-carousel-slide][data-current]')?.dataset.carouselSlide;
+        const carousel = replacement.querySelector('[data-carousel]');
+        if (carousel && selected) {
+            const index = [...carousel.querySelectorAll('[data-carousel-slide]')].findIndex((slide) => slide.dataset.carouselSlide === selected);
+            showCarouselSlide(carousel, Math.max(0, index));
+        }
         gallery.querySelectorAll('[data-inline-key]:has(details[open])').forEach((open) => {
             replacement.querySelector(`[data-inline-key="${open.dataset.inlineKey}"]`)?.replaceWith(open);
         });
         gallery.replaceWith(replacement);
+        (replacement.querySelector('[data-gallery-upload] summary') ?? replacement.querySelector('[data-current] [data-carousel-direction="1"]'))?.focus({ preventScroll: true });
     }
     html.querySelectorAll('[data-inline-key]').forEach((fresh) => {
         const current = document.querySelector(`[data-inline-key="${fresh.dataset.inlineKey}"]`);
@@ -178,7 +189,7 @@ async function refreshInlineContent(savedForm) {
 }
 
 document.addEventListener('toggle', (event) => {
-    if (!event.target.matches('[data-inline-editor], [data-gallery-upload]')) return;
+    if (!event.target.matches('[data-inline-editor], [data-gallery-upload], [data-photo-upload]')) return;
     const form = event.target.querySelector('form');
     if (form.dataset.saving && !event.target.open) {
         event.target.open = true;
@@ -261,9 +272,9 @@ document.addEventListener('submit', async (event) => {
             return;
         }
         dirtyInlineForms.delete(form);
-        if (form.matches('[data-upload-form]')) {
+        if (form.matches('[data-upload-form], [data-photo-form]')) {
             form.reset();
-            form.querySelector('[data-image-details]').replaceChildren();
+            form.querySelector('[data-image-details]')?.replaceChildren();
         }
         delete form.dataset.saving;
         form.closest('details').open = false;
@@ -282,4 +293,23 @@ document.addEventListener('submit', async (event) => {
         submit.textContent = submitLabel;
         controls.forEach((control) => { control.disabled = false; });
     }
+});
+
+function showCarouselSlide(carousel, index) {
+    const slides = [...carousel.querySelectorAll('[data-carousel-slide]')];
+    if (!slides.length) return;
+    index = (index + slides.length) % slides.length;
+    slides.forEach((slide, position) => { slide.toggleAttribute('data-current', position === index); });
+    const counter = carousel.querySelector('[data-carousel-count]');
+    if (counter) counter.textContent = `${index + 1} / ${slides.length}`;
+}
+
+document.addEventListener('click', (event) => {
+    const button = event.target.closest('[data-carousel-direction]');
+    if (!button) return;
+    const carousel = button.closest('[data-carousel]');
+    const slides = [...carousel.querySelectorAll('[data-carousel-slide]')];
+    const current = slides.findIndex((slide) => slide.hasAttribute('data-current'));
+    showCarouselSlide(carousel, current + Number(button.dataset.carouselDirection));
+    carousel.querySelector(`[data-current] [data-carousel-direction="${button.dataset.carouselDirection}"]`)?.focus({ preventScroll: true });
 });

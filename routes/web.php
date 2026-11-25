@@ -32,6 +32,8 @@ Route::middleware(['auth', EnsureUsernameIsSet::class])->group(function () {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
     Route::prefix('user')->name('userzone.')->group(function () {
         Route::prefix('portfolios/{portfolio}')->group(function () {
+            Route::post('photo', [InlinePortfolioController::class, 'photo'])->name('photo.store');
+            Route::get('photo/{photoId}', [InlinePortfolioController::class, 'showPhoto'])->whereUuid('photoId')->name('photo.show');
             Route::patch('inline/{scope}', [InlinePortfolioController::class, 'page'])->whereIn('scope', ['home', 'cv'])->name('inline.page');
             Route::patch('projects/{project}/inline', [InlinePortfolioController::class, 'project'])->name('inline.project');
             Route::post('projects/{project}/images', [InlinePortfolioController::class, 'images'])->name('inline.images');
@@ -69,6 +71,7 @@ Route::middleware(['auth', EnsureUsernameIsSet::class])->group(function () {
     });
 });
 
+Route::get('/{username}/{portfolioSlug}/photo/{photoId}', [PublicPortfolioController::class, 'photo'])->whereUuid('photoId')->name('portfolio.photo');
 Route::get('/{username}/{portfolioSlug}/cv/download', [PublicPortfolioController::class, 'pdf'])->name('portfolio.pdf');
 Route::get('/{username}/{portfolioSlug}/projects/{projectSlug}/images/{mediaId}', [PublicPortfolioController::class, 'image'])->whereNumber('mediaId')->name('portfolio.image');
 Route::get('/{username}/{portfolioSlug}/projects/{projectSlug}', [PublicPortfolioController::class, 'project'])->name('portfolio.project');

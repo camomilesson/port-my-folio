@@ -24,7 +24,7 @@ class BuildPortfolioSnapshot
                     'decorative' => (bool) $media->getCustomProperty('decorative', false)];
             }
             $projects[] = ['id' => $project->id, 'slug' => $project->slug, 'repository_owner' => $project->repository_owner, 'repository_name' => $project->repository_name,
-                'title' => $project->title, 'author_role' => $project->author_role, 'summary' => $project->summary, 'overview' => $project->overview, 'technical_details' => $project->technical_details ?? '',
+                'title' => $project->title, 'summary' => $project->summary, 'overview' => $project->overview, 'technical_details' => $project->technical_details ?? '',
                 'technologies' => $project->technologies ?? [], 'live_url' => $project->live_url, 'gallery' => $gallery];
         }
         $document = $portfolio->cvDocument;
@@ -32,6 +32,7 @@ class BuildPortfolioSnapshot
         return ['schema_version' => 1, 'preset' => $portfolio->preset, 'accent_color' => $portfolio->accent_color,
             'home_content' => ['schema_version' => 1, 'name' => $cv['name'], 'headline' => $cv['headline'], 'introduction' => $portfolio->home_content['introduction'] ?? null],
             'cv_content' => $cv, 'projects' => $projects,
+            'photo' => $portfolio->home_content['photo'] ?? null,
             'original_pdf' => $document ? ['disk' => $document->storageDisk(), 'path' => $document->storage_path, 'mime_type' => 'application/pdf'] : null];
     }
 
@@ -59,7 +60,6 @@ class BuildPortfolioSnapshot
             'projects.*.slug' => ['required', 'string', 'max:64', 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/', 'distinct'],
             'projects.*.repository_owner' => ['required', 'string', 'max:100', 'regex:/^[a-zA-Z0-9-]+$/'],
             'projects.*.repository_name' => ['required', 'string', 'max:100', 'regex:/^[a-zA-Z0-9_.-]+$/'],
-            'projects.*.author_role' => ['required', 'string', 'max:255'],
             'projects.*.title' => ['nullable', 'string', 'max:120'], 'projects.*.summary' => ['nullable', 'string', 'max:1000'],
             'projects.*.technical_details' => ['nullable', 'string', 'max:10000'],
             'projects.*.overview' => ['nullable', 'string', 'max:10000'], 'projects.*.live_url' => ['nullable', 'url:http,https', 'max:2048'],
@@ -77,6 +77,9 @@ class BuildPortfolioSnapshot
                 }
                 $this->requireFile($image);
             }
+        }
+        if ($snapshot['photo']) {
+            $this->requireFile($snapshot['photo']);
         }
         $this->requireFile($snapshot['original_pdf']);
         $snapshot['published_at'] = now()->toIso8601String();

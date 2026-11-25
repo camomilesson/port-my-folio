@@ -27,7 +27,7 @@ beforeEach(function () {
     $this->app->bind(PortfolioGenerationProvider::class, FakePortfolioProvider::class);
 });
 
-it('starts from minimal inputs with generated identity and agreed demo role context', function () {
+it('starts from minimal inputs with generated identity and no project role', function () {
     Queue::fake();
     Storage::fake('local');
     $readme = str_repeat('This web application processes requests and stores results in a database. ', 10);
@@ -43,7 +43,7 @@ it('starts from minimal inputs with generated identity and agreed demo role cont
     $response->assertSessionHasNoErrors()->assertRedirect(route('userzone.preview.home', $portfolio));
     expect($portfolio->title)->toBe($owner->name.' portfolio');
     expect($portfolio->slug)->toStartWith('portfolio-');
-    expect($portfolio->projects()->sole()->author_role)->toBe('Solo developer');
+    expect($portfolio->generations()->sole()->input_snapshot['projects'][0])->not->toHaveKey('author_role');
     expect($portfolio->generations()->sole()->status)->toBe('queued');
     expect($portfolio->isPublished())->toBeFalse();
     Queue::assertPushed(GeneratePortfolioStep::class);

@@ -143,3 +143,14 @@ it('refuses gallery changes during generation and across owner or project bounda
     expect($media->fresh()->getCustomProperty('caption'))->toBeNull();
     expect(Storage::disk('images_local')->allFiles())->toHaveCount(1);
 });
+
+it('shows the carousel below project identity and technologies and before the overview without role content', function () {
+    $portfolio = Portfolio::factory()->generated()->create();
+    $project = $portfolio->projects()->first();
+    $project->addMedia(UploadedFile::fake()->image('one.png'))->withCustomProperties(['decorative' => true])->toMediaCollection('gallery');
+    $project->addMedia(UploadedFile::fake()->image('two.png'))->withCustomProperties(['decorative' => true])->toMediaCollection('gallery');
+
+    $this->actingAs($portfolio->user)->get(route('userzone.preview.project', [$portfolio, $project]))->assertOk()
+        ->assertSeeInOrder([$project->title, $project->summary, 'Technologies', 'Gallery', 'Overview', 'Technical details'])
+        ->assertSee('Previous image')->assertSee('Next image')->assertSee('1 / 2')->assertDontSee('My role');
+});

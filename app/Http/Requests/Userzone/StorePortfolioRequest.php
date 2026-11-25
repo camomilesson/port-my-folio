@@ -31,7 +31,7 @@ class StorePortfolioRequest extends FormRequest
             'repositories' => ['required', 'array', 'list', 'min:1', 'max:5'],
             'repositories.*' => ['required', 'array:repository_url,author_role'],
             'repositories.*.repository_url' => ['required', 'string', 'max:250', 'regex:~^https://github\.com/[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,38})/[a-zA-Z0-9_.-]{1,100}/?$~'],
-            'repositories.*.author_role' => ['required', 'string', 'max:255'],
+            'repositories.*.author_role' => ['exclude'],
         ];
     }
 

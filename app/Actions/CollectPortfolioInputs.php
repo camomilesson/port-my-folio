@@ -14,7 +14,7 @@ class CollectPortfolioInputs
 {
     public function __construct(private FetchGithubReadme $readmes, private StorePortfolioCv $storeCv, private ValidateCvPdf $pdfs) {}
 
-    /** @param array{title: string, slug: string, focus?: ?string, repositories: array<int, array{repository_url: string, author_role: string}>} $data */
+    /** @param array{title: string, slug: string, focus?: ?string, repositories: array<int, array{repository_url: string}>} $data */
     public function handle(User $owner, array $data, UploadedFile $pdf, bool $generate = false): Portfolio
     {
         $this->pdfs->handle(file_get_contents($pdf->getRealPath()));
@@ -29,7 +29,7 @@ class CollectPortfolioInputs
                 }
                 $seen[$key] = true;
                 $collected = $generate ? $identity + ['content' => null, 'fetched_at' => null] : $this->readmes->handle($repository['repository_url']);
-                $evidence[] = $collected + ['author_role' => $repository['author_role']];
+                $evidence[] = $collected;
             } catch (ProviderFailure $failure) {
                 throw ValidationException::withMessages(["repositories.$index.repository_url" => $failure->getMessage()]);
             } catch (ValidationException $exception) {
@@ -44,7 +44,7 @@ class CollectPortfolioInputs
                 foreach ($evidence as $position => $repository) {
                     $portfolio->projects()->create([
                         'repository_owner' => $repository['owner'], 'repository_name' => $repository['name'],
-                        'slug' => 'project-'.($position + 1), 'author_role' => $repository['author_role'],
+                        'slug' => 'project-'.($position + 1),
                         'readme_content' => $repository['content'], 'readme_fetched_at' => $repository['fetched_at'],
                         'title' => '', 'summary' => '', 'overview' => '', 'technologies' => [], 'position' => $position,
                     ]);

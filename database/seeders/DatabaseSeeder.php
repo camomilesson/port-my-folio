@@ -31,7 +31,7 @@ class DatabaseSeeder extends Seeder
 
             foreach (['laravel/laravel', 'tailwindlabs/tailwindcss'] as $position => $repository) {
                 [$repositoryOwner, $repositoryName] = explode('/', $repository);
-                $project = Project::factory()->for($portfolio)->create(['slug' => $repositoryName, 'repository_owner' => $repositoryOwner, 'repository_name' => $repositoryName, 'author_role' => 'Fictional role for demonstration only', 'position' => $position]);
+                $project = Project::factory()->for($portfolio)->create(['slug' => $repositoryName, 'repository_owner' => $repositoryOwner, 'repository_name' => $repositoryName, 'position' => $position]);
                 $project->addMedia(resource_path('fixtures/demo-project.png'))->preservingOriginal()->withCustomProperties(['caption' => 'Synthetic demo screenshot', 'alt_text' => 'Portmyfolio demo project placeholder', 'draft_removed' => false])->toMediaCollection('gallery');
             }
 

@@ -25,7 +25,7 @@ class SaveProjectRequest extends FormRequest
     {
         return [
             'repository_url' => $this->route('project') ? ['prohibited'] : ['required', 'string', 'max:250', 'regex:~^https://github\.com/[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,38})/[a-zA-Z0-9_.-]{1,100}/?$~'],
-            'title' => ['required', 'string', 'max:120'], 'author_role' => ['required', 'string', 'max:255'],
+            'title' => ['required', 'string', 'max:120'], 'author_role' => ['exclude'],
             'summary' => ['nullable', 'string', 'max:1000'], 'overview' => ['nullable', 'string', 'max:10000'],
             'technical_details' => ['required', 'string', 'max:10000'],
             'technologies' => ['sometimes', 'array', 'list', 'max:30'],

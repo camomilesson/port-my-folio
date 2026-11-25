@@ -13,7 +13,6 @@
                 <x-form-input name="repository_url" label="Public GitHub repository URL" type="url" required placeholder="https://github.com/owner/repository" maxlength="250" />
             @endif
             <x-form-input name="title" label="Project title" :value="$project?->title" required maxlength="120" />
-            <x-form-input name="author_role" label="Your role" :value="$project?->author_role" required maxlength="255" />
             <x-form-textarea name="summary" label="Short summary" :value="$project?->summary" rows="3" maxlength="1000" />
             <x-form-textarea name="overview" label="Project overview" :value="$project?->overview" rows="8" maxlength="10000" />
             <x-form-textarea name="technical_details" label="Technical details" :value="$project?->technical_details" rows="8" maxlength="10000" required />

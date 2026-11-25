@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Userzone;
 
 use App\Actions\EditInlinePortfolioField;
 use App\Actions\ManageProjectGallery;
+use App\Actions\StorePortfolioPhoto;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Userzone\StoreGalleryBatchRequest;
 use App\Models\Portfolio;
@@ -12,7 +13,9 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Storage;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class InlinePortfolioController extends Controller
 {
@@ -51,6 +54,24 @@ class InlinePortfolioController extends Controller
         $gallery->updateField($portfolio, $project, $media, $data['field'], $data['value']);
 
         return $this->saved($request);
+    }
+
+    public function photo(Request $request, Portfolio $portfolio, StorePortfolioPhoto $store): JsonResponse|RedirectResponse
+    {
+        Gate::authorize('update', $portfolio);
+        $request->validate(['photo' => ['required', 'file', 'mimetypes:image/jpeg,image/png,image/webp', 'max:10240']]);
+        $store->handle($portfolio, $request->file('photo'));
+
+        return $this->saved($request);
+    }
+
+    public function showPhoto(Portfolio $portfolio, string $photoId): StreamedResponse
+    {
+        Gate::authorize('view', $portfolio);
+        $photo = $portfolio->home_content['photo'] ?? null;
+        abort_unless($photo && $photo['id'] === $photoId && Storage::disk($photo['disk'])->exists($photo['path']), 404);
+
+        return Storage::disk($photo['disk'])->response($photo['path'], 'photo.webp', ['Cache-Control' => 'private, no-store', 'X-Content-Type-Options' => 'nosniff', 'Content-Type' => 'image/webp']);
     }
 
     private function saved(Request $request): JsonResponse|RedirectResponse

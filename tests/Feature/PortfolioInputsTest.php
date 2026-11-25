@@ -31,7 +31,7 @@ it('collects PDF and complete repository evidence without calling AI or publishi
     expect($portfolio->published_snapshot)->toBeNull();
     expect($portfolio->cvDocument->status)->toBe('uploaded');
     expect($portfolio->projects()->sole()->readme_content)->toContain('track assignments');
-    expect($portfolio->projects()->sole()->author_role)->toBe('Backend developer in a team of three');
+    expect($portfolio->projects()->sole()->author_role)->toBe('');
     Storage::disk('local')->assertExists($portfolio->cvDocument->storage_path);
     $this->assertDatabaseCount('generations', 0);
     Http::assertSentCount(2);
@@ -48,10 +48,10 @@ it('saves no portfolio or PDF when a repository fails preflight', function () {
     expect(Storage::disk('local')->allFiles())->toBe([]);
 });
 
-it('rejects missing PDF and repository roles before external requests', function () {
+it('rejects a missing PDF before external requests', function () {
     Http::fake();
     $this->actingAs(User::factory()->create())->post(route('userzone.portfolios.store'), ['title' => 'Backend', 'slug' => 'backend', 'repositories' => [['repository_url' => 'https://github.com/example/course']]])
-        ->assertSessionHasErrors(['pdf', 'repositories.0.author_role']);
+        ->assertSessionHasErrors(['pdf']);
     $this->assertDatabaseCount('portfolios', 0);
     Http::assertNothingSent();
 });

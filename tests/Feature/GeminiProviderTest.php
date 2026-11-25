@@ -84,7 +84,7 @@ it('rejects invented repository identities in generated content', function () {
 
 it('requests separate project and profile contracts without regenerating completed projects', function () {
     $fake = new FakePortfolioProvider;
-    $evidence = ['project' => ['repository_owner' => 'example', 'repository_name' => 'course', 'author_role' => 'Backend contributor']];
+    $evidence = ['project' => ['repository_owner' => 'example', 'repository_name' => 'course']];
     $project = $fake->generateProject($evidence)->content;
     $profile = $fake->generateProfile([])->content;
     Http::fake(['https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent' => Http::sequence()
@@ -93,6 +93,7 @@ it('requests separate project and profile contracts without regenerating complet
     expect(app(GeminiPortfolioProvider::class)->generateProject($evidence)->content)->toBe($project);
     expect(app(GeminiPortfolioProvider::class)->generateProfile(['cv' => FakePortfolioProvider::cv(), 'projects' => [$project]])->content)->toBe($profile);
     Http::assertSent(fn ($request) => array_keys($request['generationConfig']['responseJsonSchema']['properties']) === ['home_content', 'cv_content']);
+    Http::assertSent(fn ($request) => ! str_contains(json_encode($request->data()), 'author_role'));
     Http::assertSentCount(2);
 });
 

@@ -2,6 +2,7 @@
 
 namespace App\Actions;
 
+use App\Jobs\DeleteUnusedPortfolioPhoto;
 use App\Jobs\DeleteUnusedProjectMedia;
 use App\Models\Portfolio;
 use App\Models\User;
@@ -22,10 +23,14 @@ class PublishPortfolio
                 throw ValidationException::withMessages(['publication' => 'Complete initial generation before publishing this portfolio.']);
             }
             $snapshot = $this->builder->build($locked);
+            $previousPhoto = $locked->published_snapshot['photo'] ?? null;
             $locked->update(['published_snapshot' => $snapshot, 'published_at' => $snapshot['published_at']]);
             $owner = User::findOrFail($locked->user_id);
             if ($owner->default_portfolio_id === null) {
                 $owner->forceFill(['default_portfolio_id' => $locked->id])->save();
+            }
+            if ($previousPhoto) {
+                DeleteUnusedPortfolioPhoto::dispatch($locked->id, $previousPhoto)->afterCommit();
             }
             foreach ($locked->projects()->withTrashed()->pluck('id') as $projectId) {
                 DeleteUnusedProjectMedia::dispatch($projectId)->afterCommit();

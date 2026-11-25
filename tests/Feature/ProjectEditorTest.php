@@ -12,7 +12,7 @@ uses(RefreshDatabase::class);
 it('adds a normalized repository-backed project manually without generation', function () {
     $portfolio = Portfolio::factory()->create();
 
-    $this->actingAs($portfolio->user)->post(route('userzone.projects.store', $portfolio), ['repository_url' => 'https://github.com/Example/Project.git', 'title' => 'My project', 'technical_details' => 'The server validates requests and stores application data.', 'author_role' => 'Backend developer', 'technologies_text' => "PHP\nLaravel", 'live_url' => 'https://example.com', 'readme_content' => 'injected', 'portfolio_id' => 999])->assertRedirect()->assertSessionHasNoErrors();
+    $this->actingAs($portfolio->user)->post(route('userzone.projects.store', $portfolio), ['repository_url' => 'https://github.com/Example/Project.git', 'title' => 'My project', 'technical_details' => 'The server validates requests and stores application data.', 'technologies_text' => "PHP\nLaravel", 'live_url' => 'https://example.com', 'readme_content' => 'injected', 'portfolio_id' => 999])->assertRedirect()->assertSessionHasNoErrors();
 
     $project = $portfolio->projects()->sole();
     expect($project->repository_owner)->toBe('example');

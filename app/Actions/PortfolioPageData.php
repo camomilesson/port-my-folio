@@ -17,6 +17,10 @@ class PortfolioPageData
         }
         $data = $this->builder->draft($portfolio);
         $data = app(GenerationPreview::class)->handle($portfolio, $data, $generation);
+        if ($data['photo']) {
+            $data['photo']['url'] = route('userzone.photo.show', [$portfolio, $data['photo']['id']]);
+        }
+        $data['photo_upload_url'] = route('userzone.photo.store', $portfolio);
         $data['preview'] = true;
         $data['editable'] = $generation?->status === 'succeeded';
         $data['inline'] = ['home' => route('userzone.inline.page', [$portfolio, 'home']), 'cv' => route('userzone.inline.page', [$portfolio, 'cv'])];
@@ -44,6 +48,9 @@ class PortfolioPageData
     public function published(array $snapshot, string $username, string $slug): array
     {
         $data = $snapshot;
+        if ($data['photo'] ?? null) {
+            $data['photo']['url'] = route('portfolio.photo', [$username, $slug, $data['photo']['id']]);
+        }
         $data['preview'] = false;
         $data['links'] = ['home' => route('portfolio.home', [$username, $slug]), 'cv' => route('portfolio.cv', [$username, $slug]), 'pdf' => route('portfolio.pdf', [$username, $slug])];
         foreach ($data['projects'] as &$project) {

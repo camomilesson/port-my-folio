@@ -13,7 +13,7 @@ use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
-#[Fillable(['portfolio_id', 'slug', 'repository_owner', 'repository_name', 'author_role', 'readme_content', 'readme_fetched_at', 'title', 'summary', 'overview', 'technical_details', 'technologies', 'live_url', 'position'])]
+#[Fillable(['portfolio_id', 'slug', 'repository_owner', 'repository_name', 'readme_content', 'readme_fetched_at', 'title', 'summary', 'overview', 'technical_details', 'technologies', 'live_url', 'position'])]
 class Project extends Model implements HasMedia
 {
     /** @use HasFactory<ProjectFactory> */
@@ -21,6 +21,8 @@ class Project extends Model implements HasMedia
 
     use InteractsWithMedia;
     use SoftDeletes;
+
+    protected $attributes = ['author_role' => ''];
 
     protected function casts(): array
     {
