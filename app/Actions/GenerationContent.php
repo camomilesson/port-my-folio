@@ -2,6 +2,7 @@
 
 namespace App\Actions;
 
+use App\Models\Portfolio;
 use Illuminate\Support\Facades\Validator;
 
 class GenerationContent
@@ -47,6 +48,42 @@ class GenerationContent
         }
 
         return $content;
+    }
+
+    /** @param array<string, mixed> $content
+     * @return array<string, mixed>
+     */
+    public static function validateProfile(array $content): array
+    {
+        if (array_diff(array_keys($content), ['home_content', 'cv_content']) !== []) {
+            throw new ProviderFailure('invalid_output', 'The provider returned invalid profile data.');
+        }
+        self::validate($content + ['projects' => [self::emptyProject()]], false);
+        foreach (['name', 'headline'] as $field) {
+            if ($content['home_content'][$field] !== $content['cv_content'][$field]) {
+                throw new ProviderFailure('invalid_output', 'The provider returned inconsistent identity.');
+            }
+        }
+
+        return $content;
+    }
+
+    /** @param array<string, mixed> $content
+     * @return array<string, mixed>
+     */
+    public static function validateProject(array $content): array
+    {
+        $cv = PortfolioContent::cv(new Portfolio);
+        unset($cv['schema_version']);
+        self::validate(['home_content' => ['name' => '', 'headline' => '', 'introduction' => ''], 'cv_content' => $cv, 'projects' => [$content]], false);
+
+        return $content;
+    }
+
+    /** @return array<string, mixed> */
+    private static function emptyProject(): array
+    {
+        return ['repository_owner' => 'placeholder', 'repository_name' => 'placeholder', 'title' => '', 'summary' => '', 'overview' => '', 'technologies' => [], 'live_url' => null];
     }
 
     /** @return array<string, mixed> */

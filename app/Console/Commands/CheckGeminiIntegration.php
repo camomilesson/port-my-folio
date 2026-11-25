@@ -8,14 +8,14 @@ use Illuminate\Console\Command;
 
 class CheckGeminiIntegration extends Command
 {
-    protected $signature = 'gemini:check';
+    protected $signature = 'gemini:check {--scanned : Use the bundled image-only fictional CV}';
 
     protected $description = 'Extract the fictional bundled CV with Gemini without changing any portfolio';
 
     public function handle(GeminiPortfolioProvider $provider): int
     {
         try {
-            $result = $provider->extractCv(file_get_contents(resource_path('fixtures/demo-cv.pdf')));
+            $result = $provider->extractCv(file_get_contents(resource_path($this->option('scanned') ? 'fixtures/demo-cv-scanned.pdf' : 'fixtures/demo-cv.pdf')));
         } catch (ProviderFailure $exception) {
             $this->error($exception->getMessage());
 
