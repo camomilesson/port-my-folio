@@ -1,6 +1,6 @@
 # Portmyfolio — Product Vision
 
-Status: agreed MVP direction, frozen on 23 November 2026.
+Status: agreed MVP direction, initially frozen on 23 November 2026; updated through Stage 5 decisions on 25 November 2026.
 
 This document records the product we intend to build. See [DATA_MODEL.md](DATA_MODEL.md) for the agreed data architecture and [PLAN.md](PLAN.md) for implementation stages. Changes to the agreed scope should be reflected here before they become implementation work.
 
@@ -19,7 +19,7 @@ The project is being built for the Modern Web Application course, with Laravel b
 1. Sign in with Google and choose a username.
 2. Create a portfolio with a title and user-chosen URL slug.
 3. Upload a required PDF CV.
-4. Provide a portfolio focus, such as a target industry, role, or pasted job posting.
+4. Optionally provide a portfolio focus, such as a target industry, role, or pasted job posting.
 5. Add up to five public GitHub repository links and state the author's role for each project.
 6. Generate the initial portfolio in the background.
 7. Review the generated draft and edit its content through forms.
@@ -52,7 +52,7 @@ There is no extra AI context pass after generation. Users correct and expand the
 
 ### Portfolio focus
 
-The user supplies the audience or purpose of the portfolio before generation. This guides emphasis and wording across the home, CV, and project pages. It must not cause the application to invent experience, skills, or achievements.
+The user may supply the audience or purpose of the portfolio before generation (up to 5,000 characters). Blank focus produces a general professional portfolio. This guides emphasis and wording across the home, CV, and project pages. It must not cause the application to invent experience, skills, or achievements.
 
 ### Projects
 
@@ -93,7 +93,7 @@ All portfolios use three predefined page types. AI supplies their content; it do
 - Editable structured fields and entries.
 - Download link to the immutable original PDF whenever the portfolio is published.
 
-The initial content structure is documented in DATA_MODEL.md; exact validation limits will be finalized during implementation.
+The initial content structure is documented in DATA_MODEL.md; editor validation limits are recorded in DATA_MODEL.md; Stage 5 input limits are recorded below.
 
 ### Project
 
@@ -187,7 +187,7 @@ Supabase provides database and storage services; Laravel owns application logic,
 
 No separate frontend deployment, Python service, vector database, Redis requirement, or general-purpose agent orchestration framework is currently needed.
 
-Framework/package versions, connection configuration, local database setup, and the exact provider SDK will be selected during technical planning. Keep production services geographically close where possible.
+Framework/runtime versions, connection configuration and local PostgreSQL are established in README.md. Stage 5 uses Laravel HTTP for the Gemini integration. Keep production services geographically close where possible.
 
 ## Delivery and assessment
 
@@ -215,12 +215,12 @@ Sunsetting the application also takes users' hosted portfolios offline. Present 
 ## Decisions still open
 
 - Exact preset designs and names.
-- Whether portfolio focus is required or optional, and its input limits.
-- PDF size/page limits, README size limits, and insufficient-README handling.
-- Username/slug changes and redirects, plus default-portfolio fallback behavior.
+- Portfolio focus: resolved below in Stage 5.
+- Input limits: resolved below in Stage 5.
+- Stable addresses and default behavior: resolved in Stage 4.
 - Retention policy for extraction and generation evidence.
 - Handling partially completed generation and permanently failed project processing.
-- Local assessment login approach, external service configuration, and demo fixtures.
+- Local assessment login, infrastructure, and fixtures: implemented in Stages 1–3.
 - Production domain, project contact email, and operational budget.
 
 These are follow-up product or technical decisions, not authorization to expand the MVP with regeneration, additional input sources, or a layout editor.
@@ -234,3 +234,14 @@ Home/CV share identity within each portfolio; home introduction and CV summary a
 ## Stage 4 decisions frozen — 25 November 2026
 
 The intended entry remains one source PDF plus repository links/roles, followed by generation and straightforward publication. Do not add manual content-completion hurdles. Portfolio focus remains a Stage 5 input decision. Local fixtures can demonstrate publication before provider integration; there is no production manual-generation bypass. PDFs are always downloadable while the portfolio is published, regardless of any legacy allow_original_download flag. Remove that checkbox and omit the flag from new content/snapshots; do not alter the immutable PDF. Publishing confirmation explicitly warns that the original may contain details edited out of the web CV. Storage buckets remain private. No revision history, slug redirects, or automatic publication on save.
+
+
+## Stage 5 decisions — 25 November 2026
+
+Focus is optional, up to 5,000 characters; blank means a general professional portfolio. One input screen collects title/address, one required immutable PDF (10 MB, at most 20 pages), and one to five public GitHub repository URLs with a required author role. Scanned PDFs are supported through Gemini; encrypted or malformed PDFs are rejected. No manually authored CV/project prose is required before generation.
+
+Fetch the full default README through GitHub API endpoints. It must contain more than 200 meaningful characters (excluding markup, badges, and link-only content), and be strictly smaller than 100 KB (100,000 bytes). Missing/insufficient evidence gets actionable feedback before paid processing. Fetches cache for one hour; rate limits preserve completed work and expose the reset/retry time.
+
+Retain source PDFs, extracted facts, README snapshots and generation inputs/metadata while the portfolio exists. Delete source/personal payloads and files on portfolio deletion, retaining minimal quota history. Shared public GitHub cache entries expire after one hour.
+
+Gemini uses Laravel's HTTP client behind application-owned contracts, with deterministic test fakes. The initial model is gemini-3.5-flash-lite. The user verified native PDF extraction, structured output, application validation and usage reporting with the bundled fictional CV. Scanned-CV extraction quality remains unverified. No provider credential or live AI call is required for automated tests. PDF structural validation uses the user-approved smalot/pdfparser dependency.

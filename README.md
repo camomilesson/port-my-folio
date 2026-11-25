@@ -1,6 +1,6 @@
 # Portmyfolio
 
-A Laravel portfolio builder that turns a PDF CV and up to five public GitHub READMEs into an editable personal website. **Stages 1–3 are complete and verified live. Stage 4 is implemented on `codex/stage-4-publishing`, awaiting review:** explicit publication snapshots, public home/CV/project pages and file downloads, automatic first default, and publication-aware cleanup. GitHub/PDF extraction and AI generation are not implemented yet.
+A Laravel portfolio builder that turns a PDF CV and up to five public GitHub READMEs into an editable personal website. **Stages 1–4 are complete:** accounts, private editing, galleries, previews and publication snapshots. Stage 4 passed local lifecycle review and hosted smoke checks. **Stage 5 is reviewed and approved for promotion:** one-screen PDF/repository collection, public README preflight, and validated Gemini provider boundaries. Durable generation and quota enforcement come in Stage 6; the full hosted generation-to-publication journey remains pending.
 
 - [Product vision](VISION.md)
 - [Data model](DATA_MODEL.md)
@@ -100,7 +100,7 @@ The `/up` endpoint checks application boot; it does not claim to check storage o
 
 Set `DEMO_LOGIN_ENABLED=true` in a local `.env`, migrate, then run `php artisan db:seed` once on an unseeded local database. The landing page's **Explore the local demo** button signs in the seeded `admin@example.com` identity (Sam Example). This is a fictional assessment account, with no administrator privileges. The shortcut returns 404 in production even if the flag is enabled.
 
-Fixtures include two owners, multiple portfolios, project records, synthetic images, a fictional PDF CV, and completed generation history. No external requests or AI calls are made. The published fixture exercises model/dashboard states; public rendering arrives later. Start the local queue worker to process draft-file cleanup.
+Fixtures include two owners, multiple portfolios, project records, synthetic images, a fictional PDF CV, and completed generation history. No external requests or AI calls are made. Fresh published fixtures exercise public rendering locally; ordinary hosted drafts require real generation before publication. Start the local queue worker to process draft-file cleanup.
 
 `migrate:fresh --seed` is destructive: use it only against a disposable local database. Do not use it on an existing development or hosted database. The seeder is for a fresh/unseeded local database and refuses production.
 
@@ -111,7 +111,7 @@ Spatie Media Library 11 manages project galleries through its standard `media` t
 ## Current limitations
 
 - Private home/CV/project editing, ordering, gallery management, immutable PDF upload/download, and home/CV/project previews are available. Publication is implemented; PDF extraction, GitHub fetching, AI generation, and quota enforcement remain later stages. Active-generation portfolios cannot be deleted yet.
-- Hosted Google sign-in/logout, direct Supabase PostgreSQL, private CV storage, managed queue processing, and the health endpoint have been verified. User verified Stage 3 hosted image upload/delete and source PDF upload/download on 25 November 2026. Stage 4 public delivery is not yet deployed or verified live.
+- Hosted Google sign-in/logout, direct Supabase PostgreSQL, private CV storage, managed queue processing, and the health endpoint have been verified. User verified Stage 3 hosted image upload/delete and source PDF upload/download on 25 November 2026. Stage 4 is deployed and hosted smoke checks passed; full hosted publication lifecycle verification follows genuine generation in Stage 6.
 - The framework scaffold still contains nullable password infrastructure for compatibility; there is no public password authentication feature. The application-owned schema is now implemented. Ownership policies cover portfolios, projects, CV evidence, generations, and gallery media; nested editor and preview routes apply them and check parent/child identity.
 - This is an experimental course/demo project; permanent hosted availability is not promised.
 
@@ -138,3 +138,16 @@ Test public home/CV/project pages, PDF and gallery URLs signed out. Draft edits/
 Public pages and previews use the same minimal templates with separate data sources. Public requests read snapshot content/file references only; public markup contains no owner editor controls or session flash. Snapshot validation checks structural limits and safe URLs/dates without requiring optional text, contacts, images or CV sections. Initial publication requires a source PDF, at least one active repository-backed project and completed generation; fixture-provider success is accepted only in local/testing environments. There are no AI calls in publication.
 
 Validation: 146 PostgreSQL tests / 699 assertions; SQLite 142 passing / 676 assertions and four PostgreSQL-only concurrency cases skipped. The publishing/default race tests run separate processes. No new packages, storage resources, or schema migrations are required for Stage 4. Existing private buckets and managed workers remain in use. GitHub Actions remains deferred by user preference.
+
+
+## Stage 5 inputs and Gemini integration
+
+New portfolios collect one PDF (10 MB, 1–20 pages), optional focus (5,000 characters), and 1–5 public GitHub URLs with roles. Full README evidence must exceed 200 meaningful characters and stay strictly below 100,000 bytes. Badges, comments, markup and link-only content do not count toward the minimum. GitHub preflight uses fixed API endpoints, refuses redirects/private repositories, bounds response sizes, and caches public evidence for one hour. Rate limits return a retry time and suppress requests until then; successfully cached evidence survives a failed submission. Durable automatic delayed retries belong to Stage 6. A failed submission requires choosing the PDF again.
+
+Only validated inputs are persisted; no AI call, quota reservation or successful-generation record is created by collection. smalot/pdfparser 2.13 validates document structure/page count without replacing native Gemini PDF processing. Source PDFs remain immutable. Generation output is validated independently of provider schema promises; rendered text remains escaped.
+
+Configure GEMINI_API_KEY and GEMINI_MODEL=gemini-3.5-flash-lite in the ignored local .env. The application uses Laravel HTTP against Gemini's supported generateContent REST endpoint, native inline PDF input, structured JSON output and safe provider errors. No additional AI SDK is installed. The provider contract and deterministic fake are in app/Actions; tests never require credentials. The adapter has a 90-second timeout; Stage 6 must align worker timeout/visibility settings before queue integration.
+
+Run php artisan config:clear, then php artisan gemini:check --no-interaction for one explicit, potentially billable live extraction of the bundled fictional CV. It prints validated fictional content and usage, never the key; it changes no portfolio or quota record. The user completed this check successfully with gemini-3.5-flash-lite. Do not repeatedly run it as routine testing. The scanned-PDF provider check also remains pending; structural acceptance alone does not verify OCR quality.
+
+User review should exercise the new form, optional focus, add/remove repository controls, invalid README feedback, retry after a failure, and preservation of existing editor/publication behavior. No merge or deployment is implied by implementation.

@@ -218,7 +218,7 @@ Review: decide whether to open the experimental public demo and what hosting lif
 - [x] Stage 1 — Foundation and infrastructure proof (completed 24 November 2026; hosted image delivery explicitly deferred).
 - [x] Stage 2 — Schema, account onboarding, and ownership (reviewed, merged, and verified live).
 - [x] Stage 3 — Manual draft editor and galleries (local review, merge, and hosted image/PDF checks complete).
-- [ ] Stage 4 — Publishing and default portfolio routing.
+- [x] Stage 4 — Publishing and default portfolio routing (local lifecycle review and hosted smoke checks passed; full hosted generation-to-publication check deferred to Stage 6).
 - [ ] Stage 5 — Input collection and provider contracts.
 - [ ] Stage 6 — Durable initial generation and quota.
 - [ ] Stage 7 — Three presets and product polish.
@@ -262,7 +262,7 @@ Foundation and infrastructure proof are complete. The historical pending notes a
 Next review boundary: begin Stage 2 on a new feature branch when requested. No Stage 2 implementation is included in this closure.
 
 
-## Stage 2 implementation — 24 November 2026 (awaiting review)
+## Stage 2 implementation — 24 November 2026 (historical; closure below)
 
 Branch: `feat/portfolio-models`. Five application models/migrations, relationship constraints, factories, and offline fixtures are implemented. Username onboarding normalizes input and enforces reserved names and uniqueness. The owner workspace lists multiple portfolios and supports private title/slug/focus draft creation, viewing, and deletion. Ownership policies deny foreign resources with 404; future nested editor routes remain in Stage 3.
 
@@ -275,7 +275,7 @@ Local migrations and seeding completed without resetting existing development ac
 
 User approved Stage 2, it was merged with atomic commits preserved, and the user reported all hosted smoke checks passing. Push-to-deploy on main is now enabled by agreement. The later portfolio-not-found change was also merged and user-verified live: signed-out owner overview requests show a 404 with a sign-in suggestion instead of redirecting immediately to Google. These updates supersede the earlier awaiting-review notes.
 
-## Stage 3 agreed decisions and implementation — 24 November 2026 (awaiting review)
+## Stage 3 agreed decisions and implementation — 24 November 2026 (historical; closure below)
 
 Branch: `codex/stage-3-editor`. Home personal information is name/headline/introduction with a prominent web-CV link; all projects remain visible. CV owns detailed background and contacts. Shared identity stays synchronized within the portfolio; home introduction and CV summary remain separate. Dates permit year or year-month, unknown dates, and explicit current entries. Generous bounded text lengths and repeated-entry limits are recorded in DATA_MODEL.md.
 
@@ -301,7 +301,7 @@ Do not impose manual completion requirements for optional prose, contact fields,
 Proceed on codex/stage-4-publishing, validate publication/default/file-reference isolation and cleanup, then return for review before merging/deploying or starting Stage 5. User will handle browser checks.
 
 
-## Stage 4 implementation — 25 November 2026 (awaiting review)
+## Stage 4 implementation — 25 November 2026 (historical; closure below)
 
 Decisions committed first as f5137ef. Implemented consistent snapshots, publication confirmation, first-default assignment and explicit switching, unpublishing, public home/CV/project/image/PDF routes, and snapshot-only public rendering shared with private previews. All saved publication content and immutable file references are captured together under the same owner/portfolio locks as draft edits. Public file access checks the current snapshot; no storage bucket is made public. No shared public cache is introduced; responses use no-store to avoid stale access after unpublish. Original PDF download is mandatory while published; the old flag is ignored and omitted from new content/snapshots, and its editor control is removed.
 
@@ -310,3 +310,24 @@ Eligibility checks completed generation, source PDF and an active repository-bac
 Reference-aware cleanup checks the current snapshot again under a lock, keeps published project/image references across draft removals, and removes obsolete files/soft-deleted project owners after republish or unpublish. Public content rendering uses one snapshot-content query rather than querying draft projects/media, and public markup hides owner controls and flash messages. Source PDF and image downloads stop resolving after unpublish/delete.
 
 Verification: PostgreSQL 146 tests / 699 assertions; SQLite 142 passing / 676 assertions plus four PostgreSQL-specific concurrency cases skipped. Pint, Composer manifest validation, Blade compilation and Vite build pass. Tests exercise generation eligibility, confirmation, default selection, simultaneous publication/default-unpublish requests, snapshot isolation, safe/escaped output, anonymous file access and revocation, cleanup retries, reference preservation, and query efficiency. No new dependencies or migrations. User handles browser review; no hosted Stage 4 check or deployment is claimed. Keep this stage unchecked until review, merge and appropriate hosted verification; do not advance to Stage 5 automatically.
+
+
+## Stage 4 closure and Stage 5 start — 25 November 2026
+
+User approved local publication lifecycle checks; staging was promoted to main as 351f35b, and hosted smoke checks passed. Earlier awaiting-review notes are historical. Full hosted generation-to-publication verification remains pending real generation in Stage 6. Cloud build commands now use corepack pnpm, avoiding global executable conflicts.
+
+Stage 5 is in progress on codex/stage-5-inputs. Input and evidence decisions are frozen in VISION.md. Implement collection/preflight and validated provider boundaries; keep the generation button/pipeline/quota for Stage 6. Do not mark Stage 5 complete before the user reviews inputs/extracted evidence and the controlled live integration check passes.
+
+
+## Stage 5 implementation review — 25 November 2026
+
+Implemented one-screen input collection, strict PDF page/size validation with approved smalot/pdfparser 2.13.1, normalized public GitHub README preflight and one-hour evidence cache. Streams are bounded below 100,000 bytes even without a size header; no redirects/arbitrary URLs or repository code inspection. GitHub rate limits return a retry time and suppress outbound requests until reset; durable automatic delayed retries will be wired by Stage 6. Successful evidence remains cached when another input fails. Collection creates PDF/project evidence atomically without AI requests, publication, or quota history.
+
+Defined application-owned provider/result/error contracts, strict CV/portfolio validation, deterministic fake and Gemini REST adapter with native PDF/JSON Schema support. Added gemini:check for one explicit fictional-CV extraction. Provider model/key are server-side configuration; no generation web endpoint is added. Extraction persistence, retries/progress and assembled draft completion remain Stage 6 work.
+
+Verification: PostgreSQL 185 tests / 805 assertions; SQLite 181 passing / 780 assertions with four PostgreSQL-only cases skipped. Pint, Composer validation, frontend build and diff checks passed. Browser review confirmed rendered creation form and add/remove repository controls; no local review portfolio was created by the assistant. A subsequent rollback-cleanup refinement passed affected input tests. User browser walkthrough and controlled live Gemini/text/scanned fixture checks remain pending AI Studio setup. No merge/deployment; Stage 5 remains unchecked.
+
+
+## Stage 5 promotion approval — 25 November 2026
+
+User confirmed the local input-form checklist passed and explicitly requested promotion. The live gemini:check fixture extraction passed with gemini-3.5-flash-lite (666 prompt tokens, 327 output tokens, 993 total); default model configuration and examples now match that verified choice. Scanned-CV extraction is not verified and remains a follow-up before end-to-end generation acceptance. Hosted collection smoke checks remain pending deployment. This approval supersedes the earlier awaiting-user-review status; preserve atomic feature commits during promotion.

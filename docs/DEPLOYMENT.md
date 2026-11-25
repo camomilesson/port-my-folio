@@ -41,16 +41,17 @@ GOOGLE_CLIENT_SECRET=SET-IN-DASHBOARD
 GOOGLE_REDIRECT_URI=https://YOUR-HOST/auth/google/callback
 
 CV_FILESYSTEM_DISK=s3
-IMAGE_FILESYSTEM_DISK=public
+IMAGE_FILESYSTEM_DISK=images_s3
 AWS_ACCESS_KEY_ID=SET-IN-DASHBOARD
 AWS_SECRET_ACCESS_KEY=SET-IN-DASHBOARD
 AWS_DEFAULT_REGION=YOUR-SUPABASE-REGION
 AWS_BUCKET=YOUR-PRIVATE-CV-BUCKET
+AWS_IMAGE_BUCKET=YOUR-PRIVATE-IMAGE-BUCKET
 AWS_ENDPOINT=https://YOUR-PROJECT.storage.supabase.co/storage/v1/s3
 AWS_USE_PATH_STYLE_ENDPOINT=true
 ```
 
-`IMAGE_FILESYSTEM_DISK=public` is only the scaffold's local image configuration, not a production gallery solution. Configure the separate hosted image disk/delivery URL before Stage 3's hosted gallery checks. Never expose the CV bucket to make images work.
+`IMAGE_FILESYSTEM_DISK=images_s3` selects the separate private hosted gallery bucket. Set `AWS_IMAGE_BUCKET` alongside the CV bucket setting; both use the server-side S3 endpoint and credentials. Public file delivery goes through publication-authorized Laravel routes.
 
 Configure `QUEUE_CONNECTION` and any queue environment variables using the current Laravel Cloud managed-queue instructions. Do not assume the local database queue is the managed-queue configuration. Verify the configured job timeout is shorter than the queue's retry/visibility interval.
 
@@ -60,9 +61,8 @@ Verified runtime: PHP 8.5 and Node 26. Configured build commands:
 
 ```sh
 composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
-npm install -g pnpm@12.16.1
-pnpm install --frozen-lockfile
-pnpm run build
+corepack pnpm install --frozen-lockfile
+corepack pnpm run build
 ```
 
 Confirm pnpm is available in the Cloud build environment and provision the pinned version if necessary. Use `php artisan migrate --force` as a controlled deployment command against the dedicated application's database; never run `migrate:fresh` there. Apply the platform's recommended Laravel optimization commands after environment variables are set. Ensure the queue uses the new release/configuration after deploys.
@@ -77,7 +77,7 @@ Results below combine user-performed dashboard/terminal checks and the assistant
 - [x] Hosted infrastructure command reports Database connection: OK using Supabase direct PostgreSQL.
 - [x] User confirmed PDF probe write/read/cleanup all OK. Probe uses a real PDF and application/pdf, matching the CV bucket restriction.
 - [x] User tested the uploaded fixture’s unsigned public URL: 404 NoSuchBucket. This verifies that public download path is blocked; signed URLs intentionally behave differently.
-- [ ] Deferred by agreement: no image bucket created yet. Verify hosted image delivery before galleries ship in Stages 3–4.
+- [x] Image verification was deferred from Stage 1 and completed in Stage 3: user confirmed hosted gallery upload/delete and PDF upload/download on 25 November 2026.
 - [x] User configured Cloud’s managed worker and confirmed Queue probe completed using the printed status command.
 - [x] User confirmed real hosted Google sign-in, workspace access, logout, and renewed authentication requirement.
 - [x] Hosted callback registered in Google; production environment configured with APP_DEBUG=false and secure database-backed sessions. Secret values are not reproduced in this record.
@@ -142,17 +142,34 @@ Deploy main only after merge approval; push-to-deploy is now enabled. Deploy com
 
 Hosted smoke checks: save home/CV and shared identity; create/reorder/remove manual projects; upload JPEG/PNG/WebP and verify processed image plus cover/caption/alt behavior; verify a second account and signed-out visitor cannot read preview/media/PDF routes; upload one PDF and verify replacement rejection; verify cleanup completes for an unpublished draft. Do not use infrastructure:check --disk=images_s3: that probe intentionally uploads a PDF and would be rejected by the image bucket. Use the app gallery with a non-personal test image.
 
-Publication and original-PDF public downloads remain unavailable until Stage 4. The private bucket must stay private when published-image delivery is implemented.
+Publication and original-PDF public downloads are implemented in Stage 4; hosted first publication still requires genuine generation. The private bucket must stay private when published-image delivery is implemented.
 
 
 ## Stage 3 hosted closure — 25 November 2026
 
 User completed local review, approved merge, and confirmed the live version including image upload/delete and PDF upload/download working. Stage 3 was merged as 7012a3f and deployed through main push-to-deploy. This supersedes the earlier pending gallery checks above. GitHub Actions remains deferred; perform local checks before merging.
 
-## Stage 4 deployment/review (not deployed)
+## Stage 4 deployment/review (deployed; smoke checks passed)
 
 No new resource, schema or credential configuration is needed. Keep both storage buckets private and preserve the Stage 3 disk configuration. Keep normal migration deploy command and managed cleanup workers. Public files are streamed through routes that authorize against the current publication snapshot; direct bucket access is not enabled.
 
 Until Stage 6 provides real generation, ordinary hosted portfolios cannot pass initial publication eligibility. Local/testing fixture generation can demonstrate publication; fixture-provider success is rejected outside those environments. Do not insert fabricated production successes or add a bypass flag merely to test hosted publishing. Complete publication/file lifecycle review locally now, and verify the real hosted generated-to-published journey when generation exists.
 
 After Stage 4 merge/deploy, verify normal login, draft editing/preview, absence of the PDF-permission checkbox, publication confirmation warning, friendly missing-public/default routes, and rejection of publication for an ungenerated portfolio. Full live publish/republish/unpublish/default/file revocation checks require genuine successful generation. Never publish personal PDFs accidentally: publishing intentionally exposes the original download as well as the web pages; unpublish cannot recall already downloaded copies.
+
+
+## Stage 5 Google AI Studio setup
+
+1. Open https://aistudio.google.com/apikey using your Google account.
+2. In Dashboard → Projects, import the existing dedicated Portmyfolio Google Cloud project (the OAuth project can also hold Gemini access). Create a dedicated project if you prefer separate billing/quota. Do not reuse another application's key.
+3. Open API Keys, choose Create API key, select that project and name the key Portmyfolio development. Current AI Studio creates authorization keys restricted to the Gemini API. If project/key creation is unavailable, check project permissions in Google's setup guide.
+4. Copy the key directly into the ignored local .env as GEMINI_API_KEY. Set GEMINI_MODEL=gemini-3.5-flash-lite. Do not send it through chat, commit it, or prefix it with VITE_.
+5. Confirm model access and quota in AI Studio. If the project requires verification or billing, complete that setup in Google; review the displayed prices before enabling paid use. Use fictional fixtures for the initial check.
+6. Run php artisan config:clear, then php artisan gemini:check --no-interaction once. Expect validated fictional CV fields and token usage. This command makes one real provider request but writes no portfolio/generation record.
+7. Review the extracted facts. Then perform the separate controlled scanned-CV check before claiming scanned-PDF compatibility. Routine tests use fakes.
+8. Add a separate production key to Laravel Cloud only when the generation deployment is ready. Never expose keys to browser JavaScript. Worker timeout and retry visibility must be configured for the adapter's 90-second request timeout during Stage 6.
+
+Official references checked 25 November 2026: https://aistudio.google.com/docs/api-key, https://aistudio.google.com/docs/models/gemini-3.5-flash-lite, https://aistudio.google.com/docs/document-processing?generate-content=true, https://aistudio.google.com/docs/structured-output?generate-content=true. The user verified text-based fictional-CV extraction with gemini-3.5-flash-lite. Scanned-CV quality and hosted integration remain pending.
+
+
+Stage 5 promotion approved by the user on 25 November 2026 after the local input-form checklist and live fictional-CV extraction passed. Configure GEMINI_API_KEY and GEMINI_MODEL=gemini-3.5-flash-lite in Laravel Cloud before a hosted CLI probe; normal input collection makes no AI calls. No new migration is required. Verify hosted PDF/repository collection after deployment. Scanned-CV extraction remains a tracked follow-up before end-to-end generation acceptance.
