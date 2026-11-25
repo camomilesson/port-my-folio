@@ -88,7 +88,7 @@ it('does not reveal another owners draft through guessed IDs', function () {
 });
 
 it('deletes a draft while retaining redacted quota history and deferring file cleanup', function () {
-    Storage::fake('public');
+    Storage::fake('images_local');
     Storage::fake('local');
     $portfolio = Portfolio::factory()->create();
     $project = Project::factory()->for($portfolio)->create();

@@ -11,7 +11,7 @@ uses(RefreshDatabase::class);
 
 it('seeds a usable offline demo with independent owners and stored fixtures', function () {
     Storage::fake('local');
-    Storage::fake('public');
+    Storage::fake('images_local');
 
     $this->seed();
 
@@ -25,7 +25,7 @@ it('seeds a usable offline demo with independent owners and stored fixtures', fu
         Storage::disk('local')->assertExists($document->storage_path);
     }
     foreach (Media::all() as $media) {
-        Storage::disk('public')->assertExists($media->getPathRelativeToRoot());
+        Storage::disk('images_local')->assertExists($media->getPathRelativeToRoot());
     }
 });
 

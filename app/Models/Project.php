@@ -8,8 +8,10 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Collection;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 #[Fillable(['portfolio_id', 'slug', 'repository_owner', 'repository_name', 'author_role', 'readme_content', 'readme_fetched_at', 'title', 'summary', 'overview', 'technologies', 'live_url', 'position'])]
 class Project extends Model implements HasMedia
@@ -33,6 +35,12 @@ class Project extends Model implements HasMedia
     public function repositoryUrl(): string
     {
         return 'https://github.com/'.rawurlencode($this->repository_owner).'/'.rawurlencode($this->repository_name);
+    }
+
+    /** @return Collection<int, Media> */
+    public function activeGallery(): Collection
+    {
+        return $this->getMedia('gallery')->reject(fn ($media): bool => (bool) $media->getCustomProperty('draft_removed', false))->sortBy('order_column')->values();
     }
 
     public function registerMediaCollections(): void

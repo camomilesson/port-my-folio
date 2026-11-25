@@ -29,7 +29,7 @@ class PortfolioController extends Controller
             throw ValidationException::withMessages(['slug' => 'You already have a portfolio with this address.']);
         }
 
-        return to_route('userzone.portfolios.show', $portfolio)->with('status', 'Draft created. The content editor arrives in the next stage.');
+        return to_route('userzone.portfolios.show', $portfolio)->with('status', 'Draft created. Add your introduction, CV, and projects.');
     }
 
     public function show(Portfolio $portfolio): View

@@ -47,7 +47,7 @@ There is no extra AI context pass after generation. Users correct and expand the
 - The application validates extracted data before using it to generate the portfolio.
 - Every content field on the resulting CV page is editable through forms, including the ability to manage repeated entries such as experience and education.
 - There is no CV regeneration in the MVP.
-- The original uploaded PDF is private by default. Publishing the CV page does not automatically expose the source file.
+- One immutable original PDF belongs to each portfolio and cannot be replaced. It is private by default. Publishing the CV page does not automatically expose the source file.
 - Visitors may download the original CV only if the owner explicitly enables that option.
 
 ### Portfolio focus
@@ -82,7 +82,8 @@ All portfolios use three predefined page types. AI supplies their content; it do
 
 ### Home
 
-- Brief personal introduction shaped by the portfolio focus.
+- Minimal personal information: shared display name/headline and a brief introduction shaped by the portfolio focus.
+- A prominent link to the detailed web CV; detailed background/contact information belongs on that CV page.
 - Navigation to the CV and project pages.
 - All projects, in the owner's chosen order. There is no featured-project selection.
 
@@ -108,9 +109,10 @@ There is no highlights section and no mandatory metrics, impact, challenges, or 
 - Owners edit content through forms, accessed from the dashboard or owner controls on a page.
 - No click-to-edit document editor or drag-and-drop layout builder.
 - Owners can edit generated text, manage project ordering, and remove projects. Every project appears on the homepage.
-- Images are entirely user managed: upload, delete, reorder, choose a cover, and edit captions and alt text.
+- Images are entirely user managed: upload, delete, reorder (first image is the cover), and edit captions and alt text. A decorative-image option produces empty alt text; other images require a description.
+- Keep only processed, resized, metadata-free gallery images; discard original image uploads.
 - AI does not select or generate images. Automatic screenshot capture is outside scope.
-- Adding a repository after initial generation, if supported, must not introduce a regeneration flow. The exact post-generation project-creation behavior remains open.
+- Owners may add repository-backed projects manually after generation, within the five-project maximum, without AI calls. Existing repository identity stays fixed; display content and role remain editable.
 
 ## Appearance
 
@@ -209,16 +211,18 @@ Sunsetting the application also takes users' hosted portfolios offline. Present 
 
 ## Decisions still open
 
-- Exact validation limits for the agreed content schemas.
 - Exact preset designs and names.
 - Whether portfolio focus is required or optional, and its input limits.
 - PDF size/page limits, README size limits, and insufficient-README handling.
-- Exact post-generation project-addition behavior without AI regeneration.
 - Username/slug changes and redirects, plus default-portfolio fallback behavior.
-- Image count, dimensions, file limits, and processing rules.
-- CV retention/deletion behavior and reuse of an upload for another portfolio.
+- Retention policy for extraction and generation evidence.
 - Handling partially completed generation and permanently failed project processing.
 - Local assessment login approach, external service configuration, and demo fixtures.
 - Production domain, project contact email, and operational budget.
 
 These are follow-up product or technical decisions, not authorization to expand the MVP with regeneration, additional input sources, or a layout editor.
+
+
+## Stage 3 decisions agreed — 24 November 2026
+
+Home/CV share identity within each portfolio; home introduction and CV summary are independent. Dates support year-only or month/year, unknown dates, and explicit current entries. Contacts are optional with labeled HTTP(S) links and separately validated email/phone. Manual project additions are allowed without AI. Original generation evidence stays separate from editable display content; editing focus does not rewrite text. PDF public-download permission becomes effective only through publication. Exact editor limits are now recorded in DATA_MODEL.md; outstanding questions above concerning these choices are superseded by this agreement.

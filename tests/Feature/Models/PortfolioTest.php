@@ -48,7 +48,7 @@ it('permits only one source CV per portfolio', function () {
 })->throws(UniqueConstraintViolationException::class);
 
 it('preserves media when a draft project is soft deleted', function () {
-    Storage::fake('public');
+    Storage::fake('images_local');
     $project = Project::factory()->create();
     $media = $project->addMedia(UploadedFile::fake()->image('sample.png'))->toMediaCollection('gallery');
     $path = $media->getPathRelativeToRoot();
@@ -57,7 +57,7 @@ it('preserves media when a draft project is soft deleted', function () {
 
     $this->assertSoftDeleted($project);
     $this->assertModelExists($media);
-    Storage::disk('public')->assertExists($path);
+    Storage::disk('images_local')->assertExists($path);
     expect($project->portfolio->projects()->count())->toBe(0);
 });
 

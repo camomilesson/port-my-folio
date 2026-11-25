@@ -1,6 +1,6 @@
 # Portmyfolio
 
-A Laravel portfolio builder that turns a PDF CV and up to five public GitHub READMEs into an editable personal website. **Stage 1 is complete. Stage 2 is implemented on `feat/portfolio-models`, awaiting review:** schema, username onboarding, owner dashboard, and private draft creation/deletion. Content editing and generation are not implemented yet.
+A Laravel portfolio builder that turns a PDF CV and up to five public GitHub READMEs into an editable personal website. **Stages 1–2 are complete and verified live. Stage 3 is implemented on `codex/stage-3-editor`, awaiting review:** manual content editing, private draft previews, project galleries, and an immutable source PDF. Publishing and AI generation are not implemented yet.
 
 - [Product vision](VISION.md)
 - [Data model](DATA_MODEL.md)
@@ -9,7 +9,7 @@ A Laravel portfolio builder that turns a PDF CV and up to five public GitHub REA
 
 ## Requirements
 
-- PHP 8.5 with Composer 2 for the currently verified lockfile; development uses Herd PHP 8.5.
+- PHP 8.5 with Composer 2 for the currently verified lockfile; development uses Herd PHP 8.5. Gallery processing requires GD with WebP support and EXIF. Allow at least 256 MB PHP memory for bounded image decoding.
 - Node.js 22.12+ (development currently uses Node 26) and pnpm 12.16.1.
 - PostgreSQL 17 for local development and database integration tests. SQLite remains the fast, isolated default test database.
 
@@ -38,7 +38,7 @@ Open http://127.0.0.1:8000. For frontend changes run `pnpm dev` in another termi
 php artisan queue:work --tries=2 --timeout=60
 ```
 
-Local data, sessions, cache, and queue jobs use PostgreSQL. CV files use `storage/app/private`; public-image files use `storage/app/public`. No hosted service credentials are required to view the landing page or run automated tests. Google sign-in shows a configuration message until a dedicated OAuth client is added. Local image serving will need `php artisan storage:link` when the gallery is implemented.
+Local data, sessions, cache, and queue jobs use PostgreSQL. CV files use `storage/app/private`; processed galleries use the separate private `images_local` disk at `storage/app/private/gallery`. No hosted service credentials are required to view the landing page or run automated tests. Google sign-in shows a configuration message until a dedicated OAuth client is added. Owner-authorized routes serve gallery files; no public storage symlink is needed for galleries.
 
 ### Google sign-in
 
@@ -106,11 +106,22 @@ Fixtures include two owners, multiple portfolios, project records, synthetic ima
 
 ## Media Library foundation
 
-Spatie Media Library 11 manages future project galleries through its standard `media` table. Its default disk follows `IMAGE_FILESYSTEM_DISK`; original CV files remain on the separate private CV disk. The package and migration are installed, but the Project model and its gallery collection exist. Upload forms, conversions, and publication-aware cleanup arrive in later stages. Gallery removal must preserve media referenced by the published snapshot; see DATA_MODEL.md.
+Spatie Media Library 11 manages project galleries through its standard `media` table. Its gallery disk follows `IMAGE_FILESYSTEM_DISK` (default `images_local`); source CVs remain on the separate private CV disk. Uploads are decoded and stored as one metadata-free WebP at up to 2,400 pixels; originals are discarded. First active gallery image is the cover. Draft removals create tombstones; cleanup retains all removed media while a publication snapshot exists. Stage 4 will complete reference-aware publication cleanup; see DATA_MODEL.md.
 
 ## Current limitations
 
-- Private draft creation, viewing, and deletion are available. No content editor, publishing, PDF parsing, GitHub import, AI generation, or usage limits yet. Published or actively generating portfolios cannot be deleted through this stage’s draft-only action.
-- Hosted Google sign-in/logout, direct Supabase PostgreSQL, private CV storage, managed queue processing, and the health endpoint have been verified. Image bucket setup/delivery remains deferred to the gallery stage.
-- The framework scaffold still contains nullable password infrastructure for compatibility; there is no public password authentication feature. The application-owned schema is now implemented. Ownership policies cover portfolios, projects, CV evidence, generations, and gallery media; future nested editor routes must apply them.
+- Private home/CV/project editing, ordering, gallery management, immutable PDF upload/download, and home/CV/project previews are available. Publishing, PDF extraction, GitHub fetching, AI generation, and quota enforcement remain later stages. Published or actively generating portfolios cannot be deleted through the current draft-only action.
+- Hosted Google sign-in/logout, direct Supabase PostgreSQL, private CV storage, managed queue processing, and the health endpoint have been verified. The user created the private image bucket for Stage 3; hosted gallery upload/delivery is not yet verified.
+- The framework scaffold still contains nullable password infrastructure for compatibility; there is no public password authentication feature. The application-owned schema is now implemented. Ownership policies cover portfolios, projects, CV evidence, generations, and gallery media; nested editor and preview routes apply them and check parent/child identity.
 - This is an experimental course/demo project; permanent hosted availability is not promised.
+
+
+## Stage 3 local review
+
+Use the local demo, open a portfolio, and choose Edit home, Edit CV & PDF, Add project, or Preview draft. Save forms explicitly before previewing. Name/headline are shared within a portfolio; home introduction and CV summary are independent. CV sections have add/remove/reorder controls. The source PDF can be uploaded only once (10 MB), downloaded only by its owner in this stage, and never replaced. The public-download checkbox is a draft preference for Stage 4 publication, not an immediate sharing switch.
+
+Projects require a normalized https://github.com/owner/repository URL and a role, with at most five active projects. Repository identity and slug stay fixed; manual additions do not call AI or consume generation quota. Live GitHub checks follow in Stage 5.
+
+Galleries accept still JPEG/PNG/WebP up to 10 MB, 12,000 pixels per side and 24 megapixels. Maximum ten active images per project. Decorative images have empty alt text; other images require an image description. Only processed files are retained. Existing publication snapshots are never changed by draft actions. Editing is blocked during queued/running generation. Cleanup needs a queue worker.
+
+After review/merge, hosted galleries need `IMAGE_FILESYSTEM_DISK=images_s3` and `AWS_IMAGE_BUCKET=portmyfolio-images`. Keep `AWS_BUCKET` pointing at the private CV bucket. The image disk shares existing server-side S3 credentials/region/endpoint; do not make either bucket public. Apply `php artisan migrate --force` during deployment. Configure HTTP/PHP upload limits to admit a 10 MB file plus form overhead and `max_input_vars` to at least 2,000 for the largest CV form. An end-of-form marker rejects truncated CV submissions rather than wiping omitted entries. Test profiles force local storage disks and never upload to Supabase.
