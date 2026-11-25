@@ -1,6 +1,6 @@
 # Portmyfolio
 
-A Laravel portfolio builder that turns a PDF CV and up to five public GitHub READMEs into an editable personal website. **Stages 1–2 are complete and verified live. Stage 3 is implemented on `codex/stage-3-editor`, awaiting review:** manual content editing, private draft previews, project galleries, and an immutable source PDF. Publishing and AI generation are not implemented yet.
+A Laravel portfolio builder that turns a PDF CV and up to five public GitHub READMEs into an editable personal website. **Stages 1–3 are complete and verified live. Stage 4 is implemented on `codex/stage-4-publishing`, awaiting review:** explicit publication snapshots, public home/CV/project pages and file downloads, automatic first default, and publication-aware cleanup. GitHub/PDF extraction and AI generation are not implemented yet.
 
 - [Product vision](VISION.md)
 - [Data model](DATA_MODEL.md)
@@ -106,22 +106,35 @@ Fixtures include two owners, multiple portfolios, project records, synthetic ima
 
 ## Media Library foundation
 
-Spatie Media Library 11 manages project galleries through its standard `media` table. Its gallery disk follows `IMAGE_FILESYSTEM_DISK` (default `images_local`); source CVs remain on the separate private CV disk. Uploads are decoded and stored as one metadata-free WebP at up to 2,400 pixels; originals are discarded. First active gallery image is the cover. Draft removals create tombstones; cleanup retains all removed media while a publication snapshot exists. Stage 4 will complete reference-aware publication cleanup; see DATA_MODEL.md.
+Spatie Media Library 11 manages project galleries through its standard `media` table. Its gallery disk follows `IMAGE_FILESYSTEM_DISK` (default `images_local`); source CVs remain on the separate private CV disk. Uploads are decoded and stored as one metadata-free WebP at up to 2,400 pixels; originals are discarded. First active gallery image is the cover. Draft removals create tombstones; cleanup rechecks both draft and published references before deleting removed media or soft-deleted project owners; see DATA_MODEL.md.
 
 ## Current limitations
 
-- Private home/CV/project editing, ordering, gallery management, immutable PDF upload/download, and home/CV/project previews are available. Publishing, PDF extraction, GitHub fetching, AI generation, and quota enforcement remain later stages. Published or actively generating portfolios cannot be deleted through the current draft-only action.
-- Hosted Google sign-in/logout, direct Supabase PostgreSQL, private CV storage, managed queue processing, and the health endpoint have been verified. The user created the private image bucket for Stage 3; hosted gallery upload/delivery is not yet verified.
+- Private home/CV/project editing, ordering, gallery management, immutable PDF upload/download, and home/CV/project previews are available. Publication is implemented; PDF extraction, GitHub fetching, AI generation, and quota enforcement remain later stages. Active-generation portfolios cannot be deleted yet.
+- Hosted Google sign-in/logout, direct Supabase PostgreSQL, private CV storage, managed queue processing, and the health endpoint have been verified. User verified Stage 3 hosted image upload/delete and source PDF upload/download on 25 November 2026. Stage 4 public delivery is not yet deployed or verified live.
 - The framework scaffold still contains nullable password infrastructure for compatibility; there is no public password authentication feature. The application-owned schema is now implemented. Ownership policies cover portfolios, projects, CV evidence, generations, and gallery media; nested editor and preview routes apply them and check parent/child identity.
 - This is an experimental course/demo project; permanent hosted availability is not promised.
 
 
 ## Stage 3 local review
 
-Use the local demo, open a portfolio, and choose Edit home, Edit CV & PDF, Add project, or Preview draft. Save forms explicitly before previewing. Name/headline are shared within a portfolio; home introduction and CV summary are independent. CV sections have add/remove/reorder controls. The source PDF can be uploaded only once (10 MB), downloaded only by its owner in this stage, and never replaced. The public-download checkbox is a draft preference for Stage 4 publication, not an immediate sharing switch.
+Use the local demo, open a portfolio, and choose Edit home, Edit CV & PDF, Add project, or Preview draft. Save forms explicitly before previewing. Name/headline are shared within a portfolio; home introduction and CV summary are independent. CV sections have add/remove/reorder controls. The source PDF can be uploaded only once (10 MB), downloaded by its owner while private, and never replaced. Stage 4 removes the old download-permission checkbox: publishing makes the original PDF downloadable to visitors.
 
 Projects require a normalized https://github.com/owner/repository URL and a role, with at most five active projects. Repository identity and slug stay fixed; manual additions do not call AI or consume generation quota. Live GitHub checks follow in Stage 5.
 
 Galleries accept still JPEG/PNG/WebP up to 10 MB, 12,000 pixels per side and 24 megapixels. Maximum ten active images per project. Decorative images have empty alt text; other images require an image description. Only processed files are retained. Existing publication snapshots are never changed by draft actions. Editing is blocked during queued/running generation. Cleanup needs a queue worker.
 
 After review/merge, hosted galleries need `IMAGE_FILESYSTEM_DISK=images_s3` and `AWS_IMAGE_BUCKET=portmyfolio-images`. Keep `AWS_BUCKET` pointing at the private CV bucket. The image disk shares existing server-side S3 credentials/region/endpoint; do not make either bucket public. Apply `php artisan migrate --force` during deployment. Configure HTTP/PHP upload limits to admit a 10 MB file plus form overhead and `max_input_vars` to at least 2,000 for the largest CV form. An end-of-form marker rejects truncated CV submissions rather than wiping omitted entries. Test profiles force local storage disks and never upload to Supabase.
+
+
+## Stage 4 local review
+
+Open the local demo and use the seeded Backend developer portfolio, which has successful fixture generation, projects and a source PDF. Ordinary manually created portfolios have no successful generation and cannot publish yet; no production bypass is provided. Fresh seeds also contain a complete published example. Older pre-Stage-4 synthetic publication snapshots lack file references and return the friendly 404; do not reset your normal database to repair old fixtures. Use Backend developer, publish it, and choose Make default if an old fixture already occupies that slot.
+
+Use Publish portfolio / Publish changes from the overview, preview the saved draft, then explicitly confirm that both the portfolio and original PDF become public. The first publication while no default is selected assigns that default. Other published tiles and editors offer Make default. /username redirects to the owned published default; /username/slug is always canonical. Usernames and slugs stay fixed. Missing/unpublished addresses show the friendly portfolio-not-found page without exposing draft content.
+
+Test public home/CV/project pages, PDF and gallery URLs signed out. Draft edits/removals must leave those public responses unchanged until republishing. After republish, old removed project/image URLs must return 404 and queued cleanup can remove their files. Unpublish immediately disables new public page/media/PDF access and clears a matching default; it does not silently select another existing portfolio. Deleting a published portfolio also revokes access, preserves redacted generation usage history, and queues its files for deletion. Run the worker for cleanup. Already downloaded copies cannot be recalled.
+
+Public pages and previews use the same minimal templates with separate data sources. Public requests read snapshot content/file references only; public markup contains no owner editor controls or session flash. Snapshot validation checks structural limits and safe URLs/dates without requiring optional text, contacts, images or CV sections. Initial publication requires a source PDF, at least one active repository-backed project and completed generation; fixture-provider success is accepted only in local/testing environments. There are no AI calls in publication.
+
+Validation: 146 PostgreSQL tests / 699 assertions; SQLite 142 passing / 676 assertions and four PostgreSQL-only concurrency cases skipped. The publishing/default race tests run separate processes. No new packages, storage resources, or schema migrations are required for Stage 4. Existing private buckets and managed workers remain in use. GitHub Actions remains deferred by user preference.
