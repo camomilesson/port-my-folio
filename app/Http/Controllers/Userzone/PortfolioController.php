@@ -2,14 +2,13 @@
 
 namespace App\Http\Controllers\Userzone;
 
+use App\Actions\CollectPortfolioInputs;
 use App\Actions\DeletePortfolio;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Userzone\StorePortfolioRequest;
 use App\Models\Portfolio;
-use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class PortfolioController extends Controller
@@ -21,15 +20,11 @@ class PortfolioController extends Controller
         return view('userzone.portfolios.create');
     }
 
-    public function store(StorePortfolioRequest $request): RedirectResponse
+    public function store(StorePortfolioRequest $request, CollectPortfolioInputs $collect): RedirectResponse
     {
-        try {
-            $portfolio = $request->user()->portfolios()->create($request->validated());
-        } catch (UniqueConstraintViolationException) {
-            throw ValidationException::withMessages(['slug' => 'You already have a portfolio with this address.']);
-        }
+        $portfolio = $collect->handle($request->user(), $request->validated(), $request->file('pdf'));
 
-        return to_route('userzone.portfolios.show', $portfolio)->with('status', 'Draft created. Add your introduction, CV, and projects.');
+        return to_route('userzone.portfolios.show', $portfolio)->with('status', 'Your PDF and repository evidence are saved privately. Generation will be available in the next stage.');
     }
 
     public function show(Portfolio $portfolio): View

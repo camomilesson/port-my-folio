@@ -27,6 +27,11 @@ class StorePortfolioRequest extends FormRequest
             'title' => ['required', 'string', 'max:120'],
             'slug' => ['required', 'string', 'max:64', 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/', Rule::unique('portfolios', 'slug')->where('user_id', $this->user()->id)],
             'focus' => ['nullable', 'string', 'max:5000'],
+            'pdf' => ['required', 'file', 'mimetypes:application/pdf', 'extensions:pdf', 'max:10240'],
+            'repositories' => ['required', 'array', 'list', 'min:1', 'max:5'],
+            'repositories.*' => ['required', 'array:repository_url,author_role'],
+            'repositories.*.repository_url' => ['required', 'string', 'max:250', 'regex:~^https://github\.com/[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,38})/[a-zA-Z0-9_.-]{1,100}/?$~'],
+            'repositories.*.author_role' => ['required', 'string', 'max:255'],
         ];
     }
 

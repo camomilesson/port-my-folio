@@ -8,6 +8,7 @@ use App\Models\Project;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
 
@@ -32,8 +33,12 @@ it('requires a username before creating drafts', function () {
 it('creates a private draft for the signed-in owner and ignores privileged fields', function () {
     $owner = User::factory()->create();
     $other = User::factory()->create();
+    Storage::fake('local');
+    config(['cache.default' => 'array']);
+    Http::preventStrayRequests();
+    Http::fake(['https://api.github.com/repos/example/course' => Http::response(['private' => false]), 'https://api.github.com/repos/example/course/readme' => Http::response(str_repeat('Project description. ', 20))]);
 
-    $this->actingAs($owner)->post(route('userzone.portfolios.store'), ['title' => 'Backend applications', 'slug' => '  Backend-Roles ', 'focus' => 'Backend jobs', 'user_id' => $other->id, 'preset' => 'injected', 'published_snapshot' => ['injected' => true], 'published_at' => '2026-01-01'])
+    $this->actingAs($owner)->post(route('userzone.portfolios.store'), ['title' => 'Backend applications', 'slug' => '  Backend-Roles ', 'focus' => 'Backend jobs', 'user_id' => $other->id, 'preset' => 'injected', 'published_snapshot' => ['injected' => true], 'published_at' => '2026-01-01', 'pdf' => UploadedFile::fake()->createWithContent('cv.pdf', file_get_contents(resource_path('fixtures/demo-cv.pdf'))), 'repositories' => [['repository_url' => 'https://github.com/example/course', 'author_role' => 'Developer']]])
         ->assertRedirect(route('userzone.portfolios.show', Portfolio::sole()));
 
     $this->assertDatabaseHas('portfolios', ['user_id' => $owner->id, 'title' => 'Backend applications', 'slug' => 'backend-roles', 'preset' => 'minimal', 'published_at' => null, 'published_snapshot' => null]);
@@ -54,8 +59,12 @@ it('validates draft fields with useful feedback', function (array $input, array 
 
 it('checks slug uniqueness within an owner rather than across accounts', function () {
     $owner = User::factory()->create();
+    Storage::fake('local');
+    config(['cache.default' => 'array']);
+    Http::preventStrayRequests();
+    Http::fake(['https://api.github.com/repos/example/course' => Http::response(['private' => false]), 'https://api.github.com/repos/example/course/readme' => Http::response(str_repeat('Project description. ', 20))]);
     Portfolio::factory()->create(['slug' => 'backend']);
-    $this->actingAs($owner)->post(route('userzone.portfolios.store'), ['title' => 'Backend', 'slug' => 'backend'])->assertRedirect();
+    $this->actingAs($owner)->post(route('userzone.portfolios.store'), ['title' => 'Backend', 'slug' => 'backend', 'pdf' => UploadedFile::fake()->createWithContent('cv.pdf', file_get_contents(resource_path('fixtures/demo-cv.pdf'))), 'repositories' => [['repository_url' => 'https://github.com/example/course', 'author_role' => 'Developer']]])->assertSessionHasNoErrors()->assertRedirect();
     $this->post(route('userzone.portfolios.store'), ['title' => 'Duplicate', 'slug' => 'backend'])
         ->assertSessionHasErrors(['slug' => 'You already have a portfolio with this address.']);
     expect($owner->portfolios()->count())->toBe(1);
