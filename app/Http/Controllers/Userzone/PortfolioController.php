@@ -24,7 +24,7 @@ class PortfolioController extends Controller
     {
         $portfolio = $collect->handle($request->user(), $request->validated(), $request->file('pdf'));
 
-        return to_route('userzone.portfolios.show', $portfolio)->with('status', 'Your PDF and repository evidence are saved privately. Generation will be available in the next stage.');
+        return to_route('userzone.portfolios.show', $portfolio)->with('status', 'Your PDF and repository evidence are saved privately. Open Generation & progress to review inputs and generate your portfolio.');
     }
 
     public function show(Portfolio $portfolio): View

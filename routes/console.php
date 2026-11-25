@@ -5,6 +5,7 @@ use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schedule;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -52,3 +53,5 @@ Artisan::command('infrastructure:queue {token?}', function () {
 
     return 0;
 })->purpose('Dispatch a harmless queue probe or check its completion');
+
+Schedule::command('generation:recover')->everyMinute()->withoutOverlapping();

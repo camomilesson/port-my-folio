@@ -118,14 +118,14 @@ it('deletes a draft while retaining redacted quota history and deferring file cl
     Queue::assertPushed(DeletePortfolioFiles::class, fn (DeletePortfolioFiles $job): bool => $job->mediaIds === [$media->id] && $job->cvPath === $document->storage_path && $job->afterCommit === true);
 });
 
-it('refuses deletion while generation is active', function (string $status) {
+it('cancels active generation and redacts its inputs on deletion', function (string $status) {
     $portfolio = Portfolio::factory()->create();
-    Generation::factory()->for($portfolio)->create(['status' => $status]);
-
-    $this->actingAs($portfolio->user)->from(route('userzone.portfolios.show', $portfolio))->delete(route('userzone.portfolios.destroy', $portfolio))
-        ->assertRedirect(route('userzone.portfolios.show', $portfolio))
-        ->assertSessionHasErrors(['portfolio' => 'Wait for generation to finish before deleting this portfolio.']);
-    $this->assertModelExists($portfolio);
+    $generation = Generation::factory()->for($portfolio)->create(['status' => $status]);
+    $this->actingAs($portfolio->user)->delete(route('userzone.portfolios.destroy', $portfolio))->assertRedirect(route('dashboard'));
+    $this->assertModelMissing($portfolio);
+    expect($generation->fresh()->status)->toBe('failed');
+    expect($generation->fresh()->error_code)->toBe('cancelled');
+    expect($generation->fresh()->input_snapshot)->toBeNull();
 })->with(['queued', 'running']);
 
 it('deletes a published portfolio and clears its default pointer', function () {
