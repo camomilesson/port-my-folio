@@ -91,15 +91,15 @@ Review: try the complete editing experience before adding publication.
 
 ### Decisions before implementation
 
-- Choose username/slug change rules. Prefer stable addresses for the MVP; do not build redirect history without need.
-- Confirm the no-default public response. Proposed fallback: a generic no-published-portfolio page, with no draft details exposed.
+- Agreed: username and portfolio/project slugs are fixed; no redirect history.
+- Agreed: missing default/public portfolio uses the friendly could-not-find page, revealing no draft details.
 
 ### Work
 
 - Implement consistent, validated publication snapshots and publish/unpublish actions.
 - Serve public home/CV/project pages solely from the current published snapshot.
 - Implement canonical /username/slug routes and /username redirect to the default published portfolio.
-- Implement explicit original-PDF download permission from the published version.
+- Always expose the original PDF through a publication-authorized download route; remove the optional-download checkbox.
 - Preserve published images and project pages when their draft counterparts are edited/deleted; clean files only after references disappear.
 - Make publication/default changes transactional and invalidate relevant caches after successful commits.
 - Keep unpublished/draft content inaccessible to visitors. Define the publishing eligibility check so Stage 6 can enforce successful initial generation in the finished MVP.
@@ -109,7 +109,7 @@ Review: try the complete editing experience before adding publication.
 - Draft edits do not alter public content; Publish changes updates text, appearance, projects, and gallery together.
 - A project removed from the draft remains public until republishing; its old image still loads.
 - Default selection rejects another user's or unpublished portfolio. Unpublish/delete clears the default appropriately.
-- Original PDFs cannot be downloaded without published permission.
+- Original PDFs are publicly downloadable only while referenced by a currently published portfolio.
 - Public pages render efficiently without N+1 query behavior.
 
 Review: demonstrate two independent portfolios, switching the default, and draft/published isolation.
@@ -217,7 +217,7 @@ Review: decide whether to open the experimental public demo and what hosting lif
 - [x] Write staged development plan.
 - [x] Stage 1 — Foundation and infrastructure proof (completed 24 November 2026; hosted image delivery explicitly deferred).
 - [x] Stage 2 — Schema, account onboarding, and ownership (reviewed, merged, and verified live).
-- [ ] Stage 3 — Manual draft editor and galleries.
+- [x] Stage 3 — Manual draft editor and galleries (local review, merge, and hosted image/PDF checks complete).
 - [ ] Stage 4 — Publishing and default portfolio routing.
 - [ ] Stage 5 — Input collection and provider contracts.
 - [ ] Stage 6 — Durable initial generation and quota.
@@ -286,3 +286,16 @@ One immutable source PDF per portfolio, ten MB, private by default, with no repl
 Implemented owner forms, nested authorization, CV repeaters/order controls, project CRUD/order, gallery upload/metadata/order/tombstones, private PDF upload/download, and a shared minimal home/CV/project preview. No publishing or provider integration is added. Mutations lock owner/portfolio and reject active generation; real PostgreSQL multi-process tests cover simultaneous additions at both caps. Cleanup retries preserve records on storage failure and conservatively retain removed media whenever a published snapshot exists; Stage 4 must implement reference-aware cleanup after publication changes.
 
 Validation: PostgreSQL 124 tests / 534 assertions; SQLite 122 passing / 524 assertions plus two PostgreSQL-only concurrency cases skipped. Pint, Composer validation, and Vite build pass. Local additive migration applied without resetting accounts. Browser checks confirmed shared-identity saving, add/reorder/save CV entries, project creation, and home/project preview layout. Browser upload automation stalled at the file picker; user will perform the remaining browser walkthrough, including uploads, CV preview and responsive layout. Backend upload/file-error tests pass. No hosted Stage 3 deployment is claimed; do not merge/deploy or advance to Stage 4 before review.
+
+
+## Stage 3 closure — 25 November 2026
+
+User completed the manual browser checklist, approved merge, and confirmed hosted image upload/delete and PDF upload/download working. Stage 3 merged as 7012a3f; the earlier awaiting-review notes are historical. GitHub Actions was discussed and deferred by user preference; keep local validation before merges.
+
+## Stage 4 decisions and implementation boundary — 25 November 2026
+
+Freeze the decisions in VISION.md and DATA_MODEL.md before coding. First publication while no default exists automatically selects it; mark Default in the list and provide Make default on other published tiles and in their editors. Unpublish/delete clears that pointer; no silent substitute. Explicit Publish / Publish changes captures saved content together and shows last publication time/public URL. Confirmation warns that the portfolio and original CV PDF become public, including original details absent from the web CV.
+
+Do not impose manual completion requirements for optional prose, contact fields, images, or CV sections. Require successful initial generation, one source PDF and at least one active repository-backed project, with internal safety/structure validation. Use successful local fixture evidence to demonstrate publication until generation is built; never add a production bypass. Keep portfolio focus optional until Stage 5 decides its input behavior. Remove the legacy allow_original_download control and omit it from new CV/snapshot data; published PDF access is unconditional on that old flag.
+
+Proceed on codex/stage-4-publishing, validate publication/default/file-reference isolation and cleanup, then return for review before merging/deploying or starting Stage 5. User will handle browser checks.
