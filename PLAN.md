@@ -326,3 +326,8 @@ Implemented one-screen input collection, strict PDF page/size validation with ap
 Defined application-owned provider/result/error contracts, strict CV/portfolio validation, deterministic fake and Gemini REST adapter with native PDF/JSON Schema support. Added gemini:check for one explicit fictional-CV extraction. Provider model/key are server-side configuration; no generation web endpoint is added. Extraction persistence, retries/progress and assembled draft completion remain Stage 6 work.
 
 Verification: PostgreSQL 185 tests / 805 assertions; SQLite 181 passing / 780 assertions with four PostgreSQL-only cases skipped. Pint, Composer validation, frontend build and diff checks passed. Browser review confirmed rendered creation form and add/remove repository controls; no local review portfolio was created by the assistant. A subsequent rollback-cleanup refinement passed affected input tests. User browser walkthrough and controlled live Gemini/text/scanned fixture checks remain pending AI Studio setup. No merge/deployment; Stage 5 remains unchecked.
+
+
+## Stage 5 promotion approval — 25 November 2026
+
+User confirmed the local input-form checklist passed and explicitly requested promotion. The live gemini:check fixture extraction passed with gemini-3.5-flash-lite (666 prompt tokens, 327 output tokens, 993 total); default model configuration and examples now match that verified choice. Scanned-CV extraction is not verified and remains a follow-up before end-to-end generation acceptance. Hosted collection smoke checks remain pending deployment. This approval supersedes the earlier awaiting-user-review status; preserve atomic feature commits during promotion.
