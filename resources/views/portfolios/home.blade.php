@@ -2,7 +2,8 @@
 <x-portfolio-frame :page="$page">
     <section class="max-w-3xl py-16">
         <p class="text-sm font-semibold uppercase tracking-widest text-[var(--portfolio-accent)]">{{ $cv['name'] }}</p>
-        <h1 class="mt-5 break-words text-4xl font-semibold tracking-tight sm:text-6xl">{{ $cv['headline'] ?: 'Your next opportunity.' }}</h1>
+        <h1 class="mt-5 break-words text-4xl font-semibold tracking-tight sm:text-6xl">{{ ($page['generation']['has_extraction'] ?? true) ? ($cv['headline'] ?: 'Your next opportunity.') : 'Building your portfolio' }}</h1>
+        @if(!($page['generation']['has_profile'] ?? true))<div class="mt-7 space-y-3" aria-label="Introduction pending"><div class="h-4 w-full animate-pulse rounded bg-stone-200 motion-reduce:animate-none"></div><div class="h-4 w-2/3 animate-pulse rounded bg-stone-200 motion-reduce:animate-none"></div><p class="text-sm text-stone-500">Your introduction will appear here.</p></div>@endif
         <p class="mt-7 whitespace-pre-line break-words text-lg leading-relaxed text-stone-600">{{ $page['home_content']['introduction'] ?? '' }}</p>
         <a href="{{ $page['links']['cv'] }}" class="mt-8 inline-flex rounded-full bg-stone-900 px-6 py-3 font-semibold text-white">Explore my CV →</a>
     </section>
@@ -16,6 +17,7 @@
                     @endif
                     <div class="p-6">
                         <h3 class="break-words text-xl font-semibold"><a href="{{ $project['url'] }}">{{ $project['title'] ?: $project['repository_name'] }}</a></h3>
+                        @if($project['pending'] ?? false)<div class="mt-4 h-4 w-3/4 animate-pulse rounded bg-stone-200 motion-reduce:animate-none" aria-label="Project content pending"></div><p class="mt-3 text-sm text-stone-500">Waiting for project content…</p>@endif
                         <p class="mt-3 break-words leading-relaxed text-stone-600">{{ $project['summary'] }}</p>
                         <ul class="mt-4 flex flex-wrap gap-2" aria-label="Technologies">@foreach($project['technologies'] ?? [] as $technology)<li class="rounded-full bg-stone-100 px-3 py-1 text-xs">{{ $technology }}</li>@endforeach</ul>
                         <a class="mt-5 inline-block text-sm font-semibold underline" href="{{ $project['url'] }}">View project →</a>

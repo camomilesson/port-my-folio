@@ -103,3 +103,35 @@ document.querySelectorAll('[data-generation-progress]').forEach((panel) => {
     }
     pollGeneration();
 });
+
+
+async function refreshLivePortfolio() {
+    const current = document.querySelector('[data-live-portfolio]');
+    if (!current || current.dataset.active !== '1') return;
+    try {
+        const response = await fetch(window.location.href, { headers: { Accept: 'text/html' }, cache: 'no-store' });
+        if (!response.ok || response.redirected) return;
+        const html = new DOMParser().parseFromString(await response.text(), 'text/html');
+        const replacement = html.querySelector('[data-live-portfolio]');
+        if (replacement && replacement.dataset.revision !== current.dataset.revision) {
+            const focused = document.activeElement;
+            const focusedHref = focused?.getAttribute('href');
+            current.replaceWith(document.importNode(replacement, true));
+            document.title = html.title;
+            if (focusedHref) {
+                [...document.querySelectorAll('[data-live-portfolio] a')].find((link) => link.getAttribute('href') === focusedHref)?.focus({ preventScroll: true });
+            }
+        }
+    } catch {
+        // Keep completed content on screen; the next poll will retry.
+    }
+    window.setTimeout(refreshLivePortfolio, 2500);
+}
+refreshLivePortfolio();
+
+
+document.querySelector('[data-create-portfolio]')?.addEventListener('submit', (event) => {
+    const button = event.target.querySelector('button[type="submit"], button:not([type])');
+    button.disabled = true;
+    button.textContent = 'Preparing your portfolio…';
+});

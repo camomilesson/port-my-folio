@@ -44,8 +44,8 @@ class StartPortfolioGeneration
                 throw ValidationException::withMessages(['generation' => 'Add a source PDF and one to five repository-backed projects first.']);
             }
             $inputs = ['schema_version' => 1, 'focus' => $locked->focus, 'pdf' => ['id' => $document->id, 'disk' => $document->storageDisk(), 'path' => $document->storage_path],
-                'projects' => $projects->map(fn ($project): array => ['id' => $project->id, 'repository_owner' => $project->repository_owner, 'repository_name' => $project->repository_name, 'author_role' => $project->author_role, 'readme_content' => $project->readme_content])->all()];
-            $generation = $locked->generations()->create(['user_id' => $owner->id, 'status' => 'queued', 'current_step' => 'checking', 'input_snapshot' => $inputs, 'progress' => ['attempts' => [], 'projects' => [], 'deadline_at' => now()->addDay()->toIso8601String()], 'usage' => [], 'provider' => 'gemini', 'model' => config('services.gemini.model'), 'prompt_version' => 'portfolio-v2', 'next_run_at' => now()]);
+                'projects' => $projects->map(fn ($project): array => ['id' => $project->id, 'repository_owner' => $project->repository_owner, 'repository_name' => $project->repository_name, 'author_role' => $project->author_role, 'readme_content' => $project->readme_content, 'readme_fetched_at' => $project->readme_fetched_at?->toIso8601String()])->all()];
+            $generation = $locked->generations()->create(['user_id' => $owner->id, 'status' => 'queued', 'current_step' => 'checking', 'input_snapshot' => $inputs, 'progress' => ['attempts' => [], 'projects' => [], 'deadline_at' => now()->addDay()->toIso8601String()], 'usage' => [], 'provider' => 'gemini', 'model' => config('services.gemini.model'), 'prompt_version' => 'portfolio-v3', 'next_run_at' => now()]);
             GenerationState::dispatch($generation);
 
             return $generation;

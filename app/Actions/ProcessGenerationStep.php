@@ -119,7 +119,9 @@ class ProcessGenerationStep
         if ($step === 'checking') {
             foreach ($inputs['projects'] as &$project) {
                 if (! $project['readme_content']) {
-                    $project['readme_content'] = $this->readmes->handle('https://github.com/'.$project['repository_owner'].'/'.$project['repository_name'])['content'];
+                    $evidence = $this->readmes->handle('https://github.com/'.$project['repository_owner'].'/'.$project['repository_name']);
+                    $project['readme_content'] = $evidence['content'];
+                    $project['readme_fetched_at'] = $evidence['fetched_at'];
                 }
                 $this->readmes->validateContent($project['readme_content']);
             }
@@ -153,7 +155,7 @@ class ProcessGenerationStep
             $project = $portfolio->projects()->findOrFail($source['id']);
             $content = GenerationContent::validateProject($checkpoints['project:'.$source['id']]);
             unset($content['repository_owner'], $content['repository_name']);
-            $project->update($content + ['readme_content' => $source['readme_content']]);
+            $project->update($content + ['readme_content' => $source['readme_content'], 'readme_fetched_at' => $source['readme_fetched_at'] ?? null]);
         }
     }
 }

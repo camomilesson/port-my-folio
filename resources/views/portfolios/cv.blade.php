@@ -1,5 +1,6 @@
 @php($cv = $page['cv_content'])
 <x-portfolio-frame :page="$page">
+    @if(!($page['generation']['has_extraction'] ?? true))<section class="max-w-3xl py-12"><h1 class="text-4xl font-semibold">Your CV is on its way</h1><p class="mt-5 text-stone-500">Your experience, education and skills will appear here as your CV is read.</p><div class="mt-8 h-40 animate-pulse rounded-xl bg-stone-100 motion-reduce:animate-none" aria-label="CV content pending"></div></section>@endif
     <article class="mx-auto max-w-3xl py-12">
         <h1 class="break-words text-4xl font-semibold">{{ $cv['name'] }}</h1>
         <p class="mt-3 break-words text-xl text-stone-600">{{ $cv['headline'] }}</p>

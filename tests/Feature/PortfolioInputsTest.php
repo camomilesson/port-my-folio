@@ -25,7 +25,7 @@ it('collects PDF and complete repository evidence without calling AI or publishi
     Http::fake(['https://api.github.com/repos/example/course' => Http::response(['private' => false]),
         'https://api.github.com/repos/example/course/readme' => Http::response(str_repeat('A project for students to track assignments. ', 20))]);
     $owner = User::factory()->create();
-    $this->actingAs($owner)->get(route('userzone.portfolios.create'))->assertOk()->assertSee('CV PDF')->assertSee('Your role');
+    $this->actingAs($owner)->get(route('userzone.portfolios.create'))->assertOk()->assertSee('CV PDF')->assertSee('Generate my portfolio');
     $this->post(route('userzone.portfolios.store'), portfolioInputPayload())->assertSessionHasNoErrors()->assertRedirect();
     $portfolio = $owner->portfolios()->sole();
     expect($portfolio->published_snapshot)->toBeNull();
