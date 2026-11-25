@@ -275,7 +275,7 @@ Review: decide whether to open the experimental public demo and what hosting lif
 - [x] Stage 4 — Publishing and default portfolio routing (local lifecycle review and hosted smoke checks passed; full hosted generation-to-publication check deferred to Stage 6).
 - [x] Stage 5 — Input collection and provider contracts (deployed and verified).
 - [x] Stage 6 — Durable initial generation and quota (local walkthrough and hosted generation/publication verified by user).
-- [ ] Stage 6.1 — Simple inputs and a portfolio that fills during generation.
+- [x] Stage 6.1 — Simple inputs and a portfolio that fills during generation (user reviewed locally and approved promotion; hosted checks pending).
 - [ ] Stage 6.2 — Pencil editing and publication on the portfolio.
 - [ ] Stage 7 — Three presets and product polish.
 - [ ] Stage 8 — Release, assessment, and portfolio evidence.
@@ -436,3 +436,8 @@ Implemented on codex/stage-6-1-demo-flow. Do not mark 6.1 complete, promote it o
 ## Demo simplification: quota removed — 25 November 2026
 
 Before promoting Stage 6.1, the user explicitly removed the generation quota altogether because this is a controlled demo, not a public product. Remove account slot checks, rolling-window counting, slot UI and the temporary camomilesson exemption. Keep processing history/redaction, per-portfolio one-time generation and concurrent-start protection, bounded retries/leases and input limits. This supersedes all earlier quota/reservation requirements and quota-specific completion criteria; no generation-table migration is needed. Promotion remains paused until this change is verified.
+
+
+## Stage 6.1 promotion approval — 25 November 2026
+
+User confirmed the local flow works, removed all account generation quotas, and explicitly resumed promotion to main. Final checks: 208 PostgreSQL tests / 963 assertions; SQLite 203 passing with five PostgreSQL-only skips; frontend build, formatting and diff checks pass. Promote the reviewed branch with atomic commits preserved. Hosted migration, worker restart and the redesigned generation journey still require verification after deployment.

@@ -1,6 +1,6 @@
 # Portmyfolio
 
-A Laravel portfolio builder that turns a PDF CV and up to five public GitHub READMEs into an editable personal website. **Stages 1–6 are deployed and verified. Stage 6.1 is implemented locally on `codex/stage-6-1-demo-flow`, awaiting review:** minimal inputs lead straight into an owner-only portfolio that fills from generation checkpoints, with required Technical details on new projects. Inline pencil editing follows in Stage 6.2.
+A Laravel portfolio builder that turns a PDF CV and up to five public GitHub READMEs into an editable personal website. **Stages 1–6 are deployed and verified. Stage 6.1 passed local review and is approved for production promotion:** minimal inputs lead straight into an owner-only portfolio that fills from generation checkpoints, with required Technical details on new projects. Inline pencil editing follows in Stage 6.2.
 
 - [Product vision](VISION.md)
 - [Data model](DATA_MODEL.md)
