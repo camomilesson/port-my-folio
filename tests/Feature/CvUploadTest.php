@@ -26,7 +26,7 @@ it('stores one immutable private source PDF and lets only its owner download it'
     $this->get(route('userzone.cv-document.show', $portfolio))->assertOk()->assertDownload('source-cv.pdf')->assertHeader('Content-Type', 'application/pdf');
     $this->post(route('userzone.cv-document.store', $portfolio), ['pdf' => UploadedFile::fake()->createWithContent('replacement.pdf', $bytes)])->assertSessionHasErrors('pdf');
     expect(Storage::disk('local')->allFiles())->toHaveCount(1);
-    expect($portfolio->fresh()->cv_content['allow_original_download'])->toBeFalse();
+    expect($portfolio->fresh()->cv_content)->not->toHaveKey('allow_original_download');
     $this->actingAs(User::factory()->create())->get(route('userzone.cv-document.show', $portfolio))->assertNotFound();
     $this->post(route('userzone.cv-document.store', $portfolio), ['pdf' => UploadedFile::fake()->createWithContent('stolen.pdf', $bytes)])->assertNotFound();
 });

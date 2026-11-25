@@ -95,6 +95,9 @@ it('tombstones draft images and retains published files until publication cleanu
     $project = Project::factory()->for($portfolio)->create();
     $media = $project->addMedia(UploadedFile::fake()->image('cover.png'))->toMediaCollection('gallery');
     $path = $media->getPathRelativeToRoot();
+    $snapshot = $portfolio->published_snapshot;
+    $snapshot['projects'] = [['id' => $project->id, 'gallery' => [['id' => $media->id]]]];
+    $portfolio->update(['published_snapshot' => $snapshot]);
 
     $this->actingAs($portfolio->user)->delete(route('userzone.gallery.destroy', [$portfolio, $project, $media]))->assertRedirect();
     (new DeleteUnusedProjectMedia($project->id))->handle();

@@ -143,3 +143,16 @@ Deploy main only after merge approval; push-to-deploy is now enabled. Deploy com
 Hosted smoke checks: save home/CV and shared identity; create/reorder/remove manual projects; upload JPEG/PNG/WebP and verify processed image plus cover/caption/alt behavior; verify a second account and signed-out visitor cannot read preview/media/PDF routes; upload one PDF and verify replacement rejection; verify cleanup completes for an unpublished draft. Do not use infrastructure:check --disk=images_s3: that probe intentionally uploads a PDF and would be rejected by the image bucket. Use the app gallery with a non-personal test image.
 
 Publication and original-PDF public downloads remain unavailable until Stage 4. The private bucket must stay private when published-image delivery is implemented.
+
+
+## Stage 3 hosted closure — 25 November 2026
+
+User completed local review, approved merge, and confirmed the live version including image upload/delete and PDF upload/download working. Stage 3 was merged as 7012a3f and deployed through main push-to-deploy. This supersedes the earlier pending gallery checks above. GitHub Actions remains deferred; perform local checks before merging.
+
+## Stage 4 deployment/review (not deployed)
+
+No new resource, schema or credential configuration is needed. Keep both storage buckets private and preserve the Stage 3 disk configuration. Keep normal migration deploy command and managed cleanup workers. Public files are streamed through routes that authorize against the current publication snapshot; direct bucket access is not enabled.
+
+Until Stage 6 provides real generation, ordinary hosted portfolios cannot pass initial publication eligibility. Local/testing fixture generation can demonstrate publication; fixture-provider success is rejected outside those environments. Do not insert fabricated production successes or add a bypass flag merely to test hosted publishing. Complete publication/file lifecycle review locally now, and verify the real hosted generated-to-published journey when generation exists.
+
+After Stage 4 merge/deploy, verify normal login, draft editing/preview, absence of the PDF-permission checkbox, publication confirmation warning, friendly missing-public/default routes, and rejection of publication for an ungenerated portfolio. Full live publish/republish/unpublish/default/file revocation checks require genuine successful generation. Never publish personal PDFs accidentally: publishing intentionally exposes the original download as well as the web pages; unpublish cannot recall already downloaded copies.

@@ -1,10 +1,11 @@
-<x-preview-frame :portfolio="$portfolio" :cv="$cv">
+@php($cv = $page['cv_content'])
+<x-portfolio-frame :page="$page">
     <article class="mx-auto max-w-3xl py-12">
         <h1 class="break-words text-4xl font-semibold">{{ $cv['name'] }}</h1>
         <p class="mt-3 break-words text-xl text-stone-600">{{ $cv['headline'] }}</p>
         <div class="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-sm">
             @if($cv['contact']['location'])<span>{{ $cv['contact']['location'] }}</span>@endif
-            @if($cv['contact']['email'])<a href="mailto:{{ $cv['contact']['email'] }}" class="break-all underline">{{ $cv['contact']['email'] }}</a>@endif
+            @if($cv['contact']['email'])<a href="mailto:{{ rawurlencode($cv['contact']['email']) }}" class="break-all underline">{{ $cv['contact']['email'] }}</a>@endif
             @if($cv['contact']['phone'])<a href="tel:{{ preg_replace('/[^+0-9]/', '', $cv['contact']['phone']) }}" class="underline">{{ $cv['contact']['phone'] }}</a>@endif
             @foreach($cv['contact']['links'] as $link)
                 <a href="{{ $link['url'] }}" class="break-all underline" target="_blank" rel="noopener noreferrer">{{ $link['label'] }}</a>
@@ -37,8 +38,8 @@
         @if(count($cv['certifications']))
             <section class="mt-10 border-t border-stone-200 pt-8"><h2 class="text-2xl font-semibold">Certifications</h2><ul class="mt-5 space-y-4">@foreach($cv['certifications'] as $entry)<li class="break-words"><strong>{{ $entry['name'] }}</strong>@if($entry['issuer'] ?? null) · {{ $entry['issuer'] }}@endif @if($entry['date'] ?? null) · {{ $entry['date'] }}@endif @if($entry['url'] ?? null)<a class="underline" href="{{ $entry['url'] }}" target="_blank" rel="noopener noreferrer">Credential ↗</a>@endif</li>@endforeach</ul></section>
         @endif
-        @if($cv['allow_original_download'] && $portfolio->cvDocument)
-            <a class="mt-10 inline-block font-semibold underline" href="{{ route('userzone.cv-document.show', $portfolio) }}">Download original CV (owner preview) ↓</a>
+        @if($page['links']['pdf'])
+            <a class="mt-10 inline-block font-semibold underline" href="{{ $page['links']['pdf'] }}">Download original CV{{ $page['preview'] ? ' (owner preview)' : ' (PDF)' }} ↓</a>
         @endif
     </article>
-</x-preview-frame>
+</x-portfolio-frame>

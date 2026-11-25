@@ -47,7 +47,7 @@ No production password login. Portfolio display names remain independent of the 
 
 Working fields and related projects represent the draft. Publish validates and copies the complete draft into a snapshot atomically. Publishing again replaces that snapshot; no revision-history model or rollback UI. Unpublish clears the snapshot and published_at, plus the user's default pointer if applicable.
 
-The snapshot includes schema_version, publication time, preset/accent, home content, CV content/download permission, original PDF reference, ordered projects, and ordered image references. Public pages must not substitute draft project content or draft image metadata into this snapshot. URL resolution uses the current user and portfolio records; project lookup uses the snapshot's project slugs.
+The snapshot includes schema_version, publication time, preset/accent, home content, CV content, immutable original PDF reference, ordered projects, and ordered image references. Public pages must not substitute draft project content or draft image metadata into this snapshot. URL resolution uses the current user and portfolio records; project lookup uses the snapshot's project slugs.
 
 ## CvDocument
 
@@ -61,7 +61,7 @@ The snapshot includes schema_version, publication time, preset/accent, home cont
 | extracted_content | Nullable validated JSON of extracted facts |
 | error_code | Nullable safe failure identifier |
 
-The extraction record is evidence. Portfolio.cv_content is editable presentation. Editing one never mutates the other. Download permission is part of the published CV content, not a public bucket setting. Serve approved downloads through a route that checks publication and the published permission.
+The extraction record is evidence. Portfolio.cv_content is editable presentation. Editing one never mutates the other. Every published portfolio exposes its original PDF through a route that checks the current snapshot; unpublishing disables new downloads. Buckets stay private. The former optional-download flag is superseded.
 
 ## Project
 
@@ -143,7 +143,6 @@ cv_content
   skills[{id, name, items[string]}]
   languages[{id, name, proficiency?}]
   certifications[{id, name, issuer?, date?, url?}]
-  allow_original_download: boolean
 ```
 
 Stable entry IDs support editing/reordering. Dates accept YYYY or YYYY-MM, with no invented day/month. The current boolean explicitly distinguishes ongoing entries from unknown end dates; current entries have no end date. End-date bounds account for year-only precision. No per-employer, per-skill, or per-education tables are needed because these entries are edited/rendered as a document, not queried across users.
@@ -161,7 +160,7 @@ Stable entry IDs support editing/reordering. Dates accept YYYY or YYYY-MM, with 
 
 ## Deferred decisions
 
-Stage 3 settles editor field lengths, gallery/file limits, and manual project addition below. Missing-README rules, partial-failure recovery, slug-change behavior, and evidence retention remain assigned to their corresponding PLAN.md stages. This document does not add regeneration, featured projects, or a public admin interface.
+Stage 3 settles editor field lengths, gallery/file limits, and manual project addition below. Missing-README rules, partial-failure recovery, and evidence retention remain assigned to their corresponding PLAN.md stages. This document does not add regeneration, featured projects, or a public admin interface.
 
 
 ## Stage 2 implementation limits
@@ -177,8 +176,19 @@ Name and headline are required (120 characters each) when saving page content; b
 
 Project title is required (120), role required (255), summary optional (1,000), overview optional (10,000), technologies up to 30 strings (80 each), live URL optional HTTP(S) (2,048). Source README and other input evidence cannot be overwritten through editor payloads. Five active projects maximum under the owner/portfolio lock. No manual editor endpoint publishes or generates content.
 
-Source CV is one immutable private PDF up to ten MB, with MIME/signature/completeness checks (not content extraction or malware scanning). Replacing it is prohibited, including after successful generation. Existing source rows remain compatible with the new nullable storage_disk field. Source evidence and editable web CV remain independent. Public-download preference does not grant access through owner routes or make the bucket public.
+Source CV is one immutable private PDF up to ten MB, with MIME/signature/completeness checks (not content extraction or malware scanning). Replacing it is prohibited, including after successful generation. Existing source rows remain compatible with the new nullable storage_disk field. Source evidence and editable web CV remain independent. Stage 3 stored a draft download preference; Stage 4 supersedes it with mandatory source-PDF download while published. Owner routes remain private.
 
 Gallery inputs are still JPEG/PNG/WebP, ten MB maximum, 12,000 pixels per side and 24 megapixels total; ten active images per project. GD decodes/reorients/resizes to fit 2,400 pixels and encodes WebP at quality 85 without metadata. Only that processed file is persisted under an immutable UUID filename. Captions/alt text allow 500 characters. custom_properties.decorative=true implies empty alt_text; otherwise a description is required. Use private images_local or images_s3 storage, never a public bucket. Owner previews deliver files via authorized non-cacheable routes.
 
 Draft image deletion sets draft_removed; project deletion soft-deletes its owner. Queued cleanup physically removes unreferenced draft tombstones but retains all media when the portfolio has any published snapshot. Public delivery and precise post-publication cleanup are Stage 4 obligations. Row locks serialize cap checks and ordering; draft mutations reject queued/running generation. File operations account for failures independently of database rollback, with retryable cleanup jobs.
+
+
+## Stage 4 publication invariants — 25 November 2026
+
+All canonical slugs are immutable. Publishing locks owner/portfolio consistently with draft edits, checks successful initial generation and a stored source PDF plus at least one active repository-backed project, validates structural/safety constraints, and freezes the complete saved draft. Optional content may be empty. Public rendering must read text, ordering, appearance, captions, and file references solely from this snapshot; never fall back to current draft rows. Snapshot references identify the source disk/path and immutable media disk/paths.
+
+If the owner has no default, publication assigns this portfolio atomically. Publishing a second portfolio preserves the existing default; Make default is available in its editor and tile. Unpublish/delete clears a matching default without selecting a substitute. /username resolves only an owned currently published default. Missing addresses reveal no private data.
+
+The original PDF is downloadable whenever published: no permission toggle or separate revocation action. New CV content and snapshots omit allow_original_download; any legacy value is ignored. Publish confirmation explains both portfolio and original-PDF exposure. Unpublish disables new public page/media/PDF requests. Already downloaded files cannot be recalled.
+
+Publication cleanup runs after commit and checks current draft and snapshot references again under a lock. It may remove tombstoned media or force-delete a soft-deleted project only after neither version references them. Initial-generation eligibility is enforced server-side; local fixtures simulate success without exposing a production bypass. No shared public cache is introduced, avoiding stale published content/download access after unpublish.

@@ -91,15 +91,15 @@ Review: try the complete editing experience before adding publication.
 
 ### Decisions before implementation
 
-- Choose username/slug change rules. Prefer stable addresses for the MVP; do not build redirect history without need.
-- Confirm the no-default public response. Proposed fallback: a generic no-published-portfolio page, with no draft details exposed.
+- Agreed: username and portfolio/project slugs are fixed; no redirect history.
+- Agreed: missing default/public portfolio uses the friendly could-not-find page, revealing no draft details.
 
 ### Work
 
 - Implement consistent, validated publication snapshots and publish/unpublish actions.
 - Serve public home/CV/project pages solely from the current published snapshot.
-- Implement canonical /username/slug routes and /username redirect to the default published portfolio.
-- Implement explicit original-PDF download permission from the published version.
+- Implement canonical /username/slug routes and /username redirect to the default published portfolio; automatically select the first publication when no default exists, with Make default in other published tiles/editors.
+- Always expose the original PDF through a publication-authorized download route; remove the optional-download checkbox.
 - Preserve published images and project pages when their draft counterparts are edited/deleted; clean files only after references disappear.
 - Make publication/default changes transactional and invalidate relevant caches after successful commits.
 - Keep unpublished/draft content inaccessible to visitors. Define the publishing eligibility check so Stage 6 can enforce successful initial generation in the finished MVP.
@@ -109,7 +109,7 @@ Review: try the complete editing experience before adding publication.
 - Draft edits do not alter public content; Publish changes updates text, appearance, projects, and gallery together.
 - A project removed from the draft remains public until republishing; its old image still loads.
 - Default selection rejects another user's or unpublished portfolio. Unpublish/delete clears the default appropriately.
-- Original PDFs cannot be downloaded without published permission.
+- Original PDFs are publicly downloadable only while referenced by a currently published portfolio.
 - Public pages render efficiently without N+1 query behavior.
 
 Review: demonstrate two independent portfolios, switching the default, and draft/published isolation.
@@ -217,7 +217,7 @@ Review: decide whether to open the experimental public demo and what hosting lif
 - [x] Write staged development plan.
 - [x] Stage 1 — Foundation and infrastructure proof (completed 24 November 2026; hosted image delivery explicitly deferred).
 - [x] Stage 2 — Schema, account onboarding, and ownership (reviewed, merged, and verified live).
-- [ ] Stage 3 — Manual draft editor and galleries.
+- [x] Stage 3 — Manual draft editor and galleries (local review, merge, and hosted image/PDF checks complete).
 - [ ] Stage 4 — Publishing and default portfolio routing.
 - [ ] Stage 5 — Input collection and provider contracts.
 - [ ] Stage 6 — Durable initial generation and quota.
@@ -286,3 +286,27 @@ One immutable source PDF per portfolio, ten MB, private by default, with no repl
 Implemented owner forms, nested authorization, CV repeaters/order controls, project CRUD/order, gallery upload/metadata/order/tombstones, private PDF upload/download, and a shared minimal home/CV/project preview. No publishing or provider integration is added. Mutations lock owner/portfolio and reject active generation; real PostgreSQL multi-process tests cover simultaneous additions at both caps. Cleanup retries preserve records on storage failure and conservatively retain removed media whenever a published snapshot exists; Stage 4 must implement reference-aware cleanup after publication changes.
 
 Validation: PostgreSQL 124 tests / 534 assertions; SQLite 122 passing / 524 assertions plus two PostgreSQL-only concurrency cases skipped. Pint, Composer validation, and Vite build pass. Local additive migration applied without resetting accounts. Browser checks confirmed shared-identity saving, add/reorder/save CV entries, project creation, and home/project preview layout. Browser upload automation stalled at the file picker; user will perform the remaining browser walkthrough, including uploads, CV preview and responsive layout. Backend upload/file-error tests pass. No hosted Stage 3 deployment is claimed; do not merge/deploy or advance to Stage 4 before review.
+
+
+## Stage 3 closure — 25 November 2026
+
+User completed the manual browser checklist, approved merge, and confirmed hosted image upload/delete and PDF upload/download working. Stage 3 merged as 7012a3f; the earlier awaiting-review notes are historical. GitHub Actions was discussed and deferred by user preference; keep local validation before merges.
+
+## Stage 4 decisions and implementation boundary — 25 November 2026
+
+Freeze the decisions in VISION.md and DATA_MODEL.md before coding. First publication while no default exists automatically selects it; mark Default in the list and provide Make default on other published tiles and in their editors. Unpublish/delete clears that pointer; no silent substitute. Explicit Publish / Publish changes captures saved content together and shows last publication time/public URL. Confirmation warns that the portfolio and original CV PDF become public, including original details absent from the web CV.
+
+Do not impose manual completion requirements for optional prose, contact fields, images, or CV sections. Require successful initial generation, one source PDF and at least one active repository-backed project, with internal safety/structure validation. Use successful local fixture evidence to demonstrate publication until generation is built; never add a production bypass. Keep portfolio focus optional until Stage 5 decides its input behavior. Remove the legacy allow_original_download control and omit it from new CV/snapshot data; published PDF access is unconditional on that old flag.
+
+Proceed on codex/stage-4-publishing, validate publication/default/file-reference isolation and cleanup, then return for review before merging/deploying or starting Stage 5. User will handle browser checks.
+
+
+## Stage 4 implementation — 25 November 2026 (awaiting review)
+
+Decisions committed first as f5137ef. Implemented consistent snapshots, publication confirmation, first-default assignment and explicit switching, unpublishing, public home/CV/project/image/PDF routes, and snapshot-only public rendering shared with private previews. All saved publication content and immutable file references are captured together under the same owner/portfolio locks as draft edits. Public file access checks the current snapshot; no storage bucket is made public. No shared public cache is introduced; responses use no-store to avoid stale access after unpublish. Original PDF download is mandatory while published; the old flag is ignored and omitted from new content/snapshots, and its editor control is removed.
+
+Eligibility checks completed generation, source PDF and an active repository-backed project; optional sections/prose/images/contacts may be empty. Fixture-provider generation is eligible only in local/testing, never hosted production/staging. First publication without a default selects it; subsequent publication preserves an existing selection. Default switching/unpublish races are serialized. Unpublishing remains available even if generation is active. Deleting a published portfolio revokes access immediately, clears the default through its foreign key, retains redacted usage history and queues file cleanup; active-generation deletion remains a Stage 6 recovery/cancellation task.
+
+Reference-aware cleanup checks the current snapshot again under a lock, keeps published project/image references across draft removals, and removes obsolete files/soft-deleted project owners after republish or unpublish. Public content rendering uses one snapshot-content query rather than querying draft projects/media, and public markup hides owner controls and flash messages. Source PDF and image downloads stop resolving after unpublish/delete.
+
+Verification: PostgreSQL 146 tests / 699 assertions; SQLite 142 passing / 676 assertions plus four PostgreSQL-specific concurrency cases skipped. Pint, Composer manifest validation, Blade compilation and Vite build pass. Tests exercise generation eligibility, confirmation, default selection, simultaneous publication/default-unpublish requests, snapshot isolation, safe/escaped output, anonymous file access and revocation, cleanup retries, reference preservation, and query efficiency. No new dependencies or migrations. User handles browser review; no hosted Stage 4 check or deployment is claimed. Keep this stage unchecked until review, merge and appropriate hosted verification; do not advance to Stage 5 automatically.

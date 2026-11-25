@@ -24,7 +24,7 @@ The project is being built for the Modern Web Application course, with Laravel b
 6. Generate the initial portfolio in the background.
 7. Review the generated draft and edit its content through forms.
 8. Add and organize project images, choose a preset, and choose an accent color.
-9. Preview and publish the portfolio. Optionally make it the account's default portfolio.
+9. Preview and publish the portfolio. The first publication becomes the default when none is selected.
 10. Return to edit drafts and publish changes.
 
 There is no extra AI context pass after generation. Users correct and expand the generated content themselves.
@@ -34,7 +34,7 @@ There is no extra AI context pass after generation. Users correct and expand the
 - Google is the only planned sign-in method.
 - Each account can own multiple portfolios.
 - Portfolios have independent content, selected repositories, appearance, and publication state. Editing one must not silently change another.
-- One published portfolio can be designated as the account's default.
+- The first portfolio published while no default is selected becomes the account default. Other published portfolios have Make default actions in their editor and dashboard tile.
 - Portfolio owners manage their own content. Public visitors can only see published content.
 - An administrative area is not part of the agreed product scope.
 
@@ -47,8 +47,8 @@ There is no extra AI context pass after generation. Users correct and expand the
 - The application validates extracted data before using it to generate the portfolio.
 - Every content field on the resulting CV page is editable through forms, including the ability to manage repeated entries such as experience and education.
 - There is no CV regeneration in the MVP.
-- One immutable original PDF belongs to each portfolio and cannot be replaced. It is private by default. Publishing the CV page does not automatically expose the source file.
-- Visitors may download the original CV only if the owner explicitly enables that option.
+- One immutable original PDF belongs to each portfolio and cannot be replaced. It stays private while unpublished; publishing the portfolio also makes its original PDF downloadable.
+- Every published portfolio includes an original-CV download, through a controlled route backed by private storage. Unpublishing disables new public downloads.
 
 ### Portfolio focus
 
@@ -91,7 +91,7 @@ All portfolios use three predefined page types. AI supplies their content; it do
 
 - A readable web presentation of the user's background, including experience, education, and skills.
 - Editable structured fields and entries.
-- Optional download link to the original PDF when explicitly enabled by the owner.
+- Download link to the immutable original PDF whenever the portfolio is published.
 
 The initial content structure is documented in DATA_MODEL.md; exact validation limits will be finalized during implementation.
 
@@ -141,7 +141,10 @@ Every portfolio has a canonical URL, including the default portfolio:
 - Publishing makes the portfolio publicly accessible.
 - Save draft edits separately from the published version. Changes go live when the owner chooses Publish changes.
 - Publication captures content and appearance together.
-- An unpublished portfolio cannot be the publicly accessible default. The exact fallback when the default is unpublished or deleted remains to be defined.
+- Unpublishing/deleting the default clears the selection; no other existing portfolio is automatically substituted. The next publication becomes default if none is selected. Missing public portfolios and missing defaults show the friendly portfolio-not-found page.
+- Username, portfolio slug and project slugs stay fixed; display titles remain editable.
+- Publish confirms that the portfolio and original CV PDF become public. Saved draft changes go live together; unsaved form edits are excluded.
+- First publication requires successful initial generation, a source PDF and at least one repository-backed project. It does not require completing optional sections, contacts, images, or extra prose.
 - Custom domains per user and user subdomains are outside the MVP.
 
 ## Generation limits
@@ -225,4 +228,9 @@ These are follow-up product or technical decisions, not authorization to expand 
 
 ## Stage 3 decisions agreed — 24 November 2026
 
-Home/CV share identity within each portfolio; home introduction and CV summary are independent. Dates support year-only or month/year, unknown dates, and explicit current entries. Contacts are optional with labeled HTTP(S) links and separately validated email/phone. Manual project additions are allowed without AI. Original generation evidence stays separate from editable display content; editing focus does not rewrite text. PDF public-download permission becomes effective only through publication. Exact editor limits are now recorded in DATA_MODEL.md; outstanding questions above concerning these choices are superseded by this agreement.
+Home/CV share identity within each portfolio; home introduction and CV summary are independent. Dates support year-only or month/year, unknown dates, and explicit current entries. Contacts are optional with labeled HTTP(S) links and separately validated email/phone. Manual project additions are allowed without AI. Original generation evidence stays separate from editable display content; editing focus does not rewrite text. The Stage 3 optional PDF-permission design is superseded by the Stage 4 decision below. Exact editor limits are now recorded in DATA_MODEL.md; outstanding questions above concerning these choices are superseded by this agreement.
+
+
+## Stage 4 decisions frozen — 25 November 2026
+
+The intended entry remains one source PDF plus repository links/roles, followed by generation and straightforward publication. Do not add manual content-completion hurdles. Portfolio focus remains a Stage 5 input decision. Local fixtures can demonstrate publication before provider integration; there is no production manual-generation bypass. PDFs are always downloadable while the portfolio is published, regardless of any legacy allow_original_download flag. Remove that checkbox and omit the flag from new content/snapshots; do not alter the immutable PDF. Publishing confirmation explicitly warns that the original may contain details edited out of the web CV. Storage buckets remain private. No revision history, slug redirects, or automatic publication on save.

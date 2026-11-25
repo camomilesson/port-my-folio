@@ -44,7 +44,7 @@ it('saves CV entries in submitted order with shared identity and separate summar
     expect($portfolio->cv_content['skills'][0]['id'])->toBeString();
     expect($portfolio->home_content['name'])->toBe('New shared name');
     expect($portfolio->home_content['introduction'])->toBe($intro);
-    expect($portfolio->cv_content['allow_original_download'])->toBeTrue();
+    expect($portfolio->cv_content)->not->toHaveKey('allow_original_download');
 
     $cv['experience'] = [];
     $this->put(route('userzone.content.cv.update', $portfolio), $cv)->assertSessionHasNoErrors();

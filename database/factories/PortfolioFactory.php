@@ -2,9 +2,13 @@
 
 namespace Database\Factories;
 
+use App\Models\CvDocument;
+use App\Models\Generation;
 use App\Models\Portfolio;
+use App\Models\Project;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Facades\Storage;
 
 /** @extends Factory<Portfolio> */
 class PortfolioFactory extends Factory
@@ -19,8 +23,18 @@ class PortfolioFactory extends Factory
             'preset' => 'minimal',
             'accent_color' => '#ea580c',
             'home_content' => ['schema_version' => 1, 'name' => 'Sam Example', 'headline' => 'Web developer', 'introduction' => 'Fictional content for the local demo.'],
-            'cv_content' => ['schema_version' => 1, 'name' => 'Sam Example', 'headline' => 'Web developer', 'summary' => 'Fictional demo CV.', 'contact' => ['email' => 'sam@example.com', 'location' => 'Madrid', 'links' => []], 'experience' => [['id' => 'demo-experience', 'organization' => 'Example Studio', 'role' => 'Web developer', 'start_date' => '2024-09', 'end_date' => null, 'current' => true, 'description' => 'Built and maintained web applications.']], 'education' => [], 'skills' => [['id' => 'demo-skills', 'name' => 'Backend', 'items' => ['PHP', 'Laravel']]], 'languages' => [], 'certifications' => [], 'allow_original_download' => false],
+            'cv_content' => ['schema_version' => 1, 'name' => 'Sam Example', 'headline' => 'Web developer', 'summary' => 'Fictional demo CV.', 'contact' => ['email' => 'sam@example.com', 'location' => 'Madrid', 'links' => []], 'experience' => [['id' => 'demo-experience', 'organization' => 'Example Studio', 'role' => 'Web developer', 'start_date' => '2024-09', 'end_date' => null, 'current' => true, 'description' => 'Built and maintained web applications.']], 'education' => [], 'skills' => [['id' => 'demo-skills', 'name' => 'Backend', 'items' => ['PHP', 'Laravel']]], 'languages' => [], 'certifications' => []],
         ];
+    }
+
+    public function generated(): static
+    {
+        return $this->afterCreating(function (Portfolio $portfolio): void {
+            $document = CvDocument::factory()->for($portfolio)->create(['storage_disk' => config('portmyfolio.cv_disk')]);
+            Storage::disk($document->storageDisk())->put($document->storage_path, file_get_contents(resource_path('fixtures/demo-cv.pdf')));
+            Project::factory()->for($portfolio)->create();
+            Generation::factory()->for($portfolio)->succeeded()->create();
+        });
     }
 
     public function published(): static

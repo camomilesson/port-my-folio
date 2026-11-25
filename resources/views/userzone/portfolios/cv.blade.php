@@ -29,11 +29,6 @@
                     <p data-repeater-status aria-live="polite" class="text-sm text-stone-500"></p>
                 </section>
             @endforeach
-            <div class="rounded-xl border border-stone-200 p-5">
-                <input type="hidden" name="allow_original_download" value="0">
-                <label class="flex items-start gap-3"><input class="mt-1" type="checkbox" name="allow_original_download" value="1" @checked(old('allow_original_download', $cv['allow_original_download']))><span>Allow public download of the original PDF</span></label>
-                <p class="mt-3 text-sm text-stone-500">This is a draft setting. It will take effect when publishing becomes available and you publish changes. The source file stays in private storage.</p>
-            </div>
             <input type="hidden" name="_complete_cv_form" value="1">
             <button class="rounded-full bg-stone-900 px-6 py-3 font-semibold text-white">Save CV draft</button>
         </form>
@@ -41,7 +36,7 @@
             <h2 class="text-xl font-semibold">Original PDF</h2>
             @if($portfolio->cvDocument)
                 <p class="mt-3 break-all text-stone-600">{{ $portfolio->cvDocument->original_filename }}</p>
-                <p class="mt-2 text-sm text-stone-500">One source PDF per portfolio. It cannot be replaced. Editing the web CV does not change this file.</p>
+                <p class="mt-2 text-sm text-stone-500">One source PDF per portfolio. It cannot be replaced. Publishing also makes this original PDF downloadable; edits to the web CV do not change it.</p>
                 <a href="{{ route('userzone.cv-document.show', $portfolio) }}" class="mt-4 inline-block font-semibold underline underline-offset-4">Download your source PDF ↓</a>
             @else
                 <p class="mt-3 text-sm leading-relaxed text-stone-600">Upload one PDF, up to 10 MB. It stays private and cannot be replaced after upload. No automatic extraction runs in this stage.</p>

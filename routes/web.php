@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Auth\GoogleAuthController;
 use App\Http\Controllers\Auth\LocalDemoLoginController;
+use App\Http\Controllers\PublicPortfolioController;
 use App\Http\Controllers\Userzone\CvDocumentController;
 use App\Http\Controllers\Userzone\DashboardController;
 use App\Http\Controllers\Userzone\DraftContentController;
@@ -9,6 +10,7 @@ use App\Http\Controllers\Userzone\GalleryController;
 use App\Http\Controllers\Userzone\PortfolioController;
 use App\Http\Controllers\Userzone\PreviewController;
 use App\Http\Controllers\Userzone\ProjectEditorController;
+use App\Http\Controllers\Userzone\PublicationController;
 use App\Http\Controllers\Userzone\UsernameController;
 use App\Http\Controllers\WelcomeController;
 use App\Http\Middleware\EnsureUsernameIsSet;
@@ -28,6 +30,10 @@ Route::middleware(['auth', EnsureUsernameIsSet::class])->group(function () {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
     Route::prefix('user')->name('userzone.')->group(function () {
         Route::prefix('portfolios/{portfolio}')->group(function () {
+            Route::get('publish', [PublicationController::class, 'confirm'])->name('publication.confirm');
+            Route::post('publish', [PublicationController::class, 'publish'])->name('publication.publish');
+            Route::delete('publish', [PublicationController::class, 'unpublish'])->name('publication.unpublish');
+            Route::post('make-default', [PublicationController::class, 'makeDefault'])->name('publication.default');
             Route::get('edit/home', [DraftContentController::class, 'home'])->name('content.home');
             Route::put('edit/home', [DraftContentController::class, 'updateHome'])->name('content.home.update');
             Route::get('edit/cv', [DraftContentController::class, 'cv'])->name('content.cv');
@@ -52,3 +58,10 @@ Route::middleware(['auth', EnsureUsernameIsSet::class])->group(function () {
         Route::resource('portfolios', PortfolioController::class)->only(['create', 'store', 'show', 'destroy']);
     });
 });
+
+Route::get('/{username}/{portfolioSlug}/cv/download', [PublicPortfolioController::class, 'pdf'])->name('portfolio.pdf');
+Route::get('/{username}/{portfolioSlug}/projects/{projectSlug}/images/{mediaId}', [PublicPortfolioController::class, 'image'])->whereNumber('mediaId')->name('portfolio.image');
+Route::get('/{username}/{portfolioSlug}/projects/{projectSlug}', [PublicPortfolioController::class, 'project'])->name('portfolio.project');
+Route::get('/{username}/{portfolioSlug}/cv', [PublicPortfolioController::class, 'cv'])->name('portfolio.cv');
+Route::get('/{username}/{portfolioSlug}', [PublicPortfolioController::class, 'home'])->name('portfolio.home');
+Route::get('/{username}', [PublicPortfolioController::class, 'default'])->name('portfolio.default');
