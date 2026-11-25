@@ -1,10 +1,10 @@
 @php($cv = $page['cv_content'])
 <x-portfolio-frame :page="$page">
     <section class="max-w-3xl py-16">
-        <p class="text-sm font-semibold uppercase tracking-widest text-[var(--portfolio-accent)]">{{ $cv['name'] }}</p>
-        <h1 class="mt-5 break-words text-4xl font-semibold tracking-tight sm:text-6xl">{{ ($page['generation']['has_extraction'] ?? true) ? ($cv['headline'] ?: 'Your next opportunity.') : 'Building your portfolio' }}</h1>
+        <x-inline-edit :page="$page" scope="home" field="name" :value="$cv['name']" label="Name"><p class="text-sm font-semibold uppercase tracking-widest text-[var(--portfolio-accent)]">{{ $cv['name'] }}</p></x-inline-edit>
+        <x-inline-edit :page="$page" scope="home" field="headline" :value="$cv['headline']" label="Title"><h1 class="mt-5 break-words text-4xl font-semibold tracking-tight sm:text-6xl">{{ ($page['generation']['has_extraction'] ?? true) ? ($cv['headline'] ?: 'Your next opportunity.') : 'Building your portfolio' }}</h1></x-inline-edit>
         @if(!($page['generation']['has_profile'] ?? true))<div class="mt-7 space-y-3" aria-label="Introduction pending"><div class="h-4 w-full animate-pulse rounded bg-stone-200 motion-reduce:animate-none"></div><div class="h-4 w-2/3 animate-pulse rounded bg-stone-200 motion-reduce:animate-none"></div><p class="text-sm text-stone-500">Your introduction will appear here.</p></div>@endif
-        <p class="mt-7 whitespace-pre-line break-words text-lg leading-relaxed text-stone-600">{{ $page['home_content']['introduction'] ?? '' }}</p>
+        <x-inline-edit :page="$page" scope="home" field="introduction" :value="$page['home_content']['introduction'] ?? ''" label="Introduction"><p class="mt-7 whitespace-pre-line break-words text-lg leading-relaxed text-stone-600">{{ $page['home_content']['introduction'] ?? '' }}</p></x-inline-edit>
         <a href="{{ $page['links']['cv'] }}" class="mt-8 inline-flex rounded-full bg-stone-900 px-6 py-3 font-semibold text-white">Explore my CV →</a>
     </section>
     <section class="border-t border-stone-200 py-10">

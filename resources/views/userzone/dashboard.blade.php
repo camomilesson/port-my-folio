@@ -11,16 +11,17 @@
         <x-form-errors />
         <div class="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             @forelse($portfolios as $portfolio)
+                @php($portfolioUrl = route($portfolio->generations_exists ? 'userzone.preview.home' : 'userzone.portfolios.show', $portfolio))
                 <article class="flex flex-col rounded-2xl border border-stone-200 bg-white p-6">
                     <div class="flex items-center justify-between gap-3 text-xs font-semibold uppercase tracking-wide">
                         <span class="text-stone-500">{{ $portfolio->isPublished() ? 'Published' : 'Draft' }}</span>
                         @if(auth()->user()->default_portfolio_id === $portfolio->id)<span class="text-orange-700">Default</span>@endif
                     </div>
-                    <h2 class="mt-5 break-words text-2xl font-semibold"><a href="{{ route('userzone.portfolios.show', $portfolio) }}" class="hover:underline">{{ $portfolio->title }}</a></h2>
+                    <h2 class="mt-5 break-words text-2xl font-semibold"><a href="{{ $portfolioUrl }}" class="hover:underline">{{ $portfolio->title }}</a></h2>
                     <p class="mt-3 break-all text-sm text-stone-500">/{{ auth()->user()->username }}/{{ $portfolio->slug }}</p>
                     <p class="mt-4 line-clamp-3 text-sm leading-relaxed text-stone-600">{{ $portfolio->focus ?: 'No focus added yet.' }}</p>
                     <p class="mt-auto pt-6 text-sm text-stone-500">{{ $portfolio->projects_count }} {{ Str::plural('project', $portfolio->projects_count) }}</p>
-                    <a href="{{ route('userzone.portfolios.show', $portfolio) }}" class="mt-4 text-sm font-semibold underline underline-offset-4">Open portfolio →</a>
+                    <a href="{{ $portfolioUrl }}" class="mt-4 text-sm font-semibold underline underline-offset-4">Open portfolio →</a>
                     @if($portfolio->isPublished() && auth()->user()->default_portfolio_id !== $portfolio->id)
                         <form class="mt-4" method="POST" action="{{ route('userzone.publication.default', $portfolio) }}">@csrf<button class="text-sm font-semibold underline">Make default</button></form>
                     @endif
@@ -28,7 +29,7 @@
             @empty
                 <div class="rounded-2xl border border-dashed border-stone-300 p-8 md:col-span-2 lg:col-span-3">
                     <h2 class="text-xl font-semibold">Your first portfolio starts here.</h2>
-                    <p class="mt-3 text-stone-600">Choose a title, an address, and who you want to reach. Then add your source CV and projects.</p>
+                    <p class="mt-3 text-stone-600">Add your CV and repository links, then watch your portfolio take shape.</p>
                 </div>
             @endforelse
         </div>

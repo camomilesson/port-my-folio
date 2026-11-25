@@ -27,7 +27,7 @@ class PublicationController extends Controller
         $request->validate(['confirm_publication' => ['required', 'accepted']]);
         $publish->handle($portfolio);
 
-        return to_route('userzone.portfolios.show', $portfolio)->with('status', 'Portfolio published. Your saved portfolio and original CV PDF are public.');
+        return to_route('userzone.preview.home', $portfolio)->with('status', 'Portfolio published. Your saved portfolio and original CV PDF are public.');
     }
 
     public function unpublish(Portfolio $portfolio, UnpublishPortfolio $unpublish): RedirectResponse

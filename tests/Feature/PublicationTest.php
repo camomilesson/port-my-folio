@@ -20,7 +20,7 @@ it('publishes a consistent saved snapshot and automatically selects the first de
     Queue::fake([DeleteUnusedProjectMedia::class]);
     $portfolio = Portfolio::factory()->generated()->create();
 
-    $this->actingAs($portfolio->user)->post(route('userzone.publication.publish', $portfolio), ['confirm_publication' => '1'])->assertRedirect(route('userzone.portfolios.show', $portfolio))->assertSessionHasNoErrors();
+    $this->actingAs($portfolio->user)->post(route('userzone.publication.publish', $portfolio), ['confirm_publication' => '1'])->assertRedirect(route('userzone.preview.home', $portfolio))->assertSessionHasNoErrors();
 
     $portfolio->refresh();
     expect($portfolio->isPublished())->toBeTrue();

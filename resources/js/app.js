@@ -135,3 +135,151 @@ document.querySelector('[data-create-portfolio]')?.addEventListener('submit', (e
     button.disabled = true;
     button.textContent = 'Preparing your portfolio…';
 });
+
+const dirtyInlineForms = new Set();
+
+function cancelInline(form) {
+    form.reset();
+    dirtyInlineForms.delete(form);
+    form.querySelector('[data-inline-error]').textContent = '';
+    const editor = form.closest('details');
+    editor.open = false;
+    editor.querySelector('summary').focus();
+    form.querySelector('[data-image-details]')?.replaceChildren();
+}
+
+async function refreshInlineContent(savedForm) {
+    const response = await fetch(window.location.href, { headers: { Accept: 'text/html' }, cache: 'no-store' });
+    if (!response.ok || response.redirected) throw new Error('Saved. Reload the page to see the latest content.');
+    const html = new DOMParser().parseFromString(await response.text(), 'text/html');
+    const savedKey = savedForm.closest('[data-inline-key]')?.dataset.inlineKey;
+    if (savedForm.matches('[data-upload-form]')) {
+        const gallery = document.querySelector('[data-inline-gallery]');
+        const replacement = document.importNode(html.querySelector('[data-inline-gallery]'), true);
+        gallery.querySelectorAll('[data-inline-key]:has(details[open])').forEach((open) => {
+            replacement.querySelector(`[data-inline-key="${open.dataset.inlineKey}"]`)?.replaceWith(open);
+        });
+        gallery.replaceWith(replacement);
+    }
+    html.querySelectorAll('[data-inline-key]').forEach((fresh) => {
+        const current = document.querySelector(`[data-inline-key="${fresh.dataset.inlineKey}"]`);
+        if (current && !current.querySelector('details[open]')) {
+            current.replaceWith(document.importNode(fresh, true));
+        }
+    });
+    document.querySelectorAll('[data-portfolio-name]').forEach((name, index) => {
+        name.textContent = html.querySelectorAll('[data-portfolio-name]')[index].textContent;
+    });
+    document.querySelectorAll('[data-inline-gallery] img').forEach((image, index) => {
+        image.alt = html.querySelectorAll('[data-inline-gallery] img')[index]?.alt ?? image.alt;
+    });
+    document.title = html.title;
+    if (savedKey) document.querySelector(`[data-inline-key="${savedKey}"] summary`)?.focus({ preventScroll: true });
+}
+
+document.addEventListener('toggle', (event) => {
+    if (!event.target.matches('[data-inline-editor], [data-gallery-upload]')) return;
+    const form = event.target.querySelector('form');
+    if (form.dataset.saving && !event.target.open) {
+        event.target.open = true;
+        return;
+    }
+    if (!event.target.matches('[data-inline-editor]')) return;
+    if (event.target.open) {
+        form.querySelector('textarea, input:not([type=hidden])')?.focus({ preventScroll: true });
+    } else {
+        form.reset();
+        dirtyInlineForms.delete(form);
+        form.querySelector('[data-inline-error]').textContent = '';
+    }
+}, true);
+
+document.addEventListener('input', (event) => {
+    const form = event.target.closest('[data-inline-form]');
+    if (form) dirtyInlineForms.add(form);
+});
+window.addEventListener('beforeunload', (event) => {
+    if ([...dirtyInlineForms].some((form) => form.isConnected)) {
+        event.preventDefault();
+        event.returnValue = '';
+    }
+});
+
+document.addEventListener('click', (event) => {
+    const cancel = event.target.closest('[data-inline-cancel], [data-upload-cancel]');
+    if (cancel) cancelInline(cancel.closest('form'));
+});
+document.addEventListener('keydown', (event) => {
+    const form = event.target.closest('[data-inline-form]');
+    if (event.key === 'Escape' && form && !form.dataset.saving) {
+        event.preventDefault();
+        cancelInline(form);
+    }
+});
+
+document.addEventListener('change', (event) => {
+    if (event.target.matches('[data-gallery-files]')) {
+        const form = event.target.closest('form');
+        const list = form.querySelector('[data-image-details]');
+        list.replaceChildren();
+        [...event.target.files].forEach((file, index) => {
+            const fields = form.querySelector('template').content.cloneNode(true);
+            fields.querySelector('[data-image-name]').textContent = file.name;
+            for (const [selector, field] of [['caption', 'caption'], ['alt', 'alt_text'], ['not-decorative', 'decorative'], ['decorative', 'decorative']]) {
+                fields.querySelector(`[data-image-${selector}]`).name = `details[${index}][${field}]`;
+            }
+            list.append(fields);
+        });
+    }
+    if (event.target.matches('[data-image-decorative]')) {
+        const alt = event.target.closest('fieldset').querySelector('[data-image-alt]');
+        alt.required = !event.target.checked;
+        if (event.target.checked) alt.value = '';
+    }
+});
+
+document.addEventListener('submit', async (event) => {
+    const form = event.target;
+    if (!form.matches('[data-inline-form]')) return;
+    event.preventDefault();
+    if (form.dataset.saving) return;
+    const data = new FormData(form);
+    const controls = [...form.querySelectorAll('input, textarea, button')];
+    controls.forEach((control) => { control.disabled = true; });
+    form.dataset.saving = '1';
+    form.setAttribute('aria-busy', 'true');
+    const submit = form.querySelector('button[type="submit"]');
+    const submitLabel = submit.textContent;
+    submit.textContent = form.matches('[data-upload-form]') ? 'Adding images…' : 'Saving…';
+    const error = form.querySelector('[data-inline-error]');
+    error.textContent = '';
+    try {
+        const response = await fetch(form.action, { method: 'POST', body: data, headers: { Accept: 'application/json' } });
+        const result = await response.json();
+        if (!response.ok) {
+            error.textContent = result.errors ? Object.values(result.errors).flat().join(' ') : (result.message || 'Could not save. Try again.');
+            return;
+        }
+        dirtyInlineForms.delete(form);
+        if (form.matches('[data-upload-form]')) {
+            form.reset();
+            form.querySelector('[data-image-details]').replaceChildren();
+        }
+        delete form.dataset.saving;
+        form.closest('details').open = false;
+        const status = document.querySelector('[data-inline-status]');
+        status.textContent = result.message;
+        try {
+            await refreshInlineContent(form);
+        } catch {
+            status.textContent = 'Saved. Reload the page to see the latest content.';
+        }
+    } catch {
+        error.textContent = 'Could not confirm the save. Check your connection and reload before retrying.';
+    } finally {
+        delete form.dataset.saving;
+        form.removeAttribute('aria-busy');
+        submit.textContent = submitLabel;
+        controls.forEach((control) => { control.disabled = false; });
+    }
+});
