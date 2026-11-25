@@ -244,4 +244,13 @@ Fetch the full default README through GitHub API endpoints. It must contain more
 
 Retain source PDFs, extracted facts, README snapshots and generation inputs/metadata while the portfolio exists. Delete source/personal payloads and files on portfolio deletion, retaining minimal quota history. Shared public GitHub cache entries expire after one hour.
 
-Gemini uses Laravel's HTTP client behind application-owned contracts, with deterministic test fakes. The initial model is gemini-3.5-flash-lite. The user verified native PDF extraction, structured output, application validation and usage reporting with the bundled fictional CV. Scanned-CV extraction quality remains unverified. No provider credential or live AI call is required for automated tests. PDF structural validation uses the user-approved smalot/pdfparser dependency.
+Gemini uses Laravel's HTTP client behind application-owned contracts, with deterministic test fakes. The initial model is gemini-3.5-flash-lite. The user verified native PDF extraction, structured output, application validation and usage reporting with the bundled fictional CV. A controlled image-only fictional-CV extraction passed during Stage 6; broader scanned-CV quality still needs review. No provider credential or live AI call is required for automated tests. PDF structural validation uses the user-approved smalot/pdfparser dependency.
+
+
+## Stage 6 decisions agreed — 25 November 2026
+
+Explicit Generate freezes source PDF, focus, normalized repositories/roles and evidence. Conflicting edits are blocked while active. Each technical step gets at most three automatic attempts; honor rate-limit times and retain completed checkpoints. User retry resumes the same failed initial attempt with unchanged inputs, rechecks/reserves quota, and never regenerates a successful portfolio. Changed inputs require a new portfolio.
+
+Independent project checkpoints remain private until all work can be assembled atomically. Three successful generations in rolling seven days, plus active reservations, exhaust quota. Permanent failure releases a reservation; deleting success never refunds it. Processing leases fence duplicate/late workers, with scheduled recovery of stale work. Active deletion terminalizes work before detaching/redacting source payloads; late responses are discarded. Already-sent requests may incur costs.
+
+Progress is saved and polled: Checking inputs, Reading CV, Writing projects (completed/total), Assembling portfolio, Ready. Scanned fictional-CV quality verification remains pending before end-to-end acceptance. Stage 6 implementation proceeds on codex/stage-6-generation; no merge/deployment is implied.

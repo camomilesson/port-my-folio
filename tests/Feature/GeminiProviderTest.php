@@ -81,3 +81,29 @@ it('rejects invented repository identities in generated content', function () {
     expect(fn () => app(GeminiPortfolioProvider::class)->generateContent(['projects' => [['repository_owner' => 'example', 'repository_name' => 'course']]]))->toThrow(ProviderFailure::class, 'inconsistent identity or project data');
     Http::assertSentCount(1);
 });
+
+it('requests separate project and profile contracts without regenerating completed projects', function () {
+    $fake = new FakePortfolioProvider;
+    $evidence = ['project' => ['repository_owner' => 'example', 'repository_name' => 'course', 'author_role' => 'Backend contributor']];
+    $project = $fake->generateProject($evidence)->content;
+    $profile = $fake->generateProfile([])->content;
+    Http::fake(['https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent' => Http::sequence()
+        ->push(['candidates' => [['finishReason' => 'STOP', 'content' => ['parts' => [['text' => json_encode($project)]]]]]])
+        ->push(['candidates' => [['finishReason' => 'STOP', 'content' => ['parts' => [['text' => json_encode($profile)]]]]]])]);
+    expect(app(GeminiPortfolioProvider::class)->generateProject($evidence)->content)->toBe($project);
+    expect(app(GeminiPortfolioProvider::class)->generateProfile(['cv' => FakePortfolioProvider::cv(), 'projects' => [$project]])->content)->toBe($profile);
+    Http::assertSent(fn ($request) => array_keys($request['generationConfig']['responseJsonSchema']['properties']) === ['home_content', 'cv_content']);
+    Http::assertSentCount(2);
+});
+
+it('respects an HTTP-date retry instruction from Gemini', function () {
+    $retryAt = time() + 3600;
+    Http::fake(['https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent' => Http::response([], 429, ['Retry-After' => gmdate('D, d M Y H:i:s', $retryAt).' GMT'])]);
+    try {
+        app(GeminiPortfolioProvider::class)->extractCv(file_get_contents(resource_path('fixtures/demo-cv.pdf')));
+        $this->fail('Expected a rate limit.');
+    } catch (ProviderFailure $failure) {
+        expect($failure->retryAt)->toBe($retryAt);
+    }
+    Http::assertSentCount(1);
+});

@@ -21,6 +21,10 @@ class EditPortfolioDraft
                 throw ValidationException::withMessages(['portfolio' => 'Wait for generation to finish before editing this draft.']);
             }
 
+            if ($locked->generations()->where('status', 'failed')->whereNotNull('input_snapshot->pdf')->exists()) {
+                throw ValidationException::withMessages(['portfolio' => 'This failed attempt has frozen inputs. Retry generation or create a new portfolio to change them.']);
+            }
+
             return $edit($locked);
         });
     }

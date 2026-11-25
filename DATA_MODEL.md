@@ -199,3 +199,15 @@ Publication cleanup runs after commit and checks current draft and snapshot refe
 Focus is optional (5,000 characters). Creation validates and collects one immutable PDF (10 MB, 1–20 pages) and 1–5 normalized public repositories/roles together. Project title/summary/overview start empty; README evidence and fetched_at are stored separately. No Generation record exists until Stage 6 starts the durable pipeline. No AI request is made during collection.
 
 Full READMEs must contain more than 200 meaningful characters and fewer than 100,000 bytes. Public evidence caches for one hour; saved project evidence lasts with the portfolio. Portfolio deletion cascades CV/project evidence deletion, redacts generation input/progress and queues file cleanup. Shared public README caches expire after one hour. Provider results carry validated content, provider/model/prompt version and usage. Stage 6 will persist extraction/checkpoints and atomically assemble editable content; Stage 5 exposes no paid extraction web endpoint or regeneration action.
+
+
+## Stage 6 decisions agreed — 25 November 2026
+
+Explicit Generate freezes source PDF, focus, normalized repositories/roles and evidence. Conflicting edits are blocked while active. Each technical step gets at most three automatic attempts; honor rate-limit times and retain completed checkpoints. User retry resumes the same failed initial attempt with unchanged inputs, rechecks/reserves quota, and never regenerates a successful portfolio. Changed inputs require a new portfolio.
+
+Independent project checkpoints remain private until all work can be assembled atomically. Three successful generations in rolling seven days, plus active reservations, exhaust quota. Permanent failure releases a reservation; deleting success never refunds it. Processing leases fence duplicate/late workers, with scheduled recovery of stale work. Active deletion terminalizes work before detaching/redacting source payloads; late responses are discarded. Already-sent requests may incur costs.
+
+Progress is saved and polled: Checking inputs, Reading CV, Writing projects (completed/total), Assembling portfolio, Ready. Scanned fictional-CV quality verification remains pending before end-to-end acceptance. Stage 6 implementation proceeds on codex/stage-6-generation; no merge/deployment is implied.
+
+
+Stage 6 implementation adds run_version, lease_token, lease_expires_at and next_run_at to Generation. Queue payloads contain only generation ID/run version; source content remains in private database snapshots. progress.done and progress.checkpoints track validated extraction/project/profile completion; attempts counts technical calls per step per run. usage stores per-step provider/model/prompt/usage metadata. Terminal deletion clears source/progress and all lease/schedule fields, increments run_version and marks active work failed/cancelled while preserving succeeded usage history. Frozen failed-attempt inputs are protected from editor mutations; retries reuse the same record and checkpoints. Assembly writes CV extraction evidence plus home/CV/project presentation atomically under owner/portfolio/generation locks.

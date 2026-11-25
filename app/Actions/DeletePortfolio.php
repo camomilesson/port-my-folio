@@ -8,7 +8,6 @@ use App\Models\Project;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Validation\ValidationException;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class DeletePortfolio
@@ -21,15 +20,14 @@ class DeletePortfolio
 
             Gate::authorize('delete', $locked);
 
-            if ($locked->generations()->whereIn('status', ['queued', 'running'])->exists()) {
-                throw ValidationException::withMessages(['portfolio' => 'Wait for generation to finish before deleting this portfolio.']);
-            }
-
             $projectIds = $locked->projects()->withTrashed()->pluck('id');
             $mediaIds = Media::where('model_type', (new Project)->getMorphClass())->whereIn('model_id', $projectIds)->pluck('id')->all();
             $cvPath = $locked->cvDocument?->storage_path;
             $cvDisk = $locked->cvDocument?->storageDisk();
-            $locked->generations()->update(['input_snapshot' => null, 'progress' => null]);
+            foreach ($locked->generations()->lockForUpdate()->get() as $generation) {
+                $terminal = in_array($generation->status, ['queued', 'running'], true);
+                $generation->update(['input_snapshot' => null, 'progress' => null, 'lease_token' => null, 'lease_expires_at' => null, 'next_run_at' => null, 'run_version' => $generation->run_version + 1] + ($terminal ? ['status' => 'failed', 'error_code' => 'cancelled', 'completed_at' => now()] : []));
+            }
             $locked->delete();
 
             if ($mediaIds !== [] || $cvPath !== null) {

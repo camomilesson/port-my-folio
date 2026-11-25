@@ -4,9 +4,24 @@ namespace App\Actions;
 
 class FakePortfolioProvider implements PortfolioGenerationProvider
 {
+    /** @param array<string, mixed> $evidence */
+    public function generateProject(array $evidence): ProviderResult
+    {
+        $source = $evidence['project'];
+        $content = ['repository_owner' => $source['repository_owner'], 'repository_name' => $source['repository_name'], 'title' => $source['repository_name'], 'summary' => 'A fictional project.', 'overview' => 'Offline demo content.', 'technologies' => [], 'live_url' => null];
+
+        return new ProviderResult(GenerationContent::validateProject($content), 'fixture', 'deterministic-v1', 'portfolio-v2', []);
+    }
+
+    /** @param array<string, mixed> $evidence */
+    public function generateProfile(array $evidence): ProviderResult
+    {
+        return new ProviderResult(GenerationContent::validateProfile(['home_content' => ['name' => 'Sam Example', 'headline' => 'Developer', 'introduction' => ''], 'cv_content' => self::cv()]), 'fixture', 'deterministic-v1', 'portfolio-v2', []);
+    }
+
     public function extractCv(string $pdfBytes): ProviderResult
     {
-        return new ProviderResult(GenerationContent::validate(self::cv(), true), 'fixture', 'deterministic-v1', 'portfolio-v1', []);
+        return new ProviderResult(GenerationContent::validate(self::cv(), true), 'fixture', 'deterministic-v1', 'portfolio-v2', []);
     }
 
     /** @param array<string, mixed> $evidence */
@@ -18,7 +33,7 @@ class FakePortfolioProvider implements PortfolioGenerationProvider
         }
         $content = ['home_content' => ['name' => 'Sam Example', 'headline' => 'Developer', 'introduction' => ''], 'cv_content' => self::cv(), 'projects' => $projects];
 
-        return new ProviderResult(GenerationContent::validate($content, false), 'fixture', 'deterministic-v1', 'portfolio-v1', []);
+        return new ProviderResult(GenerationContent::validate($content, false), 'fixture', 'deterministic-v1', 'portfolio-v2', []);
     }
 
     /** @return array<string, mixed> */

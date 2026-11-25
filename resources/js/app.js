@@ -81,3 +81,25 @@ document.querySelectorAll('[data-repositories]').forEach((fieldset) => {
     });
     updateRepositories();
 });
+
+
+document.querySelectorAll('[data-generation-progress]').forEach((panel) => {
+    async function pollGeneration() {
+        try {
+            const response = await fetch(panel.dataset.url, { headers: { Accept: 'application/json' }, cache: 'no-store' });
+            if (!response.ok) return;
+            const result = await response.json();
+            panel.querySelector('[data-generation-label]').textContent = result.label;
+            panel.querySelector('[data-generation-retry]').textContent = result.retry_at && result.status === 'queued' ? `Next processing time: ${new Date(result.retry_at).toLocaleString()}` : '';
+            if (['failed', 'succeeded'].includes(result.status)) {
+                if (panel.dataset.status !== result.status) window.location.reload();
+                return;
+            }
+            if (result.status) window.setTimeout(pollGeneration, 3000);
+        } catch {
+            panel.querySelector('[data-generation-retry]').textContent = 'Could not refresh progress. Retrying shortly.';
+            window.setTimeout(pollGeneration, 6000);
+        }
+    }
+    pollGeneration();
+});

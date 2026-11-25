@@ -7,6 +7,7 @@ use App\Http\Controllers\Userzone\CvDocumentController;
 use App\Http\Controllers\Userzone\DashboardController;
 use App\Http\Controllers\Userzone\DraftContentController;
 use App\Http\Controllers\Userzone\GalleryController;
+use App\Http\Controllers\Userzone\GenerationController;
 use App\Http\Controllers\Userzone\PortfolioController;
 use App\Http\Controllers\Userzone\PreviewController;
 use App\Http\Controllers\Userzone\ProjectEditorController;
@@ -30,6 +31,9 @@ Route::middleware(['auth', EnsureUsernameIsSet::class])->group(function () {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
     Route::prefix('user')->name('userzone.')->group(function () {
         Route::prefix('portfolios/{portfolio}')->group(function () {
+            Route::get('generate', [GenerationController::class, 'confirm'])->name('generation.confirm');
+            Route::post('generate', [GenerationController::class, 'store'])->middleware('throttle:6,1')->name('generation.store');
+            Route::get('generation-status', [GenerationController::class, 'status'])->name('generation.status');
             Route::get('publish', [PublicationController::class, 'confirm'])->name('publication.confirm');
             Route::post('publish', [PublicationController::class, 'publish'])->name('publication.publish');
             Route::delete('publish', [PublicationController::class, 'unpublish'])->name('publication.unpublish');

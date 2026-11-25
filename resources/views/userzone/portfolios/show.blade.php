@@ -4,6 +4,7 @@
         <p class="mt-10 text-sm font-semibold uppercase tracking-widest text-orange-700">{{ $portfolio->isPublished() ? 'Published · editing draft' : 'Private draft' }}</p>
         <h1 class="mt-4 break-words text-4xl font-semibold tracking-tight">{{ $portfolio->title }}</h1>
         <p class="mt-4 break-all text-sm text-stone-500">/{{ auth()->user()->username }}/{{ $portfolio->slug }}</p>
+        <a class="mt-6 inline-block font-semibold underline" href="{{ route('userzone.generation.confirm', $portfolio) }}">Generation & progress →</a>
         <nav aria-label="Edit portfolio" class="mt-8 flex flex-wrap gap-5 text-sm font-semibold">
             <a class="underline" href="{{ route('userzone.content.home', $portfolio) }}">Edit home</a>
             <a class="underline" href="{{ route('userzone.content.cv', $portfolio) }}">Edit CV & PDF</a>

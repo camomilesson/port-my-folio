@@ -1,6 +1,6 @@
 # Portmyfolio
 
-A Laravel portfolio builder that turns a PDF CV and up to five public GitHub READMEs into an editable personal website. **Stages 1–4 are complete:** accounts, private editing, galleries, previews and publication snapshots. Stage 4 passed local lifecycle review and hosted smoke checks. **Stage 5 is reviewed and approved for promotion:** one-screen PDF/repository collection, public README preflight, and validated Gemini provider boundaries. Durable generation and quota enforcement come in Stage 6; the full hosted generation-to-publication journey remains pending.
+A Laravel portfolio builder that turns a PDF CV and up to five public GitHub READMEs into an editable personal website. **Stages 1–5 are deployed; Stage 6 passed local end-to-end review and is approved for production promotion.** Generation now runs through durable queued steps with private checkpoints, quota reservation, retry/recovery and owner-only progress. The full hosted generation-to-publication journey still needs deployment and verification.
 
 - [Product vision](VISION.md)
 - [Data model](DATA_MODEL.md)
@@ -35,7 +35,7 @@ php artisan serve --host=127.0.0.1 --port=8000
 Open http://127.0.0.1:8000. For frontend changes run `pnpm dev` in another terminal. To process queued work, run:
 
 ```sh
-php artisan queue:work --tries=2 --timeout=60
+php artisan queue:work --tries=1 --timeout=120
 ```
 
 Local data, sessions, cache, and queue jobs use PostgreSQL. CV files use `storage/app/private`; processed galleries use the separate private `images_local` disk at `storage/app/private/gallery`. No hosted service credentials are required to view the landing page or run automated tests. Google sign-in shows a configuration message until a dedicated OAuth client is added. Owner-authorized routes serve gallery files; no public storage symlink is needed for galleries.
@@ -110,7 +110,7 @@ Spatie Media Library 11 manages project galleries through its standard `media` t
 
 ## Current limitations
 
-- Private home/CV/project editing, ordering, gallery management, immutable PDF upload/download, and home/CV/project previews are available. Publication is implemented; PDF extraction, GitHub fetching, AI generation, and quota enforcement remain later stages. Active-generation portfolios cannot be deleted yet.
+- Private home/CV/project editing, ordering, gallery management, immutable PDF upload/download, and home/CV/project previews are available. Publication, evidence fetching, Gemini extraction, queued initial generation and quota enforcement are implemented. Active deletion cancels work, redacts checkpoints and queues file cleanup. Stage 6 awaits review.
 - Hosted Google sign-in/logout, direct Supabase PostgreSQL, private CV storage, managed queue processing, and the health endpoint have been verified. User verified Stage 3 hosted image upload/delete and source PDF upload/download on 25 November 2026. Stage 4 is deployed and hosted smoke checks passed; full hosted publication lifecycle verification follows genuine generation in Stage 6.
 - The framework scaffold still contains nullable password infrastructure for compatibility; there is no public password authentication feature. The application-owned schema is now implemented. Ownership policies cover portfolios, projects, CV evidence, generations, and gallery media; nested editor and preview routes apply them and check parent/child identity.
 - This is an experimental course/demo project; permanent hosted availability is not promised.
@@ -148,6 +148,19 @@ Only validated inputs are persisted; no AI call, quota reservation or successful
 
 Configure GEMINI_API_KEY and GEMINI_MODEL=gemini-3.5-flash-lite in the ignored local .env. The application uses Laravel HTTP against Gemini's supported generateContent REST endpoint, native inline PDF input, structured JSON output and safe provider errors. No additional AI SDK is installed. The provider contract and deterministic fake are in app/Actions; tests never require credentials. The adapter has a 90-second timeout; Stage 6 must align worker timeout/visibility settings before queue integration.
 
-Run php artisan config:clear, then php artisan gemini:check --no-interaction for one explicit, potentially billable live extraction of the bundled fictional CV. It prints validated fictional content and usage, never the key; it changes no portfolio or quota record. The user completed this check successfully with gemini-3.5-flash-lite. Do not repeatedly run it as routine testing. The scanned-PDF provider check also remains pending; structural acceptance alone does not verify OCR quality.
+Run php artisan config:clear, then php artisan gemini:check --no-interaction for one explicit, potentially billable live extraction of the bundled fictional CV. It prints validated fictional content and usage, never the key; it changes no portfolio or quota record. The user completed this check successfully with gemini-3.5-flash-lite. Do not repeatedly run it as routine testing. The image-only fictional CV check also passed with Flash-Lite after clarifying headline extraction; this is a baseline, not a guarantee of OCR quality for every CV.
 
 User review should exercise the new form, optional focus, add/remove repository controls, invalid README feedback, retry after a failure, and preservation of existing editor/publication behavior. No merge or deployment is implied by implementation.
+
+
+## Stage 6 generation review
+
+Open a portfolio → Generation & progress, review its PDF/focus/repositories/roles, explicitly consent and choose Generate. The action freezes those inputs and reserves one of three slots; successful usage expires seven days after completion. Active reservations also count. Retrying a failed attempt rechecks quota, increments its run version, and reuses checkpoints. Changed inputs require a new portfolio; successful portfolios cannot be regenerated.
+
+Run the database worker locally with `php artisan queue:work --tries=1 --timeout=120` and recovery scheduling with `php artisan schedule:work`. Each job handles one step; the provider timeout is 90 seconds, job timeout 120 seconds, processing lease 180 seconds, and database retry visibility defaults to 180 seconds. Renew the lease at each step boundary. The recovery command `php artisan generation:recover` runs every minute through the scheduler. It redelivers overdue queued work, recovers expired leases, and terminalizes a step after three interrupted attempts. A run also has a 24-hour recovery deadline; expiry releases its reservation and an explicit user retry starts a fresh recovery window. Missing scheduler/worker processes prevent recovery; they must run independently of a browser session.
+
+Processing order: validate frozen evidence, extract CV, generate each project independently, write home/CV from extracted facts and completed summaries, then atomically assemble the editable draft. Progress/checkpoints stay owner-only and are never public content. Each technical step has at most three attempts per run, with delayed retry times. Delay delivery is capped at 900 seconds; the saved next-run time and scheduler handle longer provider waits. Duplicate jobs and expired workers cannot commit results without the matching lease/version. No provider request occurs while holding database row locks.
+
+Deletion terminalizes active work, revokes leases, detaches quota history, redacts inputs/checkpoints and queues files for deletion. An already-sent provider request can still incur cost, but its late result is discarded. Completed-request usage/model/prompt metadata is recorded per checkpoint; a worker crash after a charged request but before checkpoint commit can require repeating that request.
+
+`php artisan gemini:check --scanned --no-interaction` sends the bundled image-only fictional CV. The controlled live check passed on 25 November 2026 with gemini-3.5-flash-lite: professional headline, contact, dates, experience, education and skills matched the fixture. Automated tests continue to use fakes. User completed local generation/content/publication review and approved promotion. Hosted worker/recovery configuration and the production generation journey still need verification.
