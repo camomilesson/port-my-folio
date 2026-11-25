@@ -19,6 +19,7 @@ class StorePortfolioCv
         if ((new \finfo(FILEINFO_MIME_TYPE))->buffer($bytes) !== 'application/pdf' || ! str_starts_with($bytes, '%PDF-') || ! str_contains(substr($bytes, -1024), '%%EOF')) {
             throw ValidationException::withMessages(['pdf' => 'Upload a valid, complete PDF document.']);
         }
+        app(ValidateCvPdf::class)->handle($bytes);
         $disk = config('portmyfolio.cv_disk');
         $path = 'cvs/'.Str::uuid().'.pdf';
         $written = false;
