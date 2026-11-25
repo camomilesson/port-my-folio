@@ -17,7 +17,11 @@
                 <li class="break-words">{{ $project['repository_owner'] }}/{{ $project['repository_name'] }} — {{ $project['author_role'] }}</li>
             @endforeach
         </ul>
+        @if($quota['unlimited'])
+            <p class="mt-6 text-sm text-stone-600">Unlimited generation slots.</p>
+        @else
         <p class="mt-6 text-sm text-stone-600">{{ $quota['available'] }} of 3 generation slots available. Successful generations count for seven days. Failed attempts release their reservation. Deletion does not refund successful usage.</p>
+        @endif
         @if($quota['next_slot'])<p class="mt-2 text-sm text-stone-500">Next successful-generation slot opens {{ $quota['next_slot'] }} UTC.</p>@endif
         @if(!$generation || $generation->status === 'failed')
             <form method="POST" action="{{ route('userzone.generation.store', $portfolio) }}" class="mt-8 space-y-5">

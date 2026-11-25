@@ -26,7 +26,7 @@ class StartPortfolioGeneration
                 throw ValidationException::withMessages(['generation' => 'Generation is already in progress.']);
             }
             $quota = self::quota($owner);
-            if ($quota['available'] < 1) {
+            if (! $quota['unlimited'] && $quota['available'] < 1) {
                 throw ValidationException::withMessages(['generation' => 'Your three generation slots are in use. '.($quota['next_slot'] ? 'Next slot: '.$quota['next_slot'].' UTC.' : 'Wait for an active attempt to finish.')]);
             }
             if ($previous && $previous->status === 'failed' && $previous->input_snapshot !== null) {
@@ -52,13 +52,16 @@ class StartPortfolioGeneration
         });
     }
 
-    /** @return array{available: int, next_slot: ?string} */
+    /** @return array{available: ?int, next_slot: ?string, unlimited: bool} */
     public static function quota(User $owner): array
     {
+        if (in_array($owner->username, config('portmyfolio.unlimited_generation_usernames', []), true)) {
+            return ['available' => null, 'next_slot' => null, 'unlimited' => true];
+        }
         $successes = $owner->generations()->where('status', 'succeeded')->where('completed_at', '>', now()->subDays(7));
         $active = $owner->generations()->whereIn('status', ['queued', 'running'])->count();
         $first = (clone $successes)->min('completed_at');
 
-        return ['available' => max(0, 3 - $active - $successes->count()), 'next_slot' => $first ? Carbon::parse($first)->addDays(7)->format('d M Y H:i') : null];
+        return ['available' => max(0, 3 - $active - $successes->count()), 'next_slot' => $first ? Carbon::parse($first)->addDays(7)->format('d M Y H:i') : null, 'unlimited' => false];
     }
 }

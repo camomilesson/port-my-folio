@@ -323,3 +323,21 @@ it('releases undelivered reservations after the one-day recovery deadline', func
     expect($generation->fresh()->error_code)->toBe('recovery_deadline');
     expect(StartPortfolioGeneration::quota($portfolio->user)['available'])->toBe(3);
 });
+
+it('gives camomilesson unlimited slots without allowing regeneration of a completed portfolio', function () {
+    Storage::fake('local');
+    Queue::fake();
+    $owner = User::factory()->create(['username' => 'camomilesson']);
+    Generation::factory()->for($owner)->count(3)->succeeded()->create(['portfolio_id' => null]);
+    $portfolio = generationInputPortfolio($owner);
+    $this->actingAs($owner);
+    expect(StartPortfolioGeneration::quota($owner)['unlimited'])->toBeTrue();
+    expect(StartPortfolioGeneration::quota($owner)['available'])->toBeNull();
+    $this->get(route('userzone.generation.confirm', $portfolio))->assertOk()->assertSee('Unlimited generation slots.')->assertDontSee('of 3 generation slots available');
+    $generation = app(StartPortfolioGeneration::class)->handle($portfolio);
+    expect($generation->status)->toBe('queued');
+    runGenerationSteps($generation);
+    expect($generation->fresh()->status)->toBe('succeeded');
+    expect(fn () => app(StartPortfolioGeneration::class)->handle($portfolio))->toThrow(ValidationException::class, 'already been generated');
+    Queue::assertPushed(GeneratePortfolioStep::class);
+});
