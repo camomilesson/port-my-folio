@@ -7,5 +7,5 @@
         <a href="{{ route('userzone.projects.create', $portfolio) }}" class="underline underline-offset-4">Add project</a>
         <a href="{{ route('userzone.preview.home', $portfolio) }}" class="underline underline-offset-4">Preview draft →</a>
     </nav>
-    <p class="text-sm text-stone-500">Changes stay in your private draft. Save each form before previewing. Publishing comes in the next stage.</p>
+    <p class="text-sm text-stone-500">Changes stay in your private draft. Save each form before previewing. Publish saved changes from the portfolio overview.</p>
 </div>

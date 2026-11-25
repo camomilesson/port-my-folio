@@ -19,8 +19,8 @@ it('seeds a usable offline demo with independent owners and stored fixtures', fu
     expect($owner->portfolios()->count())->toBe(3);
     expect($owner->defaultPortfolio->isPublished())->toBeTrue();
     $this->assertDatabaseCount('users', 2);
-    $this->assertDatabaseCount('projects', 4);
-    $this->assertDatabaseCount('generations', 2);
+    $this->assertDatabaseCount('projects', 5);
+    $this->assertDatabaseCount('generations', 3);
     foreach (CvDocument::all() as $document) {
         Storage::disk('local')->assertExists($document->storage_path);
     }

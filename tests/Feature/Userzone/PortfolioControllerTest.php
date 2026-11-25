@@ -115,12 +115,17 @@ it('refuses deletion while generation is active', function (string $status) {
 
     $this->actingAs($portfolio->user)->from(route('userzone.portfolios.show', $portfolio))->delete(route('userzone.portfolios.destroy', $portfolio))
         ->assertRedirect(route('userzone.portfolios.show', $portfolio))
-        ->assertSessionHasErrors(['portfolio' => 'Only unpublished portfolios without active generation can be deleted.']);
+        ->assertSessionHasErrors(['portfolio' => 'Wait for generation to finish before deleting this portfolio.']);
     $this->assertModelExists($portfolio);
 })->with(['queued', 'running']);
 
-it('refuses deletion of a published portfolio at this stage', function () {
+it('deletes a published portfolio and clears its default pointer', function () {
     $portfolio = Portfolio::factory()->published()->create();
-    $this->actingAs($portfolio->user)->delete(route('userzone.portfolios.destroy', $portfolio))->assertSessionHasErrors('portfolio');
-    $this->assertModelExists($portfolio);
+    $owner = $portfolio->user;
+    $owner->forceFill(['default_portfolio_id' => $portfolio->id])->save();
+
+    $this->actingAs($owner)->delete(route('userzone.portfolios.destroy', $portfolio))->assertRedirect(route('dashboard'));
+
+    $this->assertModelMissing($portfolio);
+    expect($owner->fresh()->default_portfolio_id)->toBeNull();
 });

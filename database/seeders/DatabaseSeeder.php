@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Actions\BuildPortfolioSnapshot;
 use App\Models\CvDocument;
 use App\Models\Generation;
 use App\Models\Portfolio;
@@ -38,7 +39,8 @@ class DatabaseSeeder extends Seeder
         }
 
         Portfolio::factory()->for($owner)->create(['title' => 'A new idea', 'slug' => 'new-idea', 'focus' => null, 'home_content' => null, 'cv_content' => null]);
-        $published = Portfolio::factory()->for($owner)->published()->create(['title' => 'Published example', 'slug' => 'published-example']);
+        $published = Portfolio::factory()->for($owner)->generated()->create(['title' => 'Published example', 'slug' => 'published-example']);
+        $published->update(['published_snapshot' => app(BuildPortfolioSnapshot::class)->build($published), 'published_at' => now()]);
         $owner->forceFill(['default_portfolio_id' => $published->id])->save();
     }
 }

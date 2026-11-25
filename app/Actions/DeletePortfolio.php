@@ -7,10 +7,11 @@ use App\Models\Portfolio;
 use App\Models\Project;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
-class DeleteDraftPortfolio
+class DeletePortfolio
 {
     public function handle(Portfolio $portfolio): void
     {
@@ -18,8 +19,10 @@ class DeleteDraftPortfolio
             User::whereKey($portfolio->user_id)->lockForUpdate()->firstOrFail();
             $locked = Portfolio::whereKey($portfolio->id)->lockForUpdate()->firstOrFail();
 
-            if ($locked->published_snapshot !== null || $locked->published_at !== null || $locked->generations()->whereIn('status', ['queued', 'running'])->exists()) {
-                throw ValidationException::withMessages(['portfolio' => 'Only unpublished portfolios without active generation can be deleted.']);
+            Gate::authorize('delete', $locked);
+
+            if ($locked->generations()->whereIn('status', ['queued', 'running'])->exists()) {
+                throw ValidationException::withMessages(['portfolio' => 'Wait for generation to finish before deleting this portfolio.']);
             }
 
             $projectIds = $locked->projects()->withTrashed()->pluck('id');

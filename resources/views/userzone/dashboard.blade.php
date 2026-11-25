@@ -8,6 +8,7 @@
             </div>
             <a href="{{ route('userzone.portfolios.create') }}" class="rounded-full bg-stone-900 px-6 py-3 font-medium text-white">New portfolio →</a>
         </div>
+        <x-form-errors />
         <div class="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             @forelse($portfolios as $portfolio)
                 <article class="flex flex-col rounded-2xl border border-stone-200 bg-white p-6">
@@ -20,11 +21,14 @@
                     <p class="mt-4 line-clamp-3 text-sm leading-relaxed text-stone-600">{{ $portfolio->focus ?: 'No focus added yet.' }}</p>
                     <p class="mt-auto pt-6 text-sm text-stone-500">{{ $portfolio->projects_count }} {{ Str::plural('project', $portfolio->projects_count) }}</p>
                     <a href="{{ route('userzone.portfolios.show', $portfolio) }}" class="mt-4 text-sm font-semibold underline underline-offset-4">Open portfolio →</a>
+                    @if($portfolio->isPublished() && auth()->user()->default_portfolio_id !== $portfolio->id)
+                        <form class="mt-4" method="POST" action="{{ route('userzone.publication.default', $portfolio) }}">@csrf<button class="text-sm font-semibold underline">Make default</button></form>
+                    @endif
                 </article>
             @empty
                 <div class="rounded-2xl border border-dashed border-stone-300 p-8 md:col-span-2 lg:col-span-3">
                     <h2 class="text-xl font-semibold">Your first portfolio starts here.</h2>
-                    <p class="mt-3 text-stone-600">Choose a title, an address, and who you want to reach. You can add content when the editor is ready.</p>
+                    <p class="mt-3 text-stone-600">Choose a title, an address, and who you want to reach. Then add your source CV and projects.</p>
                 </div>
             @endforelse
         </div>

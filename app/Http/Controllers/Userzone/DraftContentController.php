@@ -46,7 +46,6 @@ class DraftContentController extends Controller
         $cv = $request->validated();
         unset($cv['_complete_cv_form']);
         $cv['schema_version'] = 1;
-        $cv['allow_original_download'] = (bool) $cv['allow_original_download'];
         foreach (['experience', 'education'] as $section) {
             foreach ($cv[$section] as &$entry) {
                 $entry['current'] = (bool) $entry['current'];

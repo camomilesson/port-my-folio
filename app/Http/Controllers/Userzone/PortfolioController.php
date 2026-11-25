@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Userzone;
 
-use App\Actions\DeleteDraftPortfolio;
+use App\Actions\DeletePortfolio;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Userzone\StorePortfolioRequest;
 use App\Models\Portfolio;
@@ -41,7 +41,7 @@ class PortfolioController extends Controller
         return view('userzone.portfolios.show', compact('portfolio'));
     }
 
-    public function destroy(Portfolio $portfolio, DeleteDraftPortfolio $delete): RedirectResponse
+    public function destroy(Portfolio $portfolio, DeletePortfolio $delete): RedirectResponse
     {
         Gate::authorize('delete', $portfolio);
         $delete->handle($portfolio);
