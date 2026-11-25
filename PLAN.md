@@ -353,3 +353,8 @@ Controlled scanned-PDF check used an image-only rendering of the bundled fiction
 Verification: PostgreSQL 202 tests / 900 assertions, including separate-process simultaneous starts competing for the last quota slot; actual database-worker round-trip; expired/deleted late-result rejection; quota rollover/deletion; bounded technical/crash retries; invalid preflight before paid work; provider contracts, isolation and safe polling. Full SQLite and formatting/build checks also pass (see final check results). Browser verified confirmation/input summary/consent controls. Local migration and recovery schedule registration pass. A pair of initial parallel suite runs conflicted over shared fake-storage paths; final suites ran sequentially.
 
 Stage 5 hosted deployment was confirmed green by the user before Stage 6 began. Stage 6 remains awaiting the user's end-to-end generation/content/publication review. Configure local worker/scheduler and hosted timeouts/visibility/scheduler per README/DEPLOYMENT before production rollout. No Stage 6 merge or deployment is authorized by this implementation milestone.
+
+
+## Stage 6 promotion approval — 25 November 2026
+
+User completed the local end-to-end walkthrough, including real generation, content review, editing, publication and default routing under the sam-example demo account, and confirmed that everything appears to work. User explicitly approved promotion to main and requested checking the resulting deployment. Earlier awaiting-review/no-promotion notes are historical. Preserve the atomic implementation commits; hosted deployment, generation and recovery configuration still require verification.

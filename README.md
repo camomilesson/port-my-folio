@@ -1,6 +1,6 @@
 # Portmyfolio
 
-A Laravel portfolio builder that turns a PDF CV and up to five public GitHub READMEs into an editable personal website. **Stages 1–5 are deployed; Stage 6 is implemented locally on `codex/stage-6-generation`, awaiting review.** Generation now runs through durable queued steps with private checkpoints, quota reservation, retry/recovery and owner-only progress. The full hosted generation-to-publication journey still needs deployment and verification.
+A Laravel portfolio builder that turns a PDF CV and up to five public GitHub READMEs into an editable personal website. **Stages 1–5 are deployed; Stage 6 passed local end-to-end review and is approved for production promotion.** Generation now runs through durable queued steps with private checkpoints, quota reservation, retry/recovery and owner-only progress. The full hosted generation-to-publication journey still needs deployment and verification.
 
 - [Product vision](VISION.md)
 - [Data model](DATA_MODEL.md)
@@ -163,4 +163,4 @@ Processing order: validate frozen evidence, extract CV, generate each project in
 
 Deletion terminalizes active work, revokes leases, detaches quota history, redacts inputs/checkpoints and queues files for deletion. An already-sent provider request can still incur cost, but its late result is discarded. Completed-request usage/model/prompt metadata is recorded per checkpoint; a worker crash after a charged request but before checkpoint commit can require repeating that request.
 
-`php artisan gemini:check --scanned --no-interaction` sends the bundled image-only fictional CV. The controlled live check passed on 25 November 2026 with gemini-3.5-flash-lite: professional headline, contact, dates, experience, education and skills matched the fixture. Automated tests continue to use fakes. User content generation and hosted worker/recovery configuration still require review; do not merge or deploy Stage 6 automatically.
+`php artisan gemini:check --scanned --no-interaction` sends the bundled image-only fictional CV. The controlled live check passed on 25 November 2026 with gemini-3.5-flash-lite: professional headline, contact, dates, experience, education and skills matched the fixture. Automated tests continue to use fakes. User completed local generation/content/publication review and approved promotion. Hosted worker/recovery configuration and the production generation journey still need verification.

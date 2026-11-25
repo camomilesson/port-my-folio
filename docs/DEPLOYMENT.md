@@ -175,7 +175,7 @@ Official references checked 25 November 2026: https://aistudio.google.com/docs/a
 Stage 5 promotion approved by the user on 25 November 2026 after the local input-form checklist and live fictional-CV extraction passed. Configure GEMINI_API_KEY and GEMINI_MODEL=gemini-3.5-flash-lite in Laravel Cloud before a hosted CLI probe; normal input collection makes no AI calls. No new migration is required. Verify hosted PDF/repository collection after deployment. Scanned-CV extraction remains a tracked follow-up before end-to-end generation acceptance.
 
 
-## Stage 6 deployment requirements (not deployed)
+## Stage 6 deployment requirements (promotion approved; hosted checks pending)
 
 Stage 5 deployed successfully after replacing unavailable Corepack with pinned npx pnpm invocations above. Keep those build commands.
 
@@ -184,3 +184,6 @@ Stage 6 requires the additive generation-lease migration (`php artisan migrate -
 Configure managed worker timeout to 120 seconds and retry/visibility strictly above 120 seconds (180 seconds recommended); provider HTTP timeout is 90 seconds and each processing lease lasts 180 seconds. Recovery must keep running when the web process scales down. Restart workers on deployment so they load current code. Review the Cloud queue/scheduler configuration before production rollout; the local database queue round-trip does not verify hosted managed-queue behavior.
 
 Before promotion, the user reviews local generation, edits, publication and failure recovery. After deployment, verify one genuine generation → editable draft → explicit publication, plus return-to-progress, quota display and unpublish. Scanned fictional-PDF native extraction has passed locally; it does not prove every scanned CV will extract correctly.
+
+
+User approved Stage 6 promotion after local end-to-end checks on 25 November 2026. Retain migration deployment, the working pinned npx pnpm commands and the queue/scheduler requirements above. A green build/deployment alone does not verify production Gemini credentials or scheduled recovery.
