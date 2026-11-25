@@ -1,24 +1,22 @@
 <?php
 
 use App\Models\CvDocument;
-use App\Models\Generation;
 use App\Models\Portfolio;
 use App\Models\Project;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\Process\Process;
 
-it('allows only one of two concurrent starts to reserve the last quota slot', function () {
+it('accepts only one of two simultaneous starts for the same portfolio', function () {
     if (DB::connection()->getDriverName() !== 'pgsql') {
-        $this->markTestSkipped('Quota locks require the PostgreSQL test profile.');
+        $this->markTestSkipped('Generation locks require the PostgreSQL test profile.');
     }
     $owner = User::factory()->create();
-    $portfolios = Portfolio::factory()->for($owner)->count(2)->create();
+    $portfolios = Portfolio::factory()->for($owner)->count(1)->create();
     foreach ($portfolios as $portfolio) {
         CvDocument::factory()->for($portfolio)->create();
         Project::factory()->for($portfolio)->create();
     }
-    Generation::factory()->for($owner)->count(2)->succeeded()->create(['portfolio_id' => null]);
     $script = <<<'PHP'
     require 'vendor/autoload.php';
     $settings = json_decode(stream_get_contents(STDIN), true);
@@ -32,7 +30,7 @@ it('allows only one of two concurrent starts to reserve the last quota slot', fu
     fflush(STDOUT);
     try {
         app(App\Actions\StartPortfolioGeneration::class)->handle(App\Models\Portfolio::findOrFail($settings['portfolio']));
-        echo 'reserved';
+        echo 'started';
     } catch (Illuminate\Validation\ValidationException) {
         echo 'refused';
     }
@@ -41,7 +39,7 @@ it('allows only one of two concurrent starts to reserve the last quota slot', fu
     try {
         DB::beginTransaction();
         User::whereKey($owner->id)->lockForUpdate()->firstOrFail();
-        foreach ($portfolios as $portfolio) {
+        foreach ([$portfolios->first(), $portfolios->first()] as $portfolio) {
             $worker = new Process([PHP_BINARY, '-r', $script], base_path(), ['APP_ENV' => 'testing']);
             $worker->setInput(json_encode(['connection' => config('database.connections.pgsql'), 'owner' => $owner->id, 'portfolio' => $portfolio->id], JSON_THROW_ON_ERROR));
             $worker->setTimeout(20);
@@ -59,7 +57,7 @@ it('allows only one of two concurrent starts to reserve the last quota slot', fu
             expect($worker->isSuccessful())->toBeTrue();
         }
         expect($owner->generations()->whereIn('status', ['queued', 'running'])->count())->toBe(1);
-        expect(count(array_filter($workers, fn (Process $worker): bool => str_contains($worker->getOutput(), 'reserved'))))->toBe(1);
+        expect(count(array_filter($workers, fn (Process $worker): bool => str_contains($worker->getOutput(), 'started'))))->toBe(1);
         expect(count(array_filter($workers, fn (Process $worker): bool => str_contains($worker->getOutput(), 'refused'))))->toBe(1);
     } finally {
         if (DB::transactionLevel() > 0) {

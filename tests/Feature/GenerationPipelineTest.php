@@ -83,23 +83,20 @@ it('requires consent and refuses duplicate or successful starts', function () {
     $this->assertDatabaseCount('generations', 1);
 });
 
-it('enforces the seven-day quota across successes and active reservations', function () {
-    $this->freezeTime();
+it('allows new generation regardless of previous successes and other active portfolios', function () {
     Storage::fake('local');
     Queue::fake([GeneratePortfolioStep::class]);
     $portfolio = generationInputPortfolio();
     $owner = $portfolio->user;
-    Generation::factory()->for($owner)->count(2)->succeeded()->create(['completed_at' => now()->subDays(6)]);
+    Generation::factory()->for($owner)->count(5)->succeeded()->create(['portfolio_id' => null]);
     Generation::factory()->for($owner)->create();
     $this->actingAs($owner);
-    expect(fn () => app(StartPortfolioGeneration::class)->handle($portfolio))->toThrow(ValidationException::class, 'slots are in use');
-    expect(StartPortfolioGeneration::quota($owner)['available'])->toBe(0);
-    $this->travel(1)->days();
-    expect(StartPortfolioGeneration::quota($owner)['available'])->toBe(2);
+    $this->get(route('userzone.generation.confirm', $portfolio))->assertOk()->assertDontSee('generation slots')->assertDontSee('Next successful-generation slot');
     expect(app(StartPortfolioGeneration::class)->handle($portfolio)->status)->toBe('queued');
+    Queue::assertPushed(GeneratePortfolioStep::class);
 });
 
-it('does not refund successful quota on deletion', function () {
+it('retains redacted generation history on deletion', function () {
     Storage::fake('local');
     Queue::fake();
     $portfolio = generationInputPortfolio();
@@ -110,7 +107,6 @@ it('does not refund successful quota on deletion', function () {
     expect($generation->fresh()->portfolio_id)->toBeNull();
     expect($generation->fresh()->input_snapshot)->toBeNull();
     expect($generation->fresh()->progress)->toBeNull();
-    expect(StartPortfolioGeneration::quota($portfolio->user)['available'])->toBe(2);
 });
 
 it('reuses completed steps after a permanent project failure and explicit retry', function () {
@@ -144,7 +140,6 @@ it('reuses completed steps after a permanent project failure and explicit retry'
     $generation = app(StartPortfolioGeneration::class)->handle($portfolio);
     runGenerationSteps($generation, 3);
     expect($generation->fresh()->status)->toBe('failed');
-    expect(StartPortfolioGeneration::quota($portfolio->user)['available'])->toBe(3);
     expect(fn () => app(EditPortfolioDraft::class)->handle($portfolio, fn () => null))->toThrow(ValidationException::class, 'frozen inputs');
     $provider->fail = false;
     $retried = app(StartPortfolioGeneration::class)->handle($portfolio);
@@ -297,7 +292,7 @@ it('rejects insufficient frozen evidence before any paid processing', function (
     expect($generation->fresh()->usage)->toBe([]);
 });
 
-it('releases a stale reservation after three crashed processing attempts', function () {
+it('terminalizes generation after three crashed processing attempts', function () {
     $this->freezeTime();
     Storage::fake('local');
     Queue::fake();
@@ -307,10 +302,9 @@ it('releases a stale reservation after three crashed processing attempts', funct
     $generation->update(['status' => 'running', 'lease_token' => '00000000-0000-0000-0000-000000000001', 'lease_expires_at' => now()->subMinute(), 'progress' => ['attempts' => ['checking' => 3]]]);
     $this->artisan('generation:recover')->assertSuccessful();
     expect($generation->fresh()->status)->toBe('failed');
-    expect(StartPortfolioGeneration::quota($portfolio->user)['available'])->toBe(3);
 });
 
-it('releases undelivered reservations after the one-day recovery deadline', function () {
+it('terminalizes undelivered work after the one-day recovery deadline', function () {
     $this->freezeTime();
     Storage::fake('local');
     Queue::fake();
@@ -321,23 +315,4 @@ it('releases undelivered reservations after the one-day recovery deadline', func
     $this->artisan('generation:recover')->assertSuccessful();
     expect($generation->fresh()->status)->toBe('failed');
     expect($generation->fresh()->error_code)->toBe('recovery_deadline');
-    expect(StartPortfolioGeneration::quota($portfolio->user)['available'])->toBe(3);
-});
-
-it('gives camomilesson unlimited slots without allowing regeneration of a completed portfolio', function () {
-    Storage::fake('local');
-    Queue::fake();
-    $owner = User::factory()->create(['username' => 'camomilesson']);
-    Generation::factory()->for($owner)->count(3)->succeeded()->create(['portfolio_id' => null]);
-    $portfolio = generationInputPortfolio($owner);
-    $this->actingAs($owner);
-    expect(StartPortfolioGeneration::quota($owner)['unlimited'])->toBeTrue();
-    expect(StartPortfolioGeneration::quota($owner)['available'])->toBeNull();
-    $this->get(route('userzone.generation.confirm', $portfolio))->assertOk()->assertSee('Unlimited generation slots.')->assertDontSee('of 3 generation slots available');
-    $generation = app(StartPortfolioGeneration::class)->handle($portfolio);
-    expect($generation->status)->toBe('queued');
-    runGenerationSteps($generation);
-    expect($generation->fresh()->status)->toBe('succeeded');
-    expect(fn () => app(StartPortfolioGeneration::class)->handle($portfolio))->toThrow(ValidationException::class, 'already been generated');
-    Queue::assertPushed(GeneratePortfolioStep::class);
 });

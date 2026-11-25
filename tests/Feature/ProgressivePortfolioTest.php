@@ -59,17 +59,17 @@ it('starts from minimal inputs with generated identity and agreed demo role cont
     Http::assertSentCount(2);
 });
 
-it('rolls back input files and records when generation cannot reserve quota', function () {
+it('starts the primary flow after more than three successful generations', function () {
     Queue::fake();
     Storage::fake('local');
     $owner = User::factory()->create();
     Generation::factory()->for($owner)->count(3)->succeeded()->create(['portfolio_id' => null]);
     Http::fake(['https://api.github.com/repos/example/course' => Http::response(['private' => false]), 'https://api.github.com/repos/example/course/readme' => Http::response(str_repeat('Technical project description. ', 20))]);
-    $this->actingAs($owner)->post(route('userzone.portfolios.generate'), ['confirm' => 1, 'pdf' => UploadedFile::fake()->createWithContent('cv.pdf', file_get_contents(resource_path('fixtures/demo-cv.pdf'))), 'repositories' => [['repository_url' => 'https://github.com/example/course']]])->assertSessionHasErrors('generation');
-    $this->assertDatabaseCount('portfolios', 0);
-    $this->assertDatabaseCount('cv_documents', 0);
-    expect(Storage::disk('local')->allFiles())->toBe([]);
-    Queue::assertNothingPushed();
+    $this->actingAs($owner)->post(route('userzone.portfolios.generate'), ['confirm' => 1, 'pdf' => UploadedFile::fake()->createWithContent('cv.pdf', file_get_contents(resource_path('fixtures/demo-cv.pdf'))), 'repositories' => [['repository_url' => 'https://github.com/example/course']]])->assertSessionHasNoErrors()->assertRedirect();
+    $this->assertDatabaseCount('portfolios', 1);
+    $this->assertDatabaseCount('cv_documents', 1);
+    expect(Storage::disk('local')->allFiles())->toHaveCount(1);
+    Queue::assertPushed(GeneratePortfolioStep::class);
 });
 
 it('reveals private checkpoints while leaving the saved draft and public publication unchanged', function () {

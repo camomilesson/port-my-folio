@@ -17,17 +17,11 @@
                 <li class="break-words">{{ $project['repository_owner'] }}/{{ $project['repository_name'] }} — {{ $project['author_role'] }}</li>
             @endforeach
         </ul>
-        @if($quota['unlimited'])
-            <p class="mt-6 text-sm text-stone-600">Unlimited generation slots.</p>
-        @else
-        <p class="mt-6 text-sm text-stone-600">{{ $quota['available'] }} of 3 generation slots available. Successful generations count for seven days. Failed attempts release their reservation. Deletion does not refund successful usage.</p>
-        @endif
-        @if($quota['next_slot'])<p class="mt-2 text-sm text-stone-500">Next successful-generation slot opens {{ $quota['next_slot'] }} UTC.</p>@endif
         @if(!$generation || $generation->status === 'failed')
             <form method="POST" action="{{ route('userzone.generation.store', $portfolio) }}" class="mt-8 space-y-5">
                 @csrf
                 <label class="flex items-start gap-3"><input type="checkbox" name="confirm" value="1" required class="mt-1"><span>Generate from these inputs. My PDF and project evidence will be processed by the AI provider. Inputs stay fixed for this attempt, and a completed portfolio cannot be regenerated.</span></label>
-                <button class="rounded-full bg-stone-900 px-6 py-3 font-medium text-white" @disabled($quota['available'] === 0)>{{ $generation ? 'Retry failed generation' : 'Generate portfolio' }}</button>
+                <button class="rounded-full bg-stone-900 px-6 py-3 font-medium text-white">{{ $generation ? 'Retry failed generation' : 'Generate portfolio' }}</button>
             </form>
         @elseif($generation->status === 'succeeded')
             <a class="mt-6 inline-block font-semibold underline" href="{{ route('userzone.preview.home', $portfolio) }}">Review generated draft →</a>

@@ -1,7 +1,6 @@
 <?php
 
 return [
-    'unlimited_generation_usernames' => ['camomilesson'],
     'demo_login_enabled' => env('DEMO_LOGIN_ENABLED', false),
     'reserved_usernames' => ['admin', 'api', 'auth', 'commands', 'cv', 'dashboard', 'demo', 'health', 'login', 'logout', 'onboarding', 'portfolios', 'projects', 'register', 'settings', 'storage', 'up', 'user'],
     'demo_repository_roles' => [

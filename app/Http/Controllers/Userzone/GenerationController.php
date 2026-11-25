@@ -18,10 +18,9 @@ class GenerationController extends Controller
     {
         Gate::authorize('update', $portfolio);
         $portfolio->load('cvDocument', 'projects');
-        $quota = StartPortfolioGeneration::quota($portfolio->user);
         $generation = $portfolio->generations()->latest('id')->first();
 
-        return view('userzone.portfolios.generate', compact('portfolio', 'quota', 'generation'));
+        return view('userzone.portfolios.generate', compact('portfolio', 'generation'));
     }
 
     public function store(Request $request, Portfolio $portfolio, StartPortfolioGeneration $start): RedirectResponse
