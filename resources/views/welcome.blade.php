@@ -1,8 +1,8 @@
 <x-layout>
     <section class="mx-auto grid max-w-6xl items-center gap-14 px-6 pt-12 pb-16 sm:pt-20 sm:pb-24 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-16">
         <div>
-            <h1 class="max-w-xl text-5xl font-semibold leading-[1.08] tracking-tight sm:text-6xl">Your next portfolio starts with your CV.</h1>
-            <p class="mt-6 max-w-md text-lg leading-relaxed text-stone-600">Add your CV and GitHub projects. Customize the result and publish when you’re ready.</p>
+            <h1 class="max-w-xl text-5xl font-semibold leading-[1.08] tracking-tight sm:text-6xl">Building a Portfolio Shouldn't Be Hard</h1>
+            <p class="mt-6 max-w-md text-lg leading-relaxed text-stone-600">Build one in seconds from a CV and a few repo links</p>
             <div class="mt-8">
                 @auth
                     <a href="{{ route('dashboard') }}" class="inline-flex items-center gap-4 rounded-full bg-stone-900 px-7 py-4 font-medium text-white transition-colors hover:bg-stone-700 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-orange-700">Open your workspace <span aria-hidden="true">→</span></a>

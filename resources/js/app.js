@@ -472,7 +472,7 @@ document.querySelectorAll('[data-welcome-preview]').forEach((preview) => {
         window.clearInterval(timer);
         pauseButton.textContent = paused ? 'Play' : 'Pause';
         if (!paused && !document.hidden) {
-            timer = window.setInterval(() => showPreset((index + 1) % presets.length), 1000);
+            timer = window.setInterval(() => showPreset((index + 1) % presets.length), 3000);
         }
     }
 
