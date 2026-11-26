@@ -6,6 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="Turn your CV and GitHub projects into a portfolio for your next opportunity.">
     <title>{{ $title ?? 'Portmyfolio' }}</title>
+    <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml">
+    <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="16x16 32x32 48x48">
+    <link rel="apple-touch-icon" href="{{ asset('apple-touch-icon.png') }}" sizes="180x180">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body @if($portfolioPreset) data-portfolio-preset="{{ $portfolioPreset }}" style="--portfolio-accent: {{ $portfolioAccent }}" @endif class="min-h-screen bg-stone-50 font-sans text-stone-900 antialiased">
