@@ -268,3 +268,8 @@ Project galleries gain Add images with multiple selection, preserving the ten-im
 ### Stage 6.2 pre-review refinements
 
 Project roles are removed from the demo inputs and presentation. Generated project prose describes repository functionality without assigning personal contributions to the portfolio owner. Home supports one uploaded portfolio photo beside the introduction, on the right for desktop and stacked for mobile. The project gallery sits immediately below the project name, summary and technologies, using manual left/right wraparound carousel navigation. Photo and gallery edits follow private-draft publication semantics. These decisions supersede the earlier project-role requirements.
+
+
+### Gallery interaction refinement — 26 November 2026
+
+Add images should feel immediate: open the native file picker, choose one or several images, and save them straight into the private draft. Remove image metadata choices and use no caption, no description, decorative defaults. The gallery follows the owner's actual Portfolio reference with a padded image stage and clickable left/right halves, wrapping navigation and keyboard arrows. This supersedes earlier per-image metadata editing requirements; publication remains explicit.

@@ -192,7 +192,7 @@ Generation quotas have been removed for this controlled demo. All accounts can s
 
 Open a generated portfolio from the workspace. After generation succeeds, use its pencils to edit existing home, CV and project fields with Save/Cancel. Name/title are shared between home and CV; the introduction and CV summary remain separate. Technologies and skill items use comma-separated inputs. Fixed section headers and entry/project ordering have no pencils. The separate editor remains under Portfolio settings for supporting tasks.
 
-On a project, Add images accepts multiple JPEG/PNG/WebP files. Give each image a description or explicitly mark it decorative, with an optional caption. The whole selection is validated before appending; failure leaves the gallery unchanged. The cap is ten active images per project, at 10 MB per uploaded file. Gallery caption, description and decorative choices can be edited in place; saving a description makes the image non-decorative. Images keep the existing private, metadata-stripped WebP processing.
+On a project, Add images opens the file picker and uploads the selected JPEG/PNG/WebP files immediately. No second confirmation or metadata form is shown. New images default to no caption, an empty description and decorative enabled. The whole selection is validated before appending; failure leaves the gallery unchanged. The cap is ten active images per project, at 10 MB per uploaded file. Successful uploads show the first newly added image. Images keep the existing private, metadata-stripped WebP processing.
 
 Saved edits update only the private draft. Publish / Publish changes opens the original-PDF disclosure and explicit confirmation, then returns to the portfolio. View published opens the public snapshot, which has no editing controls. Edits do not call Gemini. No new environment variables, migrations or dependencies are needed for this stage; check the combined upload limits above before reviewing a large image batch.
 
@@ -204,3 +204,8 @@ Project roles have been removed from inputs, settings, presentation and generati
 On the ready portfolio home, Add photo uploads one JPEG/PNG/WebP file (10 MB maximum), processed privately like gallery images. It appears on the right at desktop widths and below the introduction on mobile. Change photo replaces the draft version; the public photo changes only when you Publish changes. The original photo upload is not retained. Existing worker processing cleans unused replaced photos, while preserving current/published references.
 
 Project galleries now appear after the title, summary and technologies, before Overview and Technical details. Click the left/right side controls to move through images; navigation wraps, with no automatic rotation. The existing multi-upload and image-detail pencils remain available. No migration or new environment variable is needed.
+
+
+### Gallery simplification — 26 November 2026
+
+The gallery follows the actual Portfolio reference: a padded image area with transparent previous/next controls covering the complete left/right halves and circular arrow indicators. Navigation wraps and supports left/right arrow keys, with no automatic rotation. Uploading is Add images → select files → saved private draft. Caption, description and decorative controls are removed from the portfolio and supporting gallery forms; new uploads use decorative defaults on the server. Existing saved captions remain readable. Publication is still explicit.

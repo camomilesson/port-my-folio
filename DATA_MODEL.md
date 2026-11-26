@@ -240,3 +240,8 @@ Project galleries gain Add images with multiple selection, preserving the ten-im
 Project author_role is now a compatibility-only database column, blank on newly created projects. It is no longer accepted as editable content, presented, copied into new snapshots or supplied as generation context; submitted legacy values are ignored. Existing stored values need no destructive migration.
 
 A portfolio's optional home_content.photo holds the immutable photo identity, private disk/path, image/webp MIME type and processed dimensions. Published snapshots copy this into optional top-level photo; old snapshots may omit it. Served URLs identify the version with an opaque UUID, check ownership for private drafts and check the exact published photo identity for public access. Replacements retain publicly referenced bytes until republishing or unpublishing. Cleanup checks both references under the portfolio lock, and deletion queues both current and published photo files. Carousel position is browser presentation state, not persisted gallery ordering.
+
+
+### Gallery upload defaults — 26 November 2026
+
+New gallery uploads use caption=null, alt_text="" and decorative=true, assigned server-side. The inline batch accepts files alone and ignores supplied metadata; supporting single-image uploads use the same defaults. Metadata fields remain in existing media records and publication snapshots for compatibility, while their form/pencil controls are removed. Existing captions are not deleted. Whole-batch validation, ten-image limits, processing/storage and snapshot publication are unchanged.
