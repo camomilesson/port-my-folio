@@ -16,7 +16,7 @@
                 <legend class="text-lg font-semibold">Public GitHub projects</legend>
                 <p class="text-sm text-stone-500">Choose 1–5 repositories. Each full README must be smaller than 100 KB and contain more than 200 characters of meaningful text.</p>
                 <div data-repository-list class="space-y-4">
-                    @foreach(old('repositories', [['repository_url' => '', 'author_role' => '']]) as $index => $repository)
+                    @foreach(old('repositories', [['repository_url' => '']]) as $index => $repository)
                         <div data-repository class="space-y-3 rounded-xl border border-stone-200 p-4">
                             <x-form-input :name="'repositories['.$index.'][repository_url]'" label="Repository URL" required maxlength="250" placeholder="https://github.com/owner/repository" />
                             <button type="button" data-repository-remove class="text-sm underline">Remove repository</button>

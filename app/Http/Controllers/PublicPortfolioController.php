@@ -65,6 +65,14 @@ class PublicPortfolioController extends Controller
         return Storage::disk($image['disk'])->response($image['path'], 'image.'.($image['mime_type'] === 'image/jpeg' ? 'jpg' : substr($image['mime_type'], 6)), ['Content-Type' => $image['mime_type'], 'Cache-Control' => 'no-store, max-age=0', 'X-Content-Type-Options' => 'nosniff']);
     }
 
+    public function photo(string $username, string $portfolioSlug, string $photoId): StreamedResponse
+    {
+        $photo = $this->snapshot($username, $portfolioSlug)['photo'] ?? null;
+        abort_unless($photo && $photo['id'] === $photoId && Storage::disk($photo['disk'])->exists($photo['path']), 404);
+
+        return Storage::disk($photo['disk'])->response($photo['path'], 'photo.webp', ['Cache-Control' => 'no-store, max-age=0', 'X-Content-Type-Options' => 'nosniff', 'Content-Type' => 'image/webp']);
+    }
+
     /** @return array<string, mixed> */
     private function snapshot(string $username, string $portfolioSlug): array
     {

@@ -21,7 +21,7 @@
         <p class="mt-4 text-sm text-stone-500">Generate once from your evidence, refine your draft, then publish when you’re ready.</p>
     </section>
     <section aria-label="How it works" class="mx-auto grid max-w-6xl gap-10 px-6 pb-24 md:grid-cols-3">
-        @foreach ([['01', 'Bring the evidence', 'A PDF CV, up to five public repositories, and your role in each project.'], ['02', 'Make it yours', 'Edit every page, add your images, and choose a preset and accent color.'], ['03', 'Publish with purpose', 'Create separate portfolios for different audiences, with one default address.']] as [$number, $heading, $description])
+        @foreach ([['01', 'Bring the evidence', 'A PDF CV, up to five public repositories.'], ['02', 'Make it yours', 'Edit every page, add your images, and choose a preset and accent color.'], ['03', 'Publish with purpose', 'Create separate portfolios for different audiences, with one default address.']] as [$number, $heading, $description])
             <article class="border-t border-stone-300 pt-6">
                 <p class="text-sm text-orange-700">{{ $number }}</p>
                 <h2 class="mt-4 text-xl font-semibold">{{ $heading }}</h2>

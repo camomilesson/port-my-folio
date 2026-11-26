@@ -10,7 +10,7 @@ class DashboardController extends Controller
 {
     public function __invoke(Request $request): View
     {
-        $portfolios = $request->user()->portfolios()->withCount('projects')->latest('id')->paginate(12);
+        $portfolios = $request->user()->portfolios()->withCount('projects')->withExists('generations')->latest('id')->paginate(12);
 
         return view('userzone.dashboard', compact('portfolios'));
     }

@@ -35,7 +35,7 @@ class DraftContentController extends Controller
             $cv = PortfolioContent::cv($locked);
             $cv['name'] = $data['name'];
             $cv['headline'] = $data['headline'];
-            $locked->update(['title' => $data['title'], 'focus' => $data['focus'] ?? null, 'home_content' => ['schema_version' => 1, 'name' => $data['name'], 'headline' => $data['headline'], 'introduction' => $data['introduction'] ?? null], 'cv_content' => $cv]);
+            $locked->update(['title' => $data['title'], 'focus' => $data['focus'] ?? null, 'home_content' => array_replace($locked->home_content ?? [], ['schema_version' => 1, 'name' => $data['name'], 'headline' => $data['headline'], 'introduction' => $data['introduction'] ?? null]), 'cv_content' => $cv]);
         });
 
         return back()->with('status', 'Home draft saved.');

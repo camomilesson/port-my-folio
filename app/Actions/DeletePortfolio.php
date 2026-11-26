@@ -22,6 +22,7 @@ class DeletePortfolio
 
             $projectIds = $locked->projects()->withTrashed()->pluck('id');
             $mediaIds = Media::where('model_type', (new Project)->getMorphClass())->whereIn('model_id', $projectIds)->pluck('id')->all();
+            $photos = array_values(array_filter([$locked->home_content['photo'] ?? null, $locked->published_snapshot['photo'] ?? null]));
             $cvPath = $locked->cvDocument?->storage_path;
             $cvDisk = $locked->cvDocument?->storageDisk();
             foreach ($locked->generations()->lockForUpdate()->get() as $generation) {
@@ -30,8 +31,8 @@ class DeletePortfolio
             }
             $locked->delete();
 
-            if ($mediaIds !== [] || $cvPath !== null) {
-                DeletePortfolioFiles::dispatch($mediaIds, $cvDisk, $cvPath)->afterCommit();
+            if ($mediaIds !== [] || $cvPath !== null || $photos !== []) {
+                DeletePortfolioFiles::dispatch($mediaIds, $cvDisk, $cvPath, $photos)->afterCommit();
             }
         });
     }

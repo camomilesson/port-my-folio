@@ -13,8 +13,16 @@ class DeletePortfolioFiles implements ShouldQueue
 
     public int $tries = 3;
 
-    /** @param list<int> $mediaIds */
-    public function __construct(public array $mediaIds, public ?string $cvDisk, public ?string $cvPath) {}
+    /** @var list<array{id: string, disk: string, path: string, mime_type: string, width: int, height: int}> */
+    public array $photos = [];
+
+    /** @param list<int> $mediaIds
+     * @param  list<array{id: string, disk: string, path: string, mime_type: string, width: int, height: int}>  $photos
+     */
+    public function __construct(public array $mediaIds, public ?string $cvDisk, public ?string $cvPath, array $photos = [])
+    {
+        $this->photos = $photos;
+    }
 
     public function handle(): void
     {
@@ -23,6 +31,12 @@ class DeletePortfolioFiles implements ShouldQueue
                 throw new \RuntimeException('Unable to remove a deleted portfolio image.');
             }
             $media->delete();
+        }
+
+        foreach ($this->photos as $photo) {
+            if (! Storage::disk($photo['disk'])->delete($photo['path'])) {
+                throw new \RuntimeException('Unable to remove a deleted portfolio photo.');
+            }
         }
 
         if ($this->cvDisk !== null && $this->cvPath !== null) {

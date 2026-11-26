@@ -1,9 +1,9 @@
 <x-layout :title="'Publish · '.$portfolio->title">
     <section class="mx-auto max-w-3xl px-6 py-14">
-        <a class="text-sm underline" href="{{ route('userzone.portfolios.show', $portfolio) }}">← {{ $portfolio->title }}</a>
+        <a class="text-sm underline" href="{{ route('userzone.preview.home', $portfolio) }}">← Back to your portfolio</a>
         <h1 class="mt-8 text-3xl font-semibold">{{ $portfolio->isPublished() ? 'Publish your saved changes?' : 'Publish this portfolio?' }}</h1>
         <x-form-errors />
-        <p class="mt-5 leading-relaxed text-stone-600">Your saved text, appearance, project order and gallery will become public together. Unsaved form changes are not included.</p>
+        <p class="mt-5 leading-relaxed text-stone-600">Your saved text, photo, appearance, project order and gallery will become public together. Unsaved form changes are not included.</p>
         <div class="mt-7 rounded-xl border border-orange-200 bg-orange-50 p-6">
             <p class="font-semibold">Your portfolio and original CV PDF will become public.</p>
             <p class="mt-3 text-sm leading-relaxed">The original PDF may include contact details or other information you removed from the web CV. Visitors will be able to download that original file. Unpublishing stops new downloads, but cannot recall copies already downloaded.</p>

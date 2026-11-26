@@ -37,7 +37,7 @@ it('processes an image to private WebP, discards the upload and metadata, and se
     $this->get('/storage/'.$media->getPathRelativeToRoot())->assertForbidden();
 });
 
-it('requires alt text unless decorative and validates upload formats and limits', function (string $case) {
+it('validates upload formats and limits', function (string $case) {
     $project = Project::factory()->create();
     $image = match ($case) {
         'gif' => UploadedFile::fake()->image('bad.gif'),
@@ -52,7 +52,7 @@ it('requires alt text unless decorative and validates upload formats and limits'
 
     $this->assertDatabaseCount('media', 0);
     expect(Storage::disk('images_local')->allFiles())->toBe([]);
-})->with(['missing alt', 'gif', 'too wide', 'too big', 'animation']);
+})->with(['gif', 'too wide', 'too big', 'animation']);
 
 it('enforces ten active images and rejects mismatched media IDs', function () {
     $project = Project::factory()->create();
@@ -133,5 +133,5 @@ it('accepts each agreed still-image format and preserves aspect ratio', function
     expect($media->mime_type)->toBe('image/webp');
     expect($media->getCustomProperty('width'))->toBe(120);
     expect($media->getCustomProperty('height'))->toBe(60);
-    expect($media->getCustomProperty('alt_text'))->toBe('A screenshot');
+    expect($media->getCustomProperty('alt_text'))->toBe('');
 })->with(['jpg', 'png', 'webp']);

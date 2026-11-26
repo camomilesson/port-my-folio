@@ -275,8 +275,8 @@ Review: decide whether to open the experimental public demo and what hosting lif
 - [x] Stage 4 — Publishing and default portfolio routing (local lifecycle review and hosted smoke checks passed; full hosted generation-to-publication check deferred to Stage 6).
 - [x] Stage 5 — Input collection and provider contracts (deployed and verified).
 - [x] Stage 6 — Durable initial generation and quota (local walkthrough and hosted generation/publication verified by user).
-- [x] Stage 6.1 — Simple inputs and a portfolio that fills during generation (user reviewed locally and approved promotion; hosted checks pending).
-- [ ] Stage 6.2 — Pencil editing and publication on the portfolio.
+- [x] Stage 6.1 — Simple inputs and a portfolio that fills during generation (user reviewed locally, approved promotion and confirmed it works live).
+- [x] Stage 6.2 — Pencil editing and publication on the portfolio (user reviewed and approved promotion; hosted checks pending).
 - [ ] Stage 7 — Three presets and product polish.
 - [ ] Stage 8 — Release, assessment, and portfolio evidence.
 
@@ -441,3 +441,55 @@ Before promoting Stage 6.1, the user explicitly removed the generation quota alt
 ## Stage 6.1 promotion approval — 25 November 2026
 
 User confirmed the local flow works, removed all account generation quotas, and explicitly resumed promotion to main. Final checks: 208 PostgreSQL tests / 963 assertions; SQLite 203 passing with five PostgreSQL-only skips; frontend build, formatting and diff checks pass. Promote the reviewed branch with atomic commits preserved. Hosted migration, worker restart and the redesigned generation journey still require verification after deployment.
+
+
+## Stage 6.2 inline-edit scope agreed — 25 November 2026
+
+Owner-only pencils edit existing content on the rendered portfolio after successful generation. Home: shared name/headline and introduction. Projects: title, summary, overview, required technical details and comma-separated technology tags. CV: existing content fields, with fixed section headings; entry identities, array structure and ordering cannot be edited. Use appropriate short/paragraph/date/link/boolean inputs with in-place Save/Cancel and validation. Shared name/headline remain synchronized between home and CV. Address/repository identity and source evidence stay fixed.
+
+Project galleries gain Add images with multiple selection, preserving the ten-image cap and existing processed-only private storage. Validate the complete batch first and append atomically; preserve per-image captions, descriptions and decorative choices, editable on the project page. No gallery reorder controls, no CV/project add/remove/reorder controls, no AI calls from editing. Public pages contain no owner controls, and saved edits stay private until Publish changes.
+
+
+## Stage 6.2 implementation review — 25 November 2026
+
+Implemented the agreed existing-field pencils on the private home, CV and project pages. Editors support in-place Save/Cancel, server validation, keyboard focus/Escape cancellation, unsaved-navigation protection and refresh without losing other open edits. Shared name/headline stay synchronized; edits merge into the latest locked draft by stable CV entry ID. CV section headings, structure/order, project role and repository/source identities are not editable here. Generation must have succeeded; queued/running/failed pages expose no pencils and reject inline writes. No AI calls are made by editing.
+
+Project Add images supports multiple selection with individual descriptions/decorative choices and optional captions. The whole batch is validated and processed before appending under the portfolio lock, retaining the ten-image cap, private processed WebP storage and existing file handling. Storage failure rolls back every new record and cleans partial files while preserving existing gallery media. Existing image metadata can be edited without replacing bytes; saving a description explicitly marks an image non-decorative.
+
+Workspace links open generated portfolios directly. Separate forms remain supporting settings. Publish / Publish changes keeps explicit original-PDF disclosure and snapshot publication, returns to the portfolio and offers View published. Public rendering contains no owner controls; saving never updates the published snapshot. No migrations, dependencies, provider/prompt changes or new environment variables. README includes combined upload requirements and a local server command because the installed CLI PHP defaults to 2 MB uploads; global PHP configuration was not changed.
+
+Verification: PostgreSQL 240 tests / 1,165 assertions; SQLite 235 passing / 1,134 assertions with five PostgreSQL-only cases skipped. Pint, Composer validation, Blade compilation, Vite build and diff checks pass. Browser checked real field save/identity refresh, validation retention, independent open editors, Escape cancellation, mobile overflow, multi-select details and a successful two-image upload preserving an unsaved caption. The upload added two labelled synthetic review images to the local seeded Backend developer draft only. Its name was restored after testing, unsaved text was cancelled and nothing was published. Workspace navigation, publication disclosure/back link and public absence of pencils were verified. No personal CV or live provider call was sent.
+
+Implemented on codex/stage-6-2-inline-editing, ready for the user's selected-demo walkthrough. Keep Stage 6.2 unchecked until review. Do not promote/push or begin Stage 7 until the user approves.
+
+
+## Stage 6.2 pre-review simplifications — 25 November 2026
+
+At the user's request, remove project-role inputs, display, validation requirements, demo defaults and role context from generation. New snapshots and frozen generation inputs omit project roles. Keep the legacy database column for compatibility, blank on new projects, with old submitted role values ignored. Prompt version is portfolio-v4; project generation describes repository functionality without assigning the owner a personal role or contribution. Restart the worker before generating with the updated prompts. This supersedes earlier role requirements.
+
+The portfolio home has an owner-only Add photo / Change photo control and a photo on the right at desktop widths, stacked on mobile. Uploads reuse still-image validation, bounded decoding, metadata removal and WebP processing on the private image disk. Each replacement has an immutable opaque file identity; publication keeps the previous public photo until changes are published. Current and published files are protected from cleanup; replacement, republishing, unpublishing and portfolio deletion schedule reference-aware cleanup. Supporting home edits preserve the photo. Old snapshots without photos remain readable. No dependencies, migrations or new environment variables are required.
+
+The project gallery now follows the name, summary and technology list, above Overview and Technical details. It shows one image at a time with left/right side buttons, wraparound and a counter. There is no automatic rotation. Per-image editors remain associated with their slides; upload refresh preserves the selected slide and open edits.
+
+Verification: PostgreSQL 251 tests / 1,250 assertions; SQLite 246 passing / 1,219 assertions with five PostgreSQL-only skips. Affected endpoint/provider/storage tests, Pint, Blade compilation, Vite build and diff checks pass. Browser verified an actual photo upload/right-hand layout, mobile photo controls and overflow, unpublished photo isolation, carousel first/last wrap and keyboard activation. Added one synthetic fixture photo to the existing local seeded Backend developer draft for this check; no real personal photo was uploaded or published. Stage 6.2 still awaits the user's inspection on codex/stage-6-2-inline-editing; no promotion or Stage 7 work is authorized yet.
+
+
+## Stage 6.2 gallery refinement before inspection — 26 November 2026
+
+User requested one-step uploads with no caption/description/decorative controls. Add images now opens the native picker directly; a non-empty selection immediately submits the atomic batch, with disabled controls and a status message while processing. No Add selected images confirmation remains. New images always store caption=null, alt_text="", decorative=true; supplied metadata cannot override the batch defaults. The supporting single-image upload uses the same defaults and immediate selection behavior. Legacy metadata endpoints/data remain compatible, and existing captions are displayed without editing controls. A failed request leaves existing gallery media unchanged and restores the picker for another selection; files are reset so selecting the same files again works. Successful upload selects the first new slide and preserves unrelated open text edits.
+
+Reviewed the read-only reference at /Users/camomilesson/Documents/Portfolio/src/components/ProjectGallery.astro. Matched its padded, bounded image area, transparent 50% left/right click targets and circular arrow controls. Kept wraparound, added ArrowLeft/ArrowRight handling and retained explicit publication. No automatic carousel movement, migrations, dependency or environment changes.
+
+Verification: PostgreSQL 249 tests / 1,260 assertions; SQLite 244 passing / 1,229 assertions and five PostgreSQL-only skips. Metadata-required cases were superseded by default/override and file-only upload coverage. Affected tests, Pint, Blade compilation, frontend build and diff checks pass. Browser verified Add images opening the multi-picker, immediate saving of two selected fixture files with no extra confirmation, first-new-image selection, preservation/cancellation of an unrelated unsaved overview, wraparound/keyboard navigation and mobile no-overflow. Measured click regions as exactly half the image stage each. Two synthetic images were added to the local seeded Backend developer draft only; nothing was published. Browser used local demo sign-in after automatic approval review blocked an expired-session redirect to Google; no Google account access was needed. Stage 6.2 remains awaiting inspection on the feature branch, with no push/promotion or Stage 7 work.
+
+
+## Stage 6.2 immediate home photo upload — 26 November 2026
+
+At the user's request, Add photo / Change photo now directly opens the native picker and submits a non-empty selection immediately, sharing the gallery upload flow. Removed the details form and Save photo / Cancel confirmation. Upload status, duplicate-submit protection, error feedback, reset-for-retry and focus restoration apply to the photo as well. Cancelling the picker makes no request. Existing draft/publication behavior and processed private storage remain intact.
+
+Verification: 20 affected photo/gallery tests / 171 assertions pass; Pint, JavaScript syntax check, frontend build and diff checks pass. Browser verified selecting a synthetic fixture through Change photo immediately saves a different photo version, refreshes the rendered image and restores button focus without a Save confirmation; no console errors. No backend, dependency, migration or environment change. The local seeded Backend developer photo was replaced for QA; nothing was published. Final stage inspection/promotion remains with the user.
+
+
+## Stage 6.2 promotion approval — 26 November 2026
+
+User confirmed the final no-confirmation home-photo flow and explicitly approved pushing the reviewed stage to main. This supersedes earlier awaiting-inspection/no-promotion notes. Promote all Stage 6.2 implementation/refinement commits with their history preserved. Final checks: PostgreSQL 249 tests / 1,262 assertions; SQLite 244 passing / 1,233 assertions and five PostgreSQL-only skips; frontend build, Composer validation and diff checks pass. No migration, new dependency or environment variable is required. Hosted deployment and image/photo/upload/publication smoke checks remain for verification after promotion. Stage 7 is not started by this approval.

@@ -10,18 +10,18 @@ class FakePortfolioProvider implements PortfolioGenerationProvider
         $source = $evidence['project'];
         $content = ['repository_owner' => $source['repository_owner'], 'repository_name' => $source['repository_name'], 'title' => $source['repository_name'], 'summary' => 'A fictional project.', 'overview' => 'Offline demo content.', 'technical_details' => 'The server validates incoming data, stores it in a database and renders the response.', 'technologies' => [], 'live_url' => null];
 
-        return new ProviderResult(GenerationContent::validateProject($content), 'fixture', 'deterministic-v1', 'portfolio-v3', []);
+        return new ProviderResult(GenerationContent::validateProject($content), 'fixture', 'deterministic-v1', 'portfolio-v4', []);
     }
 
     /** @param array<string, mixed> $evidence */
     public function generateProfile(array $evidence): ProviderResult
     {
-        return new ProviderResult(GenerationContent::validateProfile(['home_content' => ['name' => 'Sam Example', 'headline' => 'Developer', 'introduction' => ''], 'cv_content' => self::cv()]), 'fixture', 'deterministic-v1', 'portfolio-v3', []);
+        return new ProviderResult(GenerationContent::validateProfile(['home_content' => ['name' => 'Sam Example', 'headline' => 'Developer', 'introduction' => ''], 'cv_content' => self::cv()]), 'fixture', 'deterministic-v1', 'portfolio-v4', []);
     }
 
     public function extractCv(string $pdfBytes): ProviderResult
     {
-        return new ProviderResult(GenerationContent::validate(self::cv(), true), 'fixture', 'deterministic-v1', 'portfolio-v3', []);
+        return new ProviderResult(GenerationContent::validate(self::cv(), true), 'fixture', 'deterministic-v1', 'portfolio-v4', []);
     }
 
     /** @param array<string, mixed> $evidence */
@@ -33,7 +33,7 @@ class FakePortfolioProvider implements PortfolioGenerationProvider
         }
         $content = ['home_content' => ['name' => 'Sam Example', 'headline' => 'Developer', 'introduction' => ''], 'cv_content' => self::cv(), 'projects' => $projects];
 
-        return new ProviderResult(GenerationContent::validate($content, false), 'fixture', 'deterministic-v1', 'portfolio-v3', []);
+        return new ProviderResult(GenerationContent::validate($content, false), 'fixture', 'deterministic-v1', 'portfolio-v4', []);
     }
 
     /** @return array<string, mixed> */

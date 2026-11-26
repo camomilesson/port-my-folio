@@ -36,7 +36,6 @@
                     <h3 class="break-words font-semibold">{{ $project->title ?: $project->repository_name }}</h3>
                     <a class="mt-3 inline-block text-sm font-semibold underline" href="{{ route('userzone.projects.edit', [$portfolio, $project]) }}">Edit project & gallery →</a>
                     <form method="POST" action="{{ route('userzone.projects.move', [$portfolio, $project]) }}" class="mt-3 flex gap-5 text-sm">@csrf<button name="direction" value="up" @disabled($loop->first) class="underline disabled:opacity-30">Move up</button><button name="direction" value="down" @disabled($loop->last) class="underline disabled:opacity-30">Move down</button></form>
-                    <p class="mt-2 text-sm text-stone-600">{{ $project->author_role }}</p>
                     <a href="{{ $project->repositoryUrl() }}" rel="noopener noreferrer" target="_blank" class="mt-2 inline-block break-all text-sm underline underline-offset-4">{{ $project->repository_owner }}/{{ $project->repository_name }}</a>
                 </article>
             @empty

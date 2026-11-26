@@ -8,6 +8,7 @@ use App\Http\Controllers\Userzone\DashboardController;
 use App\Http\Controllers\Userzone\DraftContentController;
 use App\Http\Controllers\Userzone\GalleryController;
 use App\Http\Controllers\Userzone\GenerationController;
+use App\Http\Controllers\Userzone\InlinePortfolioController;
 use App\Http\Controllers\Userzone\PortfolioController;
 use App\Http\Controllers\Userzone\PreviewController;
 use App\Http\Controllers\Userzone\ProjectEditorController;
@@ -31,6 +32,12 @@ Route::middleware(['auth', EnsureUsernameIsSet::class])->group(function () {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
     Route::prefix('user')->name('userzone.')->group(function () {
         Route::prefix('portfolios/{portfolio}')->group(function () {
+            Route::post('photo', [InlinePortfolioController::class, 'photo'])->name('photo.store');
+            Route::get('photo/{photoId}', [InlinePortfolioController::class, 'showPhoto'])->whereUuid('photoId')->name('photo.show');
+            Route::patch('inline/{scope}', [InlinePortfolioController::class, 'page'])->whereIn('scope', ['home', 'cv'])->name('inline.page');
+            Route::patch('projects/{project}/inline', [InlinePortfolioController::class, 'project'])->name('inline.project');
+            Route::post('projects/{project}/images', [InlinePortfolioController::class, 'images'])->name('inline.images');
+            Route::patch('projects/{project}/images/{media}', [InlinePortfolioController::class, 'image'])->name('inline.image');
             Route::get('generate', [GenerationController::class, 'confirm'])->name('generation.confirm');
             Route::post('generate', [GenerationController::class, 'store'])->middleware('throttle:6,1')->name('generation.store');
             Route::get('generation-status', [GenerationController::class, 'status'])->name('generation.status');
@@ -64,6 +71,7 @@ Route::middleware(['auth', EnsureUsernameIsSet::class])->group(function () {
     });
 });
 
+Route::get('/{username}/{portfolioSlug}/photo/{photoId}', [PublicPortfolioController::class, 'photo'])->whereUuid('photoId')->name('portfolio.photo');
 Route::get('/{username}/{portfolioSlug}/cv/download', [PublicPortfolioController::class, 'pdf'])->name('portfolio.pdf');
 Route::get('/{username}/{portfolioSlug}/projects/{projectSlug}/images/{mediaId}', [PublicPortfolioController::class, 'image'])->whereNumber('mediaId')->name('portfolio.image');
 Route::get('/{username}/{portfolioSlug}/projects/{projectSlug}', [PublicPortfolioController::class, 'project'])->name('portfolio.project');

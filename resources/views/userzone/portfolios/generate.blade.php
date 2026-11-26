@@ -11,10 +11,10 @@
             <div><dt class="font-semibold">Source PDF</dt><dd>{{ $portfolio->cvDocument?->original_filename ?? 'Missing PDF' }}</dd></div>
             <div><dt class="font-semibold">Focus</dt><dd class="whitespace-pre-line break-words">{{ $generation?->input_snapshot['focus'] ?? $portfolio->focus ?: 'General professional portfolio' }}</dd></div>
         </dl>
-        <h2 class="mt-6 text-lg font-semibold">Repositories and your roles</h2>
+        <h2 class="mt-6 text-lg font-semibold">Repositories</h2>
         <ul class="mt-3 space-y-3">
             @foreach($generation?->input_snapshot['projects'] ?? $portfolio->projects->toArray() as $project)
-                <li class="break-words">{{ $project['repository_owner'] }}/{{ $project['repository_name'] }} — {{ $project['author_role'] }}</li>
+                <li class="break-words">{{ $project['repository_owner'] }}/{{ $project['repository_name'] }}</li>
             @endforeach
         </ul>
         @if(!$generation || $generation->status === 'failed')
