@@ -12,23 +12,14 @@
                 <div class="mt-6" data-carousel role="region" aria-roledescription="carousel" aria-label="Project images">
                     @foreach($project['gallery'] as $media)
                         <figure class="carousel-slide" data-carousel-slide="{{ $media['id'] }}" @if($loop->first) data-current @endif role="group" aria-roledescription="slide" aria-label="{{ $loop->iteration }} of {{ $loop->count }}">
-                            <div class="relative overflow-hidden rounded-xl bg-stone-100">
-                                <img class="aspect-video max-h-[36rem] w-full object-contain" src="{{ $media['url'] }}" alt="{{ $media['alt_text'] }}" loading="lazy">
+                            <div class="carousel-stage relative overflow-hidden rounded-xl bg-stone-100">
+                                <img class="h-full w-full object-contain" src="{{ $media['url'] }}" alt="{{ $media['alt_text'] }}" loading="lazy">
                                 @if(count($project['gallery']) > 1)
-                                    <button type="button" data-carousel-direction="-1" class="carousel-arrow left-0" aria-label="Previous image"><span aria-hidden="true">‹</span></button>
-                                    <button type="button" data-carousel-direction="1" class="carousel-arrow right-0" aria-label="Next image"><span aria-hidden="true">›</span></button>
+                                    <button type="button" data-carousel-direction="-1" class="carousel-arrow left-0" aria-label="Previous image"><span aria-hidden="true">←</span></button>
+                                    <button type="button" data-carousel-direction="1" class="carousel-arrow right-0" aria-label="Next image"><span aria-hidden="true">→</span></button>
                                 @endif
                             </div>
-                            @if($media['caption'] || ($page['editable'] ?? false))
-                                <figcaption class="mt-3 break-words text-sm text-stone-600"><x-inline-edit :page="$page" :url="$media['inline_url'] ?? null" field="caption" :value="$media['caption']" label="Image caption">{{ $media['caption'] ?: 'Add caption' }}</x-inline-edit></figcaption>
-                            @endif
-                            @if($page['editable'] ?? false)
-                                <p class="mt-3 text-xs text-stone-500">Saving an image description marks it as non-decorative.</p>
-                                <div class="mt-3 grid gap-3 text-sm sm:grid-cols-2">
-                                    <x-inline-edit :page="$page" :url="$media['inline_url']" field="alt_text" :value="$media['alt_text']" label="Image description"><p class="break-words text-stone-500">Description: {{ $media['alt_text'] ?: 'None (decorative)' }}</p></x-inline-edit>
-                                    <x-inline-edit :page="$page" :url="$media['inline_url']" field="decorative" :value="$media['decorative']" label="Decorative image" type="checkbox"><p class="text-stone-500">Decorative: {{ $media['decorative'] ? 'Yes' : 'No' }}</p></x-inline-edit>
-                                </div>
-                            @endif
+                            @if($media['caption'])<figcaption class="mt-3 break-words text-sm text-stone-600">{{ $media['caption'] }}</figcaption>@endif
                         </figure>
                     @endforeach
                     @if(count($project['gallery']) > 1)<p class="mt-3 text-center text-xs text-stone-500" data-carousel-count role="status" aria-live="polite">1 / {{ count($project['gallery']) }}</p>@endif

@@ -32,14 +32,6 @@
                         <article class="rounded-xl border border-stone-200 bg-white p-5">
                             <p class="mb-3 text-sm font-semibold">{{ $loop->first ? 'Cover image' : 'Gallery image '.$loop->iteration }}</p>
                             <img src="{{ route('userzone.gallery.show', [$portfolio, $project, $media]) }}" alt="{{ $media->getCustomProperty('alt_text', '') }}" class="max-h-80 w-full rounded-lg object-contain" loading="lazy">
-                            <form method="POST" action="{{ route('userzone.gallery.update', [$portfolio, $project, $media]) }}" class="mt-5 space-y-4">
-                                @csrf @method('PUT')
-                                <div><label class="block text-sm font-semibold" for="caption-{{ $media->id }}">Caption (optional)</label><textarea name="caption" id="caption-{{ $media->id }}" rows="2" maxlength="500" class="mt-2 w-full rounded-lg border border-stone-300 p-3">{{ $media->getCustomProperty('caption') }}</textarea></div>
-                                <input type="hidden" name="decorative" value="0">
-                                <label class="flex items-center gap-3 text-sm"><input type="checkbox" data-decorative name="decorative" value="1" @checked($media->getCustomProperty('decorative', false))>Decorative image (empty alt text)</label>
-                                <div><label class="block text-sm font-semibold" for="alt-{{ $media->id }}">Image description (required unless decorative)</label><input name="alt_text" id="alt-{{ $media->id }}" value="{{ $media->getCustomProperty('alt_text') }}" maxlength="500" @required(! $media->getCustomProperty('decorative', false)) class="mt-2 w-full rounded-lg border border-stone-300 p-3"></div>
-                                <button class="text-sm font-semibold underline underline-offset-4">Save image details</button>
-                            </form>
                             <div class="mt-5 flex flex-wrap gap-5 border-t border-stone-100 pt-4">
                                 <form method="POST" action="{{ route('userzone.gallery.move', [$portfolio, $project, $media]) }}" class="flex gap-5 text-sm font-semibold">@csrf<button name="direction" value="up" @disabled($loop->first) class="underline disabled:opacity-30">Move up</button><button name="direction" value="down" @disabled($loop->last) class="underline disabled:opacity-30">Move down</button></form>
                                 <form method="POST" action="{{ route('userzone.gallery.destroy', [$portfolio, $project, $media]) }}">@csrf @method('DELETE')<button class="text-sm font-semibold text-red-700 underline">Remove from draft</button></form>
@@ -52,12 +44,8 @@
                 @if($project->activeGallery()->count() < 10)
                     <form method="POST" action="{{ route('userzone.gallery.store', [$portfolio, $project]) }}" enctype="multipart/form-data" class="mt-8 space-y-4 rounded-xl border border-stone-200 p-5">
                         @csrf
-                        <label for="image" class="block text-sm font-semibold">Add an image</label><input id="image" type="file" name="image" required accept="image/jpeg,image/png,image/webp" class="block w-full rounded-lg border border-stone-300 p-3">
-                        <x-form-textarea name="caption" label="Caption (optional)" rows="2" maxlength="500" />
-                        <input type="hidden" name="decorative" value="0">
-                        <label class="flex items-center gap-3 text-sm"><input type="checkbox" data-decorative name="decorative" value="1" @checked(old('decorative', true))>Decorative image (empty alt text)</label>
-                        <x-form-input name="alt_text" label="Image description (required unless decorative)" maxlength="500" />
-                        <button class="rounded-full bg-stone-900 px-6 py-3 font-semibold text-white">Process & add image</button>
+                        <label class="inline-flex cursor-pointer rounded-full border border-stone-300 px-5 py-2 text-sm font-semibold" for="image">Add image</label><input id="image" type="file" name="image" required accept="image/jpeg,image/png,image/webp" class="sr-only" data-gallery-single>
+                        <p class="text-xs text-stone-500">The selected image uploads immediately.</p>
                     </form>
                 @endif
             </section>

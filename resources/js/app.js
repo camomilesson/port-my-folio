@@ -39,11 +39,6 @@ document.addEventListener('change', (event) => {
     if (event.target.matches('[data-current]') && event.target.checked) {
         event.target.closest('[data-entry]').querySelector('[name$="[end_date]"]').value = '';
     }
-    if (event.target.matches('[data-decorative]')) {
-        const alt = event.target.closest('form').querySelector('[name="alt_text"]');
-        alt.required = !event.target.checked;
-        if (event.target.checked) alt.value = '';
-    }
 });
 document.querySelectorAll('[data-draft-form]').forEach((form) => {
     let dirty = false;
@@ -145,7 +140,6 @@ function cancelInline(form) {
     const editor = form.closest('details');
     editor.open = false;
     editor.querySelector('summary').focus();
-    form.querySelector('[data-image-details]')?.replaceChildren();
 }
 
 async function refreshInlineContent(savedForm) {
@@ -160,17 +154,17 @@ async function refreshInlineContent(savedForm) {
     if (savedForm.matches('[data-upload-form]')) {
         const gallery = document.querySelector('[data-inline-gallery]');
         const replacement = document.importNode(html.querySelector('[data-inline-gallery]'), true);
-        const selected = gallery.querySelector('[data-carousel-slide][data-current]')?.dataset.carouselSlide;
+        const existingIds = new Set([...gallery.querySelectorAll('[data-carousel-slide]')].map((slide) => slide.dataset.carouselSlide));
+        const selected = replacement.querySelectorAll('[data-carousel-slide]');
+        const preferredId = [...selected].find((slide) => !existingIds.has(slide.dataset.carouselSlide))?.dataset.carouselSlide
+            ?? gallery.querySelector('[data-carousel-slide][data-current]')?.dataset.carouselSlide;
         const carousel = replacement.querySelector('[data-carousel]');
-        if (carousel && selected) {
-            const index = [...carousel.querySelectorAll('[data-carousel-slide]')].findIndex((slide) => slide.dataset.carouselSlide === selected);
+        if (carousel && preferredId) {
+            const index = [...carousel.querySelectorAll('[data-carousel-slide]')].findIndex((slide) => slide.dataset.carouselSlide === preferredId);
             showCarouselSlide(carousel, Math.max(0, index));
         }
-        gallery.querySelectorAll('[data-inline-key]:has(details[open])').forEach((open) => {
-            replacement.querySelector(`[data-inline-key="${open.dataset.inlineKey}"]`)?.replaceWith(open);
-        });
         gallery.replaceWith(replacement);
-        (replacement.querySelector('[data-gallery-upload] summary') ?? replacement.querySelector('[data-current] [data-carousel-direction="1"]'))?.focus({ preventScroll: true });
+        (replacement.querySelector('[data-gallery-choose]') ?? replacement.querySelector('[data-current] [data-carousel-direction="1"]'))?.focus({ preventScroll: true });
     }
     html.querySelectorAll('[data-inline-key]').forEach((fresh) => {
         const current = document.querySelector(`[data-inline-key="${fresh.dataset.inlineKey}"]`);
@@ -189,7 +183,7 @@ async function refreshInlineContent(savedForm) {
 }
 
 document.addEventListener('toggle', (event) => {
-    if (!event.target.matches('[data-inline-editor], [data-gallery-upload], [data-photo-upload]')) return;
+    if (!event.target.matches('[data-inline-editor], [data-photo-upload]')) return;
     const form = event.target.querySelector('form');
     if (form.dataset.saving && !event.target.open) {
         event.target.open = true;
@@ -207,7 +201,7 @@ document.addEventListener('toggle', (event) => {
 
 document.addEventListener('input', (event) => {
     const form = event.target.closest('[data-inline-form]');
-    if (form) dirtyInlineForms.add(form);
+    if (form && !form.matches('[data-upload-form]')) dirtyInlineForms.add(form);
 });
 window.addEventListener('beforeunload', (event) => {
     if ([...dirtyInlineForms].some((form) => form.isConnected)) {
@@ -217,35 +211,22 @@ window.addEventListener('beforeunload', (event) => {
 });
 
 document.addEventListener('click', (event) => {
-    const cancel = event.target.closest('[data-inline-cancel], [data-upload-cancel]');
+    const choose = event.target.closest('[data-gallery-choose]');
+    if (choose) choose.closest('form').querySelector('[data-gallery-files]').click();
+    const cancel = event.target.closest('[data-inline-cancel]');
     if (cancel) cancelInline(cancel.closest('form'));
 });
 document.addEventListener('keydown', (event) => {
     const form = event.target.closest('[data-inline-form]');
-    if (event.key === 'Escape' && form && !form.dataset.saving) {
+    if (event.key === 'Escape' && form?.closest('details') && !form.dataset.saving) {
         event.preventDefault();
         cancelInline(form);
     }
 });
 
 document.addEventListener('change', (event) => {
-    if (event.target.matches('[data-gallery-files]')) {
-        const form = event.target.closest('form');
-        const list = form.querySelector('[data-image-details]');
-        list.replaceChildren();
-        [...event.target.files].forEach((file, index) => {
-            const fields = form.querySelector('template').content.cloneNode(true);
-            fields.querySelector('[data-image-name]').textContent = file.name;
-            for (const [selector, field] of [['caption', 'caption'], ['alt', 'alt_text'], ['not-decorative', 'decorative'], ['decorative', 'decorative']]) {
-                fields.querySelector(`[data-image-${selector}]`).name = `details[${index}][${field}]`;
-            }
-            list.append(fields);
-        });
-    }
-    if (event.target.matches('[data-image-decorative]')) {
-        const alt = event.target.closest('fieldset').querySelector('[data-image-alt]');
-        alt.required = !event.target.checked;
-        if (event.target.checked) alt.value = '';
+    if (event.target.matches('[data-gallery-files], [data-gallery-single]') && event.target.files.length) {
+        event.target.form.requestSubmit();
     }
 });
 
@@ -255,15 +236,18 @@ document.addEventListener('submit', async (event) => {
     event.preventDefault();
     if (form.dataset.saving) return;
     const data = new FormData(form);
+    if (form.matches('[data-upload-form]')) dirtyInlineForms.add(form);
     const controls = [...form.querySelectorAll('input, textarea, button')];
     controls.forEach((control) => { control.disabled = true; });
     form.dataset.saving = '1';
     form.setAttribute('aria-busy', 'true');
-    const submit = form.querySelector('button[type="submit"]');
+    const submit = form.querySelector('[data-gallery-choose], button[type="submit"]');
     const submitLabel = submit.textContent;
     submit.textContent = form.matches('[data-upload-form]') ? 'Adding images…' : 'Saving…';
     const error = form.querySelector('[data-inline-error]');
     error.textContent = '';
+    const uploadStatus = form.querySelector('[data-upload-status]');
+    if (uploadStatus) uploadStatus.textContent = 'Uploading images…';
     try {
         const response = await fetch(form.action, { method: 'POST', body: data, headers: { Accept: 'application/json' } });
         const result = await response.json();
@@ -272,12 +256,13 @@ document.addEventListener('submit', async (event) => {
             return;
         }
         dirtyInlineForms.delete(form);
+        if (uploadStatus) uploadStatus.textContent = 'Images added to your draft.';
         if (form.matches('[data-upload-form], [data-photo-form]')) {
             form.reset();
-            form.querySelector('[data-image-details]')?.replaceChildren();
         }
         delete form.dataset.saving;
-        form.closest('details').open = false;
+        const editor = form.closest('details');
+        if (editor) editor.open = false;
         const status = document.querySelector('[data-inline-status]');
         status.textContent = result.message;
         try {
@@ -290,6 +275,11 @@ document.addEventListener('submit', async (event) => {
     } finally {
         delete form.dataset.saving;
         form.removeAttribute('aria-busy');
+        if (form.matches('[data-upload-form]')) {
+            dirtyInlineForms.delete(form);
+            form.reset();
+            if (form.isConnected) uploadStatus.textContent = '';
+        }
         submit.textContent = submitLabel;
         controls.forEach((control) => { control.disabled = false; });
     }
@@ -312,4 +302,16 @@ document.addEventListener('click', (event) => {
     const current = slides.findIndex((slide) => slide.hasAttribute('data-current'));
     showCarouselSlide(carousel, current + Number(button.dataset.carouselDirection));
     carousel.querySelector(`[data-current] [data-carousel-direction="${button.dataset.carouselDirection}"]`)?.focus({ preventScroll: true });
+});
+
+
+document.addEventListener('keydown', (event) => {
+    const carousel = event.target.closest('[data-carousel]');
+    if (!carousel || !['ArrowLeft', 'ArrowRight'].includes(event.key) || event.target.closest('input, textarea, select')) return;
+    const direction = event.key === 'ArrowLeft' ? '-1' : '1';
+    const button = carousel.querySelector(`[data-current] [data-carousel-direction="${direction}"]`);
+    if (button) {
+        event.preventDefault();
+        button.click();
+    }
 });

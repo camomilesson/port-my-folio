@@ -16,7 +16,9 @@ class SaveGalleryImageRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        $this->merge(['decorative' => $this->input('decorative', false)]);
+        $this->merge($this->route('media')
+            ? ['decorative' => $this->input('decorative', false)]
+            : ['caption' => null, 'alt_text' => '', 'decorative' => true]);
     }
 
     public function rules(): array

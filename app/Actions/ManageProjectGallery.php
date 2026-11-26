@@ -14,18 +14,16 @@ class ManageProjectGallery
 {
     public function __construct(private EditPortfolioDraft $editor, private ProcessGalleryImage $processor) {}
 
-    /** @param list<UploadedFile> $files
-     * @param  list<array{caption?: ?string, alt_text?: ?string, decorative: bool}>  $details
-     */
-    public function storeBatch(Portfolio $portfolio, Project $project, array $files, array $details): void
+    /** @param list<UploadedFile> $files */
+    public function storeBatch(Portfolio $portfolio, Project $project, array $files): void
     {
         $prepared = [];
         $created = [];
         try {
-            foreach ($files as $index => $file) {
+            foreach ($files as $file) {
                 $processed = $this->processor->handle($file);
                 $temporary = tempnam(sys_get_temp_dir(), 'portfolio-batch-');
-                $prepared[] = ['temporary' => $temporary, 'width' => $processed['width'], 'height' => $processed['height'], 'data' => $details[$index], 'file_name' => Str::uuid().'.webp'];
+                $prepared[] = ['temporary' => $temporary, 'width' => $processed['width'], 'height' => $processed['height'], 'file_name' => Str::uuid().'.webp'];
                 if (file_put_contents($temporary, $processed['bytes']) === false) {
                     throw new \RuntimeException('Unable to prepare a gallery image.');
                 }
@@ -43,7 +41,7 @@ class ManageProjectGallery
                 foreach ($prepared as $image) {
                     try {
                         $created[] = $project->addMedia($image['temporary'])->usingFileName($image['file_name'])
-                            ->withCustomProperties($this->metadata($image['data']) + ['draft_removed' => false, 'width' => $image['width'], 'height' => $image['height']])->toMediaCollection('gallery');
+                            ->withCustomProperties(['caption' => null, 'alt_text' => '', 'decorative' => true, 'draft_removed' => false, 'width' => $image['width'], 'height' => $image['height']])->toMediaCollection('gallery');
                     } catch (\Throwable $exception) {
                         if ($partial = $project->media()->where('file_name', $image['file_name'])->first()) {
                             $created[] = $partial;

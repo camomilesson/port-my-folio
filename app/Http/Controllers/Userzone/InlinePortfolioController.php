@@ -41,7 +41,7 @@ class InlinePortfolioController extends Controller
     public function images(StoreGalleryBatchRequest $request, Portfolio $portfolio, Project $project, ManageProjectGallery $gallery): JsonResponse|RedirectResponse
     {
         abort_unless($project->portfolio_id === $portfolio->id, 404);
-        $gallery->storeBatch($portfolio, $project, $request->file('images'), $request->validated('details'));
+        $gallery->storeBatch($portfolio, $project, $request->file('images'));
 
         return $this->saved($request);
     }

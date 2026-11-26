@@ -17,17 +17,9 @@ class StoreGalleryBatchRequest extends FormRequest
 
     public function rules(): array
     {
-        $files = $this->file('images', []);
-        $count = is_array($files) ? count($files) : 0;
-
         return [
             'images' => ['required', 'array', 'list', 'min:1', 'max:10'],
             'images.*' => ['required', 'file', 'mimetypes:image/jpeg,image/png,image/webp', 'max:10240'],
-            'details' => ['required', 'array', 'list', 'size:'.$count],
-            'details.*' => ['required', 'array:caption,alt_text,decorative'],
-            'details.*.caption' => ['nullable', 'string', 'max:500'],
-            'details.*.decorative' => ['required', 'boolean'],
-            'details.*.alt_text' => ['required_unless:details.*.decorative,1,true', 'nullable', 'string', 'max:500'],
         ];
     }
 }

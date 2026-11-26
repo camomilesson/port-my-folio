@@ -29,18 +29,20 @@ it('appends a complete multi-image batch in selection order as processed private
     $gallery = $project->fresh()->activeGallery()->values();
     expect($gallery)->toHaveCount(3);
     expect($gallery[0]->id)->toBe($first->id);
-    expect($gallery[1]->getCustomProperty('caption'))->toBe('First added');
-    expect($gallery[2]->getCustomProperty('caption'))->toBe('Second added');
+    expect($gallery[1]->getCustomProperty('caption'))->toBeNull();
+    expect($gallery[2]->getCustomProperty('caption'))->toBeNull();
     expect($gallery[1]->getCustomProperty('width'))->toBe(120);
-    expect($gallery[1]->getCustomProperty('alt_text'))->toBe('Screenshot');
+    expect($gallery[1]->getCustomProperty('alt_text'))->toBe('');
     expect($gallery[2]->getCustomProperty('alt_text'))->toBe('');
+    expect($gallery[1]->getCustomProperty('decorative'))->toBeTrue();
+    expect($gallery[2]->getCustomProperty('decorative'))->toBeTrue();
     expect($gallery[1]->mime_type)->toBe('image/webp');
     expect(Storage::disk('images_local')->get($gallery[1]->getPathRelativeToRoot()))->not->toContain('PRIVATE-METADATA');
     expect(Storage::disk('images_local')->allFiles())->toHaveCount(3);
     expect($portfolio->fresh()->published_snapshot)->toBe($snapshot);
 });
 
-it('rejects the entire batch when a later image or description is invalid', function (string $case) {
+it('rejects the entire batch when a later image is invalid', function (string $case) {
     $portfolio = Portfolio::factory()->generated()->create();
     $project = $portfolio->projects()->first();
     $bad = match ($case) {
@@ -49,16 +51,11 @@ it('rejects the entire batch when a later image or description is invalid', func
         'too wide' => UploadedFile::fake()->image('bad.png', 12001, 1),
         default => UploadedFile::fake()->image('second.png'),
     };
-    $details = [['decorative' => true], ['decorative' => $case !== 'missing description']];
-    if ($case === 'missing details') {
-        array_pop($details);
-    }
-
-    $this->actingAs($portfolio->user)->postJson(route('userzone.inline.images', [$portfolio, $project]), ['images' => [UploadedFile::fake()->image('first.png'), $bad], 'details' => $details])->assertUnprocessable();
+    $this->actingAs($portfolio->user)->postJson(route('userzone.inline.images', [$portfolio, $project]), ['images' => [UploadedFile::fake()->image('first.png'), $bad]])->assertUnprocessable();
 
     $this->assertDatabaseCount('media', 0);
     expect(Storage::disk('images_local')->allFiles())->toBe([]);
-})->with(['bad format', 'malformed content', 'too wide', 'missing description', 'missing details']);
+})->with(['bad format', 'malformed content', 'too wide']);
 
 it('retains all existing images when a batch would exceed the ten-image cap', function () {
     $portfolio = Portfolio::factory()->generated()->create();
@@ -93,7 +90,7 @@ it('removes all new files and records when storage fails halfway through a batch
     });
     Storage::set('images_local', $disk);
 
-    expect(fn () => app(ManageProjectGallery::class)->storeBatch($portfolio, $project, [UploadedFile::fake()->image('one.png'), UploadedFile::fake()->image('two.png')], [['decorative' => true], ['decorative' => true]]))->toThrow(RuntimeException::class, 'Batch storage interruption.');
+    expect(fn () => app(ManageProjectGallery::class)->storeBatch($portfolio, $project, [UploadedFile::fake()->image('one.png'), UploadedFile::fake()->image('two.png')]))->toThrow(RuntimeException::class, 'Batch storage interruption.');
 
     $this->assertDatabaseCount('media', 1);
     $this->assertModelExists($existing);
@@ -117,7 +114,7 @@ it('edits image metadata without replacing files and can change a decorative ima
     expect($media->fresh()->getCustomProperty('caption'))->toBe('<script>caption</script>');
     expect(Storage::disk('images_local')->get($media->getPathRelativeToRoot()))->toBe($before);
     expect($portfolio->fresh()->published_snapshot)->toBe($snapshot);
-    $this->get(route('userzone.preview.project', [$portfolio, $project]))->assertOk()->assertSee('Edit Image caption')->assertSee('<script>caption</script>')->assertDontSee('<script>caption</script>', false);
+    $this->get(route('userzone.preview.project', [$portfolio, $project]))->assertOk()->assertDontSee('Edit Image caption')->assertDontSee('Image description')->assertDontSee('Decorative image')->assertSee('<script>caption</script>')->assertDontSee('<script>caption</script>', false);
     $this->patchJson($url, ['field' => 'alt_text', 'value' => ''])->assertUnprocessable()->assertJsonValidationErrors('alt_text');
     $this->patchJson($url, ['field' => 'decorative', 'value' => '1'])->assertOk();
     expect($media->fresh()->getCustomProperty('alt_text'))->toBe('');
@@ -153,4 +150,21 @@ it('shows the carousel below project identity and technologies and before the ov
     $this->actingAs($portfolio->user)->get(route('userzone.preview.project', [$portfolio, $project]))->assertOk()
         ->assertSeeInOrder([$project->title, $project->summary, 'Technologies', 'Gallery', 'Overview', 'Technical details'])
         ->assertSee('Previous image')->assertSee('Next image')->assertSee('1 / 2')->assertDontSee('My role');
+});
+
+it('accepts files alone with decorative defaults and exposes a single immediate upload control', function () {
+    $portfolio = Portfolio::factory()->generated()->create();
+    $project = $portfolio->projects()->first();
+
+    $this->actingAs($portfolio->user)->postJson(route('userzone.inline.images', [$portfolio, $project]), ['images' => [UploadedFile::fake()->image('image.png')]])->assertOk();
+
+    $media = $project->fresh()->activeGallery()->sole();
+    expect($media->getCustomProperty('caption'))->toBeNull();
+    expect($media->getCustomProperty('alt_text'))->toBe('');
+    expect($media->getCustomProperty('decorative'))->toBeTrue();
+    $this->get(route('userzone.preview.project', [$portfolio, $project]))->assertOk()->assertSee('Add images')
+        ->assertDontSee('Add selected images')->assertDontSee('Caption (optional)')->assertDontSee('Edit Image caption')
+        ->assertDontSee('Image description')->assertDontSee('Decorative image');
+    $this->get(route('userzone.projects.edit', [$portfolio, $project]))->assertOk()
+        ->assertDontSee('Caption (optional)')->assertDontSee('Image description')->assertDontSee('Decorative image');
 });
