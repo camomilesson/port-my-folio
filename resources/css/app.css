@@ -125,3 +125,26 @@
     .appearance-menu { position: relative; }
     .appearance-panel { position: absolute; right: 0; z-index: 40; width: min(36rem, calc(100vw - 3rem)); max-height: 60dvh; overflow-y: auto; box-shadow: 0 16px 48px #1c19171a; }
 }
+
+@layer portfolio-presets {
+    .welcome-portfolio { min-height: 700px; container-type: inline-size; }
+    .welcome-portfolio .portfolio-content { padding: 1.5rem; }
+    .welcome-profile { display: grid; grid-template-columns: minmax(0, 1fr) 28%; align-items: center; gap: 1.25rem; padding-block: 2rem; }
+    .welcome-portfolio .portfolio-content .welcome-headline { margin-top: 1rem; color: inherit; font-size: clamp(1.25rem, 6cqw, 2rem); font-weight: 600; line-height: 1.15; letter-spacing: -.035em; }
+    .welcome-portfolio .portfolio-photo { border-radius: 1rem; }
+    .welcome-style-button[aria-pressed="true"] { background: var(--color-stone-900); border-color: var(--color-stone-900); color: white; }
+    [data-preview-controls] button { cursor: pointer; }
+    [data-preview-controls] button:focus-visible { outline: 2px solid var(--color-orange-700); outline-offset: 3px; }
+    .welcome-portfolio[data-portfolio-preset="material"] .portfolio-nav { padding: 1rem; border-radius: 1rem; }
+    .welcome-portfolio[data-portfolio-preset="material"] .welcome-headline { font-weight: 400; }
+    .welcome-portfolio[data-portfolio-preset="material"] .portfolio-card { border-radius: 1rem; }
+    .welcome-portfolio[data-portfolio-preset="material"] .portfolio-card-copy { padding: 1rem; }
+    .welcome-portfolio[data-portfolio-preset="editorial"] .welcome-headline { font-weight: 400; }
+    .welcome-portfolio[data-portfolio-preset="editorial"] .portfolio-nav { padding-bottom: 1rem; }
+    .welcome-portfolio[data-portfolio-preset="editorial"] .portfolio-photo { border-radius: 0; }
+    .welcome-portfolio[data-portfolio-preset="editorial"] .portfolio-project-grid { display: grid; grid-template-columns: 1fr; gap: .75rem; }
+    .welcome-portfolio[data-portfolio-preset="editorial"] .portfolio-card { display: grid; grid-template-columns: 32% minmax(0, 1fr); gap: 1rem; padding-block: .75rem; }
+    .welcome-portfolio[data-portfolio-preset="editorial"] .portfolio-card-copy { padding: 0; }
+    .welcome-portfolio[data-portfolio-preset="editorial"] .portfolio-tags { margin-top: .5rem; }
+    .welcome-portfolio[data-portfolio-preset="editorial"] .welcome-project-image { height: 100%; }
+}

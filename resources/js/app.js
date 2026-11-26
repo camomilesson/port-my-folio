@@ -442,3 +442,57 @@ document.addEventListener('click', (event) => {
         if (menu) menu.open = false;
     }
 });
+
+document.querySelectorAll('[data-welcome-preview]').forEach((preview) => {
+    const presets = Object.entries(JSON.parse(preview.dataset.presets));
+    const accents = JSON.parse(preview.dataset.accents);
+    const portfolio = preview.querySelector('[data-portfolio-preset]');
+    const controls = preview.querySelector('[data-preview-controls]');
+    const pauseButton = preview.querySelector('[data-preview-pause]');
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    let index = 0;
+    let paused = reducedMotion.matches;
+    let timer;
+    let accent;
+
+    function showPreset(nextIndex) {
+        index = nextIndex;
+        const [key, preset] = presets[index];
+        const availableAccents = accents.filter((color) => color !== accent);
+        accent = availableAccents[Math.floor(Math.random() * availableAccents.length)] ?? accents[0];
+        portfolio.dataset.portfolioPreset = key;
+        portfolio.style.setProperty('--portfolio-accent', accent);
+        preview.querySelector('[data-preview-label]').textContent = preset.label;
+        preview.querySelectorAll('[data-preview-preset]').forEach((button) => {
+            button.setAttribute('aria-pressed', String(button.dataset.previewPreset === key));
+        });
+    }
+
+    function scheduleCycle() {
+        window.clearInterval(timer);
+        pauseButton.textContent = paused ? 'Play' : 'Pause';
+        if (!paused && !document.hidden) {
+            timer = window.setInterval(() => showPreset((index + 1) % presets.length), 1000);
+        }
+    }
+
+    controls.hidden = false;
+    showPreset(0);
+    scheduleCycle();
+    preview.querySelectorAll('[data-preview-preset]').forEach((button) => {
+        button.addEventListener('click', () => {
+            showPreset(presets.findIndex(([key]) => key === button.dataset.previewPreset));
+            paused = true;
+            scheduleCycle();
+        });
+    });
+    pauseButton.addEventListener('click', () => {
+        paused = !paused;
+        scheduleCycle();
+    });
+    reducedMotion.addEventListener('change', () => {
+        paused = reducedMotion.matches;
+        scheduleCycle();
+    });
+    document.addEventListener('visibilitychange', scheduleCycle);
+});
