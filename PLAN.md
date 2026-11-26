@@ -277,7 +277,7 @@ Review: decide whether to open the experimental public demo and what hosting lif
 - [x] Stage 6 — Durable initial generation and quota (local walkthrough and hosted generation/publication verified by user).
 - [x] Stage 6.1 — Simple inputs and a portfolio that fills during generation (user reviewed locally, approved promotion and confirmed it works live).
 - [x] Stage 6.2 — Pencil editing and publication on the portfolio (reviewed, promoted and user-verified live).
-- [ ] Stage 7 — Three presets and product polish.
+- [x] Stage 7 — Three presets and product polish (user reviewed and approved promotion; hosted checks pending).
 - [ ] Stage 8 — Release, assessment, and portfolio evidence.
 
 ## Stage 1 execution notes — 23 November 2026 (historical; superseded below)
@@ -506,3 +506,8 @@ Appearance is owner-only after successful generation. Preset/swatch changes prev
 Verification: PostgreSQL 265 tests / 1,420 assertions; SQLite 260 passing / 1,391 assertions with five PostgreSQL-only skips. Pint, JavaScript syntax, Composer validation, Blade compilation, production frontend build and diff checks pass. New feature coverage exercises per-setting merges, authorization, malformed/unknown values, all three presets across all page types, unrestricted white/black accents, active/failed-generation locks and publication isolation. Browser verified swatches/hex/native picker synchronization, save/reload persistence, rapid changes, invalid hex handling, keyboard dismissal, all nine preset/page combinations at desktop and 390 px widths with no horizontal overflow, and a 104-character unbroken headline in every preset. Fixed a style-layer precedence issue found during browser QA. The seeded demo's original headline and Minimal/orange appearance were restored; no personal PDF, live AI request, uploaded media or publication was changed.
 
 Stage 7 is implemented and ready for the user's visual walkthrough, not yet marked complete. Preserve atomic local commits. Do not promote/push or start Stage 8 until the user approves.
+
+
+## Stage 7 promotion approval — 26 November 2026
+
+User reviewed the three presets and appearance controls, reported no complaints and explicitly approved pushing to main. This supersedes the earlier awaiting-review/no-promotion note. The reviewed branch is unchanged from its recorded verification: PostgreSQL 265 tests / 1,420 assertions; SQLite 260 passing / 1,391 assertions and five PostgreSQL-only skips, plus build/formatting/browser checks. Preserve the implementation commits when merging. No migrations or environment changes are required. Hosted appearance/publication verification remains after deployment. User requested a briefing on Stage 8; its release/assessment work has not started.

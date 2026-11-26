@@ -202,7 +202,7 @@ Sunsetting the application also takes users' hosted portfolios offline. Present 
 
 ## Decisions still open
 
-- Preset visual review: Stage 7 implementation is ready for inspection.
+- Preset names/designs: reviewed and approved in Stage 7; hosted verification remains pending.
 - Portfolio focus: resolved below in Stage 5.
 - Input limits: resolved below in Stage 5.
 - Stable addresses and default behavior: resolved in Stage 4.
