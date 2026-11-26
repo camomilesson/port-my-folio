@@ -6,7 +6,7 @@ Portmyfolio turns a PDF CV and public GitHub READMEs into a private, editable po
 
 | Route | What you need | What you can inspect |
 | --- | --- | --- |
-| [Hosted application](https://portmyfolio-production-ksrkiz.laravel.cloud/) | A Google account; no application keys | The complete generation/editing/publication flow while hosting is available |
+| [Hosted application](https://portmyfolio.laravel.cloud/) | A Google account; no application keys | The complete generation/editing/publication flow while hosting is available |
 | Fresh local checkout, seeded example | [README setup](../README.md#fresh-assessment-demo); no external service credentials | Home/CV/projects, inline editing, uploads, presets, publishing and defaults |
 | Fresh local checkout, new generation | The same setup plus a Gemini API key supplied privately | The complete flow, with public GitHub and Gemini connectivity |
 

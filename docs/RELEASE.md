@@ -1,6 +1,6 @@
 # Release review and operations
 
-Review date: **26 November 2026**. Stage 8 is ready for local review; the final authenticated hosted smoke check, dashboard settings and production restore rehearsal remain unverified in this pass. The user confirmed Stage 7 works live. No Stage 8 deployment is implied by this record.
+Review date: **26 November 2026**. The user authorized promotion of the Stage 8 documentation and fixture-label package. The final authenticated hosted smoke check, dashboard settings and production restore rehearsal remain unverified in this pass; promotion does not close those operational checks. The user confirmed Stage 7 works live. The new `portmyfolio.laravel.cloud` hostname was separately observed serving the landing page.
 
 Assessment handoff: [professor inspection guide](INSPECTION.md). By agreement, an inspection flow replaces a recorded demo and presentation. Only synthetic local fixtures appear in the screenshots below; no personal CV or credential is included.
 

@@ -1,8 +1,10 @@
 # Deployment and provider setup
 
-Current application: [Portmyfolio production](https://portmyfolio-production-ksrkiz.laravel.cloud/) · [GitHub repository](https://github.com/camomilesson/port-my-folio). Recorded deployment: Laravel Cloud, Ireland, PHP 8.5 / Node 26, Supabase PostgreSQL and two private object buckets. Main uses push-to-deploy; merge/push is a deliberate release action after review. Historical implementation records remain in [PLAN.md](../PLAN.md).
+Current application: [Portmyfolio production](https://portmyfolio.laravel.cloud/) · [GitHub repository](https://github.com/camomilesson/port-my-folio). Recorded deployment: Laravel Cloud, Ireland, PHP 8.5 / Node 26, Supabase PostgreSQL and two private object buckets. Main uses push-to-deploy; merge/push is a deliberate release action after review. Historical implementation records remain in [PLAN.md](../PLAN.md).
 
 Stages 1–7 were user-verified live. On 26 November 2026 the assistant also observed the current landing and `/up` pages in the browser. This does not independently verify current worker/scheduler settings or a complete authenticated journey; see [release review](RELEASE.md).
+
+The shorter `portmyfolio.laravel.cloud` hostname was verified serving the landing page on 26 November. Its production environment needs `APP_URL=https://portmyfolio.laravel.cloud` and `GOOGLE_REDIRECT_URI=https://portmyfolio.laravel.cloud/auth/google/callback`, with that exact callback registered in Google OAuth. Sign-in after the hostname change still needs a user check.
 
 ## Hosted environment
 
