@@ -462,6 +462,7 @@ document.querySelectorAll('[data-welcome-preview]').forEach((preview) => {
         accent = availableAccents[Math.floor(Math.random() * availableAccents.length)] ?? accents[0];
         portfolio.dataset.portfolioPreset = key;
         portfolio.style.setProperty('--portfolio-accent', accent);
+        preview.closest('section').style.setProperty('--welcome-accent', accent);
         preview.querySelector('[data-preview-label]').textContent = preset.label;
         preview.querySelectorAll('[data-preview-preset]').forEach((button) => {
             button.setAttribute('aria-pressed', String(button.dataset.previewPreset === key));

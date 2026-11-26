@@ -1,8 +1,8 @@
 <x-layout>
-    <section class="mx-auto grid max-w-6xl items-center gap-14 px-6 pt-12 pb-16 sm:pt-20 sm:pb-24 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-16">
+    <section style="--welcome-accent: {{ array_values(config('portmyfolio.accent_swatches'))[0] }}" class="mx-auto grid max-w-6xl items-center gap-14 px-6 pt-12 pb-16 sm:pt-20 sm:pb-24 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-16">
         <div>
             <h1 class="max-w-xl text-5xl font-semibold leading-[1.08] tracking-tight sm:text-6xl">Building a Portfolio Shouldn't Be Hard</h1>
-            <p class="mt-6 max-w-md text-lg leading-relaxed text-stone-600">Build one in seconds from a CV and a few repo links</p>
+            <p class="mt-6 max-w-md text-lg leading-relaxed text-stone-600">Build one <span data-welcome-highlight class="font-semibold text-[var(--welcome-accent)]">in seconds</span> from a CV and a few repo links</p>
             <div class="mt-8">
                 @auth
                     <a href="{{ route('dashboard') }}" class="inline-flex items-center gap-4 rounded-full bg-stone-900 px-7 py-4 font-medium text-white transition-colors hover:bg-stone-700 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-orange-700">Open your workspace <span aria-hidden="true">→</span></a>
@@ -21,12 +21,19 @@
             @endguest
         </div>
         <figure class="min-w-0" data-welcome-preview data-presets='@json(config('portmyfolio.presets'))' data-accents='@json(array_values(config('portmyfolio.accent_swatches')))'>
-            <div class="overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-xl shadow-stone-900/5">
-                <div aria-hidden="true" class="flex items-center gap-1.5 border-b border-stone-100 bg-stone-50 px-5 py-3">
+            <div class="relative overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-xl shadow-stone-900/5">
+                <div class="absolute top-2 right-2 z-10 flex items-center gap-1 rounded-full border border-stone-200 bg-white/95 p-1 shadow-sm" role="group" aria-label="Example portfolio styles" data-preview-controls hidden>
+                    @foreach(config('portmyfolio.presets') as $key => $preset)
+                        <button type="button" data-preview-preset="{{ $key }}" aria-controls="welcome-portfolio" aria-pressed="{{ $key === 'minimal' ? 'true' : 'false' }}" class="welcome-style-button rounded-full border border-stone-300 px-2 py-2 text-xs">{{ $preset['label'] }}</button>
+                    @endforeach
+                    <button type="button" data-preview-pause aria-controls="welcome-portfolio" class="rounded-full px-2 py-2 text-xs underline underline-offset-4">Pause</button>
+                </div>
+                <div aria-hidden="true" class="hidden h-16 items-center gap-1.5 border-b border-stone-100 bg-stone-50 px-5 sm:flex">
                     <span class="size-2 rounded-full bg-stone-300"></span>
                     <span class="size-2 rounded-full bg-stone-300"></span>
                     <span class="size-2 rounded-full bg-stone-300"></span>
                 </div>
+                <div aria-hidden="true" class="h-16 bg-stone-50 sm:hidden"></div>
                 <div id="welcome-portfolio" class="welcome-portfolio" data-portfolio-preset="minimal" style="--portfolio-accent: {{ array_values(config('portmyfolio.accent_swatches'))[0] }}">
                     <div class="portfolio-content">
                         <div class="portfolio-nav flex items-center justify-between gap-3 border-b border-stone-200 pb-5 text-xs">
@@ -71,14 +78,8 @@
                     </div>
                 </div>
             </div>
-            <figcaption class="mt-4 space-y-3 text-center">
+            <figcaption class="mt-4 text-center">
                 <p class="text-xs text-stone-500">Example portfolio · <span data-preview-label>Minimal</span></p>
-                <div class="flex flex-wrap items-center justify-center gap-2" role="group" aria-label="Example portfolio styles" data-preview-controls hidden>
-                    @foreach(config('portmyfolio.presets') as $key => $preset)
-                        <button type="button" data-preview-preset="{{ $key }}" aria-controls="welcome-portfolio" aria-pressed="{{ $key === 'minimal' ? 'true' : 'false' }}" class="welcome-style-button rounded-full border border-stone-300 px-3 py-2 text-xs">{{ $preset['label'] }}</button>
-                    @endforeach
-                    <button type="button" data-preview-pause aria-controls="welcome-portfolio" class="rounded-full px-3 py-2 text-xs underline underline-offset-4">Pause</button>
-                </div>
             </figcaption>
         </figure>
     </section>
