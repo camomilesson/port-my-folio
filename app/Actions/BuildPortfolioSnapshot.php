@@ -5,6 +5,7 @@ namespace App\Actions;
 use App\Models\Portfolio;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
 class BuildPortfolioSnapshot
@@ -52,7 +53,7 @@ class BuildPortfolioSnapshot
         }
         $snapshot['cv_content'] = ['schema_version' => 1] + $validator->validated();
         Validator::make($snapshot, [
-            'preset' => ['required', 'in:minimal'], 'accent_color' => ['required', 'regex:/^#[a-fA-F0-9]{6}$/'],
+            'preset' => ['required', Rule::in(array_keys(config('portmyfolio.presets')))], 'accent_color' => ['required', 'regex:/^#[a-fA-F0-9]{6}$/'],
             'home_content.introduction' => ['nullable', 'string', 'max:3000'],
             'original_pdf' => ['required', 'array:disk,path,mime_type'],
             'projects' => ['required', 'array', 'list', 'min:1', 'max:5'],

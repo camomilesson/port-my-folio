@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\GoogleAuthController;
 use App\Http\Controllers\Auth\LocalDemoLoginController;
 use App\Http\Controllers\PublicPortfolioController;
+use App\Http\Controllers\Userzone\AppearanceController;
 use App\Http\Controllers\Userzone\CvDocumentController;
 use App\Http\Controllers\Userzone\DashboardController;
 use App\Http\Controllers\Userzone\DraftContentController;
@@ -32,6 +33,7 @@ Route::middleware(['auth', EnsureUsernameIsSet::class])->group(function () {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
     Route::prefix('user')->name('userzone.')->group(function () {
         Route::prefix('portfolios/{portfolio}')->group(function () {
+            Route::patch('appearance', AppearanceController::class)->name('appearance.update');
             Route::post('photo', [InlinePortfolioController::class, 'photo'])->name('photo.store');
             Route::get('photo/{photoId}', [InlinePortfolioController::class, 'showPhoto'])->whereUuid('photoId')->name('photo.show');
             Route::patch('inline/{scope}', [InlinePortfolioController::class, 'page'])->whereIn('scope', ['home', 'cv'])->name('inline.page');

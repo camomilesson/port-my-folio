@@ -314,3 +314,131 @@ document.addEventListener('keydown', (event) => {
         button.click();
     }
 });
+
+const pendingAppearance = new Map();
+let appearanceSaveTimer;
+let appearanceSaving = false;
+let appearanceSaveFailed = false;
+
+function previewAppearance(form, field, value) {
+    if (field === 'preset') {
+        document.body.dataset.portfolioPreset = value;
+        form.querySelectorAll('[data-appearance-preset]').forEach((radio) => { radio.checked = radio.value === value; });
+    } else {
+        document.body.style.setProperty('--portfolio-accent', value);
+        form.querySelector('[data-appearance-color]').value = value;
+        form.querySelector('[data-appearance-hex]').value = value;
+        form.querySelectorAll('[data-appearance-swatch]').forEach((swatch) => {
+            swatch.setAttribute('aria-pressed', String(swatch.dataset.appearanceSwatch === value));
+        });
+        form.querySelector('[data-appearance-color-error]').textContent = '';
+        form.querySelector('[data-appearance-hex]').setCustomValidity('');
+    }
+}
+
+function queueAppearance(form, field, value, delay = 0) {
+    previewAppearance(form, field, value);
+    pendingAppearance.set(field, value);
+    appearanceSaveFailed = false;
+    dirtyInlineForms.add(form);
+    form.querySelector('[data-appearance-status]').textContent = 'Saving appearance…';
+    form.querySelector('[data-appearance-retry]').hidden = true;
+    window.clearTimeout(appearanceSaveTimer);
+    appearanceSaveTimer = window.setTimeout(() => saveAppearance(form), delay);
+}
+
+async function saveAppearance(form) {
+    if (appearanceSaving) return;
+    appearanceSaving = true;
+    form.setAttribute('aria-busy', 'true');
+    const status = form.querySelector('[data-appearance-status]');
+    const retry = form.querySelector('[data-appearance-retry]');
+    retry.disabled = true;
+    try {
+        while (pendingAppearance.size && !appearanceSaveFailed) {
+            const [field, value] = pendingAppearance.entries().next().value;
+            pendingAppearance.delete(field);
+            try {
+                const response = await fetch(form.action, {
+                    method: 'PATCH',
+                    headers: { Accept: 'application/json', 'Content-Type': 'application/json', 'X-CSRF-TOKEN': form.querySelector('[name="_token"]').value },
+                    body: JSON.stringify({ field, value }),
+                });
+                const result = await response.json();
+                if (!response.ok) throw new Error(result.errors ? Object.values(result.errors).flat().join(' ') : 'Could not save appearance.');
+                if (field === 'preset') form.dataset.savedPreset = result.appearance.preset;
+                else form.dataset.savedAccent = result.appearance.accent_color;
+            } catch (error) {
+                if (!pendingAppearance.has(field)) pendingAppearance.set(field, value);
+                appearanceSaveFailed = true;
+                status.textContent = `${error.message || 'Could not save appearance.'} Your preview has not been confirmed saved.`;
+                document.querySelector('[data-inline-status]').textContent = 'Appearance changes have not been confirmed saved. Open Appearance to retry.';
+                retry.hidden = false;
+            }
+        }
+        if (!pendingAppearance.size) {
+            dirtyInlineForms.delete(form);
+            status.textContent = 'Appearance saved. Publish to update your public portfolio.';
+            document.querySelector('[data-inline-status]').textContent = status.textContent;
+        }
+    } finally {
+        appearanceSaving = false;
+        form.removeAttribute('aria-busy');
+        retry.disabled = false;
+    }
+}
+
+function updateAppearanceColor(input, showError, delay = 350) {
+    const form = input.closest('[data-appearance-form]');
+    const value = input.value.toLowerCase();
+    if (/^#[a-f0-9]{6}$/.test(value)) {
+        queueAppearance(form, 'accent_color', value, delay);
+    } else if (showError) {
+        const message = 'Enter a hex color like #2563eb.';
+        form.querySelector('[data-appearance-color-error]').textContent = message;
+        input.setCustomValidity(message);
+    }
+}
+
+document.addEventListener('input', (event) => {
+    if (event.target.matches('[data-appearance-color], [data-appearance-hex]')) updateAppearanceColor(event.target, false);
+});
+document.addEventListener('change', (event) => {
+    const form = event.target.closest('[data-appearance-form]');
+    if (!form) return;
+    if (event.target.matches('[data-appearance-preset]')) queueAppearance(form, 'preset', event.target.value);
+    else if (event.target.matches('[data-appearance-color], [data-appearance-hex]')) updateAppearanceColor(event.target, true, 0);
+});
+document.addEventListener('click', (event) => {
+    const swatch = event.target.closest('[data-appearance-swatch]');
+    if (swatch) queueAppearance(swatch.closest('form'), 'accent_color', swatch.dataset.appearanceSwatch);
+    const retry = event.target.closest('[data-appearance-retry]');
+    if (retry) {
+        appearanceSaveFailed = false;
+        retry.hidden = true;
+        retry.closest('form').querySelector('[data-appearance-status]').textContent = 'Saving appearance…';
+        saveAppearance(retry.closest('form'));
+    }
+});
+document.addEventListener('submit', (event) => {
+    if (event.target.matches('[data-appearance-form]')) {
+        event.preventDefault();
+        updateAppearanceColor(event.target.querySelector('[data-appearance-hex]'), true, 0);
+    }
+});
+document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && event.target.closest('[data-appearance]')) {
+        event.preventDefault();
+        const panel = event.target.closest('[data-appearance]');
+        panel.open = false;
+        panel.querySelector('summary').focus();
+    }
+});
+
+
+document.addEventListener('click', (event) => {
+    if (!event.target.closest('[data-appearance]')) {
+        const menu = document.querySelector('[data-appearance]');
+        if (menu) menu.open = false;
+    }
+});
