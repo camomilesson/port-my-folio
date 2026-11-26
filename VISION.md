@@ -95,10 +95,10 @@ The initial content structure is documented in DATA_MODEL.md; editor validation 
 
 ### Project
 
-1. Header: title, short summary, author's role, and technology tags supported by the supplied material.
-2. Overview: what the project does, who it serves, and the problem it addresses, where supported by the README.
-3. Technical details: a required explanation of actual implementation workings, grounded in the README and distinct from the overview/tags.
-4. Gallery: owner-managed images; hidden when empty.
+1. Header: title, short summary and technology tags supported by the supplied material.
+2. Gallery: owner-managed images directly below the header, with left/right half-image navigation; hidden publicly when empty.
+3. Overview: what the project does, who it serves, and the problem it addresses, where supported by the README.
+4. Technical details: a required explanation of actual implementation workings, grounded in the README and distinct from the overview/tags.
 5. Links: required repository link and optional live-demo link.
 
 There is no highlights section and no mandatory metrics, impact, challenges, or lessons section.
@@ -108,20 +108,20 @@ There is no highlights section and no mandatory metrics, impact, challenges, or 
 - Stage 6.2 puts pencil-triggered field/section forms on the rendered portfolio. Existing separate editors remain available during the transition.
 - No arbitrary document editor or drag-and-drop layout builder. Adding/removing/reordering structured entries is outside the inline-editing pass.
 - Owners can edit generated text, manage project ordering, and remove projects. Every project appears on the homepage.
-- Images are entirely user managed: upload, delete, reorder (first image is the cover), and edit captions and alt text. A decorative-image option produces empty alt text; other images require a description.
+- Add images opens a multi-file picker and uploads immediately, with no caption, empty description and decorative defaults. The home photo uses the same direct-picker flow. Supporting screens retain delete/reorder operations; the first gallery image is the cover.
 - Keep only processed, resized, metadata-free gallery images; discard original image uploads.
 - AI does not select or generate images. Automatic screenshot capture is outside scope.
-- Owners may add repository-backed projects manually after generation, within the five-project maximum, without AI calls. Existing repository identity stays fixed; display content and role remain editable.
+- Owners may add repository-backed projects manually after generation, within the five-project maximum, without AI calls. Existing repository identity stays fixed; display content remains editable. Project roles are removed from the demo.
 
 ## Appearance
 
 - Three visual presets, all implemented with Blade components and Tailwind.
 - Each preset supplies its own fixed typography, layout styling, and background colors.
-- Minimal, Material-inspired, and Editorial are working preset directions; final names and designs remain open.
+- Minimal uses Instrument Sans and a stone background; Material uses Arial/Helvetica, cool surfaces and rounded cards; Editorial uses Georgia/Times serif, warm paper and open spacing.
 - Users choose an accent color through suggested swatches, a hex input, or a color picker.
 - Accent colors are unrestricted. Do not automatically adjust backgrounds or foregrounds to compensate for a user's choice. Users can change the accent afterward.
 - No font picker, light/dark toggle, custom HTML/CSS, or arbitrary layout editor.
-- Preview the portfolio before publishing, including appearance changes.
+- Appearance in the owner toolbar previews and saves preset/accent changes immediately to the private draft, after successful generation. Public appearance changes only through explicit publication.
 
 ## URLs and publishing
 
@@ -202,7 +202,7 @@ Sunsetting the application also takes users' hosted portfolios offline. Present 
 
 ## Decisions still open
 
-- Exact preset designs and names.
+- Preset visual review: Stage 7 implementation is ready for inspection.
 - Portfolio focus: resolved below in Stage 5.
 - Input limits: resolved below in Stage 5.
 - Stable addresses and default behavior: resolved in Stage 4.

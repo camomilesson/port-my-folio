@@ -38,7 +38,7 @@ No production password login. Portfolio display names remain independent of the 
 | title | Dashboard title; generated from account identity in the primary demo flow |
 | slug | Automatically generated stable public slug in the primary flow; unique with user_id |
 | focus | Target audience / job context |
-| preset | Validated preset identifier |
+| preset | Validated identifier: minimal, material or editorial |
 | accent_color | Valid hex color, without contrast restrictions |
 | home_content | Validated JSON |
 | cv_content | Validated JSON |
@@ -245,3 +245,8 @@ A portfolio's optional home_content.photo holds the immutable photo identity, pr
 ### Gallery upload defaults — 26 November 2026
 
 New gallery uploads use caption=null, alt_text="" and decorative=true, assigned server-side. The inline batch accepts files alone and ignores supplied metadata; supporting single-image uploads use the same defaults. Metadata fields remain in existing media records and publication snapshots for compatibility, while their form/pencil controls are removed. Existing captions are not deleted. Whole-batch validation, ten-image limits, processing/storage and snapshot publication are unchanged.
+
+
+### Stage 7 appearance persistence
+
+The existing preset and accent_color columns now support all three presets through a single validated configuration list. The owner appearance endpoint updates exactly one field (preset or accent_color) against the latest locked draft, after successful generation. Hex input uses #RRGGBB syntax and is normalized to lowercase; white, black and other valid accents are unrestricted. No user font/background data is accepted. The published snapshot retains its own preset/accent until republishing; drafts never substitute their appearance into public rendering. This is an additive validation/UI change without a schema migration.
