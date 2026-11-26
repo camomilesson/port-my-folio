@@ -201,7 +201,7 @@ Saved edits update only the private draft. Publish / Publish changes opens the o
 
 Project roles have been removed from inputs, settings, presentation and generation context. New project prompts describe repository functionality without claiming personal authorship (prompt version portfolio-v4). Restart the queue worker before generating after this update.
 
-On the ready portfolio home, Add photo uploads one JPEG/PNG/WebP file (10 MB maximum), processed privately like gallery images. It appears on the right at desktop widths and below the introduction on mobile. Change photo replaces the draft version; the public photo changes only when you Publish changes. The original photo upload is not retained. Existing worker processing cleans unused replaced photos, while preserving current/published references.
+On the ready portfolio home, Add photo / Change photo opens the file picker and immediately uploads the selected JPEG/PNG/WebP file (10 MB maximum), processed privately like gallery images. No extra Save confirmation is shown. Cancelling the picker leaves the current photo unchanged. It appears on the right at desktop widths and below the introduction on mobile. Change photo replaces the draft version; the public photo changes only when you Publish changes. The original photo upload is not retained. Existing worker processing cleans unused replaced photos, while preserving current/published references.
 
 Project galleries now appear after the title, summary and technologies, before Overview and Technical details. Click the left/right side controls to move through images; navigation wraps, with no automatic rotation. The existing multi-upload and image-detail pencils remain available. No migration or new environment variable is needed.
 

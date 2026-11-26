@@ -26,6 +26,8 @@ it('stores a processed private photo and shows it only to the portfolio owner be
     file_put_contents($file->getRealPath(), 'PRIVATE-PHOTO-METADATA', FILE_APPEND);
     $this->actingAs($portfolio->user);
 
+    $this->get(route('userzone.preview.home', $portfolio))->assertOk()->assertSee('Add photo')->assertDontSee('Save photo');
+
     $this->postJson(route('userzone.photo.store', $portfolio), ['photo' => $file])->assertOk();
 
     $photo = $portfolio->fresh()->home_content['photo'];
@@ -36,7 +38,7 @@ it('stores a processed private photo and shows it only to the portfolio owner be
     expect(Storage::disk('images_local')->allFiles())->toHaveCount(1);
     expect($portfolio->fresh()->home_content['introduction'])->toBe($original['introduction']);
     expect($portfolio->fresh()->published_snapshot)->toBeNull();
-    $this->get(route('userzone.preview.home', $portfolio))->assertOk()->assertSee('Change photo')->assertSee(route('userzone.photo.show', [$portfolio, $photo['id']]));
+    $this->get(route('userzone.preview.home', $portfolio))->assertOk()->assertSee('Change photo')->assertDontSee('Save photo')->assertSee(route('userzone.photo.show', [$portfolio, $photo['id']]));
     $this->get(route('userzone.photo.show', [$portfolio, $photo['id']]))->assertOk()->assertHeader('Content-Type', 'image/webp')->assertHeader('Cache-Control', 'no-store, private');
     $this->get(route('portfolio.photo', [$portfolio->user->username, $portfolio->slug, $photo['id']]))->assertNotFound();
     $this->actingAs(User::factory()->create())->get(route('userzone.photo.show', [$portfolio, $photo['id']]))->assertNotFound();

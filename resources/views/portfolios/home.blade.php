@@ -12,16 +12,14 @@
             <aside class="w-full max-w-xs justify-self-center md:justify-self-end" data-portfolio-photo>
                 @if($page['photo'] ?? null)<img src="{{ $page['photo']['url'] }}" alt="Portfolio photo" width="{{ $page['photo']['width'] }}" height="{{ $page['photo']['height'] }}" class="aspect-[4/5] w-full rounded-2xl object-cover">@endif
                 @if($page['editable'] ?? false)
-                    <details data-photo-upload class="mt-4 rounded-xl border border-dashed border-stone-300 p-4">
-                        <summary class="cursor-pointer text-center text-sm font-semibold">{{ ($page['photo'] ?? null) ? 'Change photo' : 'Add photo' }}</summary>
-                        <form method="POST" action="{{ $page['photo_upload_url'] }}" enctype="multipart/form-data" data-inline-form data-photo-form class="mt-4 space-y-4">
-                            @csrf
-                            <label class="block text-sm font-semibold">Photo<input type="file" name="photo" accept="image/jpeg,image/png,image/webp" required class="mt-2 block w-full text-sm"></label>
-                            <p class="text-xs text-stone-500">JPEG, PNG or WebP, up to 10 MB.</p>
-                            <p data-inline-error role="alert" class="text-sm text-red-700"></p>
-                            <div class="flex flex-wrap gap-3 text-sm"><button type="submit" class="rounded-full bg-stone-900 px-4 py-2 font-semibold text-white">Save photo</button><button type="button" data-inline-cancel class="rounded-full border border-stone-300 px-4 py-2">Cancel</button></div>
-                        </form>
-                    </details>
+                    <form method="POST" action="{{ $page['photo_upload_url'] }}" enctype="multipart/form-data" data-inline-form data-photo-form class="mt-4 space-y-3">
+                        @csrf
+                        <input type="file" name="photo" accept="image/jpeg,image/png,image/webp" required hidden data-photo-file>
+                        <button type="button" data-photo-choose class="w-full rounded-full border border-stone-300 bg-white px-5 py-2 text-sm font-semibold">{{ ($page['photo'] ?? null) ? 'Change photo' : 'Add photo' }}</button>
+                        <p class="text-xs text-stone-500">JPEG, PNG or WebP, up to 10 MB. Your selected photo uploads immediately.</p>
+                        <p data-inline-error role="alert" class="text-sm text-red-700"></p>
+                        <p data-upload-status role="status" class="text-sm text-stone-600"></p>
+                    </form>
                 @endif
             </aside>
         @endif

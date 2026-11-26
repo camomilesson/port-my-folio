@@ -149,7 +149,7 @@ async function refreshInlineContent(savedForm) {
     const savedKey = savedForm.closest('[data-inline-key]')?.dataset.inlineKey;
     if (savedForm.matches('[data-photo-form]')) {
         document.querySelector('[data-portfolio-photo]').replaceWith(document.importNode(html.querySelector('[data-portfolio-photo]'), true));
-        document.querySelector('[data-photo-upload] summary')?.focus({ preventScroll: true });
+        document.querySelector('[data-photo-choose]')?.focus({ preventScroll: true });
     }
     if (savedForm.matches('[data-upload-form]')) {
         const gallery = document.querySelector('[data-inline-gallery]');
@@ -183,13 +183,12 @@ async function refreshInlineContent(savedForm) {
 }
 
 document.addEventListener('toggle', (event) => {
-    if (!event.target.matches('[data-inline-editor], [data-photo-upload]')) return;
+    if (!event.target.matches('[data-inline-editor]')) return;
     const form = event.target.querySelector('form');
     if (form.dataset.saving && !event.target.open) {
         event.target.open = true;
         return;
     }
-    if (!event.target.matches('[data-inline-editor]')) return;
     if (event.target.open) {
         form.querySelector('textarea, input:not([type=hidden])')?.focus({ preventScroll: true });
     } else {
@@ -201,7 +200,7 @@ document.addEventListener('toggle', (event) => {
 
 document.addEventListener('input', (event) => {
     const form = event.target.closest('[data-inline-form]');
-    if (form && !form.matches('[data-upload-form]')) dirtyInlineForms.add(form);
+    if (form && !form.matches('[data-upload-form], [data-photo-form]')) dirtyInlineForms.add(form);
 });
 window.addEventListener('beforeunload', (event) => {
     if ([...dirtyInlineForms].some((form) => form.isConnected)) {
@@ -211,8 +210,8 @@ window.addEventListener('beforeunload', (event) => {
 });
 
 document.addEventListener('click', (event) => {
-    const choose = event.target.closest('[data-gallery-choose]');
-    if (choose) choose.closest('form').querySelector('[data-gallery-files]').click();
+    const choose = event.target.closest('[data-gallery-choose], [data-photo-choose]');
+    if (choose) choose.closest('form').querySelector('input[type="file"]').click();
     const cancel = event.target.closest('[data-inline-cancel]');
     if (cancel) cancelInline(cancel.closest('form'));
 });
@@ -225,7 +224,7 @@ document.addEventListener('keydown', (event) => {
 });
 
 document.addEventListener('change', (event) => {
-    if (event.target.matches('[data-gallery-files], [data-gallery-single]') && event.target.files.length) {
+    if (event.target.matches('[data-gallery-files], [data-gallery-single], [data-photo-file]') && event.target.files.length) {
         event.target.form.requestSubmit();
     }
 });
@@ -236,18 +235,18 @@ document.addEventListener('submit', async (event) => {
     event.preventDefault();
     if (form.dataset.saving) return;
     const data = new FormData(form);
-    if (form.matches('[data-upload-form]')) dirtyInlineForms.add(form);
+    if (form.matches('[data-upload-form], [data-photo-form]')) dirtyInlineForms.add(form);
     const controls = [...form.querySelectorAll('input, textarea, button')];
     controls.forEach((control) => { control.disabled = true; });
     form.dataset.saving = '1';
     form.setAttribute('aria-busy', 'true');
-    const submit = form.querySelector('[data-gallery-choose], button[type="submit"]');
+    const submit = form.querySelector('[data-gallery-choose], [data-photo-choose], button[type="submit"]');
     const submitLabel = submit.textContent;
     submit.textContent = form.matches('[data-upload-form]') ? 'Adding images…' : 'Saving…';
     const error = form.querySelector('[data-inline-error]');
     error.textContent = '';
     const uploadStatus = form.querySelector('[data-upload-status]');
-    if (uploadStatus) uploadStatus.textContent = 'Uploading images…';
+    if (uploadStatus) uploadStatus.textContent = form.matches('[data-photo-form]') ? 'Uploading photo…' : 'Uploading images…';
     try {
         const response = await fetch(form.action, { method: 'POST', body: data, headers: { Accept: 'application/json' } });
         const result = await response.json();
@@ -256,7 +255,7 @@ document.addEventListener('submit', async (event) => {
             return;
         }
         dirtyInlineForms.delete(form);
-        if (uploadStatus) uploadStatus.textContent = 'Images added to your draft.';
+        if (uploadStatus) uploadStatus.textContent = form.matches('[data-photo-form]') ? 'Photo saved to your draft.' : 'Images added to your draft.';
         if (form.matches('[data-upload-form], [data-photo-form]')) {
             form.reset();
         }
@@ -275,7 +274,7 @@ document.addEventListener('submit', async (event) => {
     } finally {
         delete form.dataset.saving;
         form.removeAttribute('aria-busy');
-        if (form.matches('[data-upload-form]')) {
+        if (form.matches('[data-upload-form], [data-photo-form]')) {
             dirtyInlineForms.delete(form);
             form.reset();
             if (form.isConnected) uploadStatus.textContent = '';
