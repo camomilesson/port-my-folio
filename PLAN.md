@@ -252,14 +252,14 @@ Review: visual walkthrough of all three presets and the complete journey.
 - Verify query efficiency, private file access, generation history, cleanup, resource limits, and recovery configuration in the deployed environment.
 - Finish README setup/deployment instructions, ER diagram, seed/demo guidance, provider configuration, and documented deviations from assessment guidelines.
 - Verify a clean local installation without live AI credentials using fixtures and the local-only demo login.
-- Capture screenshots and a short demo; prepare a concise presentation emphasizing the data model, backend logic, tradeoffs, and next steps.
+- Capture synthetic inspection screenshots and provide a professor-facing guide for setup, privately supplied keys and the complete flow on their device. By user decision on 26 November, no recorded demo or presentation is required.
 - Document database/storage backup and restore basics, budget monitoring, and a practical sunset checklist covering user notice, data handling, and shutting down all billable resources.
 
 ### Completion criteria
 
 - A fresh local setup can run migrate:fresh --seed and demonstrate the product offline from external AI/Google services.
 - The deployed application passes the real end-to-end smoke check and known limitations are documented.
-- Repository history, documentation, screenshots, and presentation materials are ready for assessment and personal portfolio use.
+- Repository history, documentation, screenshots, and the professor inspection guide are ready for assessment and personal portfolio use.
 - No unresolved data-exposure, ownership, publication-isolation, or recovery failures remain.
 
 Review: decide whether to open the experimental public demo and what hosting lifetime/budget to use.
@@ -277,7 +277,7 @@ Review: decide whether to open the experimental public demo and what hosting lif
 - [x] Stage 6 — Durable initial generation and quota (local walkthrough and hosted generation/publication verified by user).
 - [x] Stage 6.1 — Simple inputs and a portfolio that fills during generation (user reviewed locally, approved promotion and confirmed it works live).
 - [x] Stage 6.2 — Pencil editing and publication on the portfolio (reviewed, promoted and user-verified live).
-- [x] Stage 7 — Three presets and product polish (user reviewed and approved promotion; hosted checks pending).
+- [x] Stage 7 — Three presets and product polish (user reviewed, promoted as f9f2ba3 and confirmed working live).
 - [ ] Stage 8 — Release, assessment, and portfolio evidence.
 
 ## Stage 1 execution notes — 23 November 2026 (historical; superseded below)
@@ -511,3 +511,14 @@ Stage 7 is implemented and ready for the user's visual walkthrough, not yet mark
 ## Stage 7 promotion approval — 26 November 2026
 
 User reviewed the three presets and appearance controls, reported no complaints and explicitly approved pushing to main. This supersedes the earlier awaiting-review/no-promotion note. The reviewed branch is unchanged from its recorded verification: PostgreSQL 265 tests / 1,420 assertions; SQLite 260 passing / 1,391 assertions and five PostgreSQL-only skips, plus build/formatting/browser checks. Preserve the implementation commits when merging. No migrations or environment changes are required. Hosted appearance/publication verification remains after deployment. User requested a briefing on Stage 8; its release/assessment work has not started.
+
+
+## Stage 7 hosted closure and Stage 8 review — 26 November 2026
+
+User confirmed Stage 7 works live and requested the next stage. Stage 8 proceeds on codex/stage-8-release. The user clarified that assessment needs an explicit flow for the professor to follow on their own device, with necessary keys supplied privately; no recorded demo or presentation is required.
+
+Consolidated README and deployment instructions around the current product, reconciled the primary vision/model descriptions, and added docs/INSPECTION.md plus docs/RELEASE.md. The inspection guide covers hosted Google sign-in, a fresh local fixture setup without external credentials, optional live generation with only a Gemini key when using local demo sign-in, the complete editing/publication/default journey, and common failures. Documentation retains the private original-PDF publication disclosure, one-time generation and no-quota decisions. Seed project names now use readable fictional labels instead of random words; no dependency, migration or environment change is introduced.
+
+Release verification: PostgreSQL 265 passing tests / 1,422 assertions; SQLite 260 passing / 1,391 assertions and five PostgreSQL-only skips. Existing seeder tests pass after the label change. Pint, frontend builds, Composer validation, JavaScript syntax, Blade compilation and diff checks pass. A separate temporary checkout installed dependencies, applied all 13 migrations and seeded an empty SQLite database with no Google/Gemini/S3 keys. Browser verified local demo sign-in, inputs, fixture Home/CV/projects, three preset saves, paragraph editing, immediate multi-image upload, carousel, publication, default redirect and unpublication/default clearing. Deferred fixture cleanup jobs completed through a real local worker; recovery and schedule registration passed. A separate SQLite/private-file backup-copy rehearsal verified integrity, row counts and ten file hashes. Screenshots contain synthetic fixtures only. Normal development/production data were not reset.
+
+The current hosted landing and /up pages were observed in the browser, and the user has verified the implemented flow live across prior stages. This pass has not independently completed authenticated hosted lifecycle checks, read worker/scheduler dashboard settings, or rehearsed Supabase database/object restore. Those exact checks remain open in docs/RELEASE.md, along with the owner's hosting lifetime/budget decision. No hosted generation, personal-file publication, production backup/restore, deployment, billing change or resource teardown was performed. Stage 8 remains unchecked pending release review and the remaining operational checks; do not infer a merge/push request from this implementation.

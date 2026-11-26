@@ -1,6 +1,6 @@
 # Portmyfolio — Product Vision
 
-Status: agreed MVP direction, initially frozen on 23 November 2026; updated through Stage 5 decisions on 25 November 2026.
+Status: agreed MVP direction, initially frozen on 23 November 2026; reconciled with the implemented Stage 7 flow and Stage 8 assessment handoff on 26 November 2026. Later stage notes retain historical decisions; their final refinements supersede earlier requirements.
 
 This document records the product we intend to build. See [DATA_MODEL.md](DATA_MODEL.md) for the agreed data architecture and [PLAN.md](PLAN.md) for implementation stages. Changes to the agreed scope should be reflected here before they become implementation work.
 
@@ -20,9 +20,9 @@ The project is being built for the Modern Web Application course, with Laravel b
 2. Submit one PDF CV and one to five public GitHub repository links; optional focus sits behind a secondary control.
 3. Generate the portfolio title/address automatically and open the private portfolio layout immediately after basic input validation.
 4. Watch CV information and individual projects appear as saved generation checkpoints complete, followed by final home/CV wording.
-5. Review the ready draft; Stage 6.2 adds pencil controls for editing existing content on these same pages. Existing form editors remain supporting functionality during the transition.
+5. Review the ready draft and use pencils to edit existing content on these same pages. Separate form editors remain supporting functionality.
 6. Publish explicitly. The first publication becomes the default when none is selected.
-7. Return to refine the private draft and publish changes. Appearance customization follows in Stage 7.
+7. Return to refine the private draft, choose a preset/accent through Appearance, and publish changes.
 
 
 There is no extra AI context pass after generation. Users correct and expand the generated content themselves.
@@ -56,10 +56,10 @@ The user may supply the audience or purpose of the portfolio before generation (
 
 - Every portfolio project requires a public GitHub repository.
 - Maximum five projects per portfolio.
-- Keep author-role evidence, but omit role input from the primary demo form: the preselected demo repositories use the previously confirmed Solo developer role. Unknown repositories use Contribution not specified, and generation must not claim individual contributions without evidence.
+- Project roles are removed from inputs, prompts and pages. Generation describes repository functionality without claiming personal contributions.
 - The README is the substantive source of project information. Minimal repository metadata may also be fetched.
 - There is no source-code or dependency-file inspection, private repository access, or project creation without a repository.
-- Missing or insufficient README content should produce actionable feedback before paid content generation begins. The exact sufficiency check remains to be designed.
+- Missing or insufficient README content produces actionable feedback before paid content generation begins. Full evidence must exceed 200 meaningful characters and stay strictly below 100,000 bytes.
 - Repository-wide functionality must not automatically be attributed to an individual contributor.
 
 ### Generation behavior
@@ -67,7 +67,7 @@ The user may supply the audience or purpose of the portfolio before generation (
 - Generate an initial portfolio once, then allow manual editing.
 - No user-triggered regeneration of a portfolio, project, section, or CV.
 - Automatic retries for technical failures are allowed and resume the same generation attempt.
-- Keep the core provider agnostic, with application-owned structured contracts and validation. Gemini is the initial provider; the exact model and SDK are not yet selected.
+- Keep the core provider agnostic, with application-owned structured contracts and validation. The verified Gemini adapter uses gemini-3.5-flash-lite through Laravel HTTP, with native PDF and structured output; no AI SDK is required.
 - Treat CV and repository contents as source material, not instructions to the application.
 - Do not fabricate missing facts, outcomes, metrics, or contributions.
 - Retain sufficient source and generation metadata for debugging, including provider/model, prompt version, usage, and failures.
@@ -105,7 +105,7 @@ There is no highlights section and no mandatory metrics, impact, challenges, or 
 
 ## Editing and images
 
-- Stage 6.2 puts pencil-triggered field/section forms on the rendered portfolio. Existing separate editors remain available during the transition.
+- Pencil-triggered field/section forms live on the rendered portfolio. Separate editors remain available for supporting controls.
 - No arbitrary document editor or drag-and-drop layout builder. Adding/removing/reordering structured entries is outside the inline-editing pass.
 - Owners can edit generated text, manage project ordering, and remove projects. Every project appears on the homepage.
 - Add images opens a multi-file picker and uploads immediately, with no caption, empty description and decorative defaults. The home photo uses the same direct-picker flow. Supporting screens retain delete/reorder operations; the first gallery image is the cover.
@@ -160,7 +160,7 @@ Each portfolio still has one successful initial generation. Duplicate concurrent
 | Templates and styling | Blade and Tailwind |
 | Testing | Pest |
 | Project galleries | Spatie Media Library; no parallel ProjectImage model |
-| Small interactive controls | Alpine.js where useful |
+| Small interactive controls | Small plain JavaScript modules |
 | Production database | Supabase PostgreSQL, accessed by Laravel through normal database connections and Eloquent |
 | Authentication | Google via Laravel Socialite, with Laravel sessions |
 | Production file storage | Supabase Storage through Laravel's S3-compatible filesystem integration |
@@ -196,9 +196,9 @@ The agreed data architecture is documented in DATA_MODEL.md. Model counts, relat
 
 Laravel Cloud is the chosen application host. Public hosting does not need to continue indefinitely for the project to remain part of the author's personal portfolio.
 
-Before a possible sunset, capture screenshots, record a demo, and document the architecture and decisions. Retain reproducible local setup and seeded data in the repository.
+Before a possible sunset, retain screenshots, architecture/decisions, reproducible local setup and seeded data. By the user's Stage 8 decision, assessment uses a [professor inspection guide](docs/INSPECTION.md) instead of a recorded demo or presentation.
 
-Sunsetting the application also takes users' hosted portfolios offline. Present an initial course/demo launch as experimental hosting rather than promise permanent availability. A detailed shutdown/export process is not yet defined.
+Sunsetting the application also takes users' hosted portfolios offline. Present the course/demo launch as experimental hosting rather than promise permanent availability. Backup/restore, budget review and shutdown steps are documented in [the release runbook](docs/RELEASE.md).
 
 ## Decisions still open
 
