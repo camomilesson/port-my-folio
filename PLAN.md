@@ -276,7 +276,7 @@ Review: decide whether to open the experimental public demo and what hosting lif
 - [x] Stage 5 — Input collection and provider contracts (deployed and verified).
 - [x] Stage 6 — Durable initial generation and quota (local walkthrough and hosted generation/publication verified by user).
 - [x] Stage 6.1 — Simple inputs and a portfolio that fills during generation (user reviewed locally, approved promotion and confirmed it works live).
-- [ ] Stage 6.2 — Pencil editing and publication on the portfolio.
+- [x] Stage 6.2 — Pencil editing and publication on the portfolio (user reviewed and approved promotion; hosted checks pending).
 - [ ] Stage 7 — Three presets and product polish.
 - [ ] Stage 8 — Release, assessment, and portfolio evidence.
 
@@ -488,3 +488,8 @@ Verification: PostgreSQL 249 tests / 1,260 assertions; SQLite 244 passing / 1,22
 At the user's request, Add photo / Change photo now directly opens the native picker and submits a non-empty selection immediately, sharing the gallery upload flow. Removed the details form and Save photo / Cancel confirmation. Upload status, duplicate-submit protection, error feedback, reset-for-retry and focus restoration apply to the photo as well. Cancelling the picker makes no request. Existing draft/publication behavior and processed private storage remain intact.
 
 Verification: 20 affected photo/gallery tests / 171 assertions pass; Pint, JavaScript syntax check, frontend build and diff checks pass. Browser verified selecting a synthetic fixture through Change photo immediately saves a different photo version, refreshes the rendered image and restores button focus without a Save confirmation; no console errors. No backend, dependency, migration or environment change. The local seeded Backend developer photo was replaced for QA; nothing was published. Final stage inspection/promotion remains with the user.
+
+
+## Stage 6.2 promotion approval — 26 November 2026
+
+User confirmed the final no-confirmation home-photo flow and explicitly approved pushing the reviewed stage to main. This supersedes earlier awaiting-inspection/no-promotion notes. Promote all Stage 6.2 implementation/refinement commits with their history preserved. Final checks: PostgreSQL 249 tests / 1,262 assertions; SQLite 244 passing / 1,233 assertions and five PostgreSQL-only skips; frontend build, Composer validation and diff checks pass. No migration, new dependency or environment variable is required. Hosted deployment and image/photo/upload/publication smoke checks remain for verification after promotion. Stage 7 is not started by this approval.
