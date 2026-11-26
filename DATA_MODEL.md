@@ -1,8 +1,10 @@
 # Portmyfolio — Data Model
 
-Status: agreed architecture, 23 November 2026. Implements [VISION.md](VISION.md); delivery stages are in [PLAN.md](PLAN.md).
+Status: implemented architecture, reconciled 26 November 2026. Implements [VISION.md](VISION.md); delivery stages are in [PLAN.md](PLAN.md).
 
 Five application-owned models plus Spatie’s Media model. Use relational records for ownership, projects, uploaded files, and generation. Use validated JSON for nested page content and the current published snapshot. Framework infrastructure tables for sessions, cache, and queues are separate from this model list.
+
+The model tables below describe current behavior. Later stage notes retain historical decisions; the final refinements supersede earlier role, quota and gallery-metadata requirements. Current setup and assessment flow are in [README.md](README.md) and [docs/INSPECTION.md](docs/INSPECTION.md).
 
 ## Relationships
 
@@ -47,7 +49,7 @@ No production password login. Portfolio display names remain independent of the 
 
 Working fields and related projects represent the draft. Publish validates and copies the complete draft into a snapshot atomically. Publishing again replaces that snapshot; no revision-history model or rollback UI. Unpublish clears the snapshot and published_at, plus the user's default pointer if applicable.
 
-The snapshot includes schema_version, publication time, preset/accent, home content, CV content, immutable original PDF reference, ordered projects, and ordered image references. Public pages must not substitute draft project content or draft image metadata into this snapshot. URL resolution uses the current user and portfolio records; project lookup uses the snapshot's project slugs.
+The snapshot includes schema_version, publication time, preset/accent, home content, CV content, immutable original PDF reference, optional portfolio-photo reference, ordered projects, and ordered image references. Public pages must not substitute draft project content or draft image metadata into this snapshot. URL resolution uses the current user and portfolio records; project lookup uses the snapshot's project slugs.
 
 ## CvDocument
 
@@ -70,7 +72,7 @@ The extraction record is evidence. Portfolio.cv_content is editable presentation
 | portfolio_id | Portfolio foreign key |
 | slug | Unique with portfolio_id |
 | repository_owner, repository_name | Normalized GitHub identity; pair unique within portfolio |
-| author_role | Required user-supplied role; editable |
+| author_role | Legacy compatibility column, empty default; unused by current inputs, prompts and pages |
 | readme_content | Nullable collected evidence before fetching finishes |
 | readme_fetched_at | Nullable evidence timestamp |
 | title, summary, overview | Editable content; may be empty during input collection |
@@ -95,7 +97,8 @@ Use Spatie's standard `media` table and model instead of a parallel ProjectImage
 | disk, conversions_disk, file_name | Storage location managed by Spatie |
 | mime_type, size | File metadata |
 | order_column | Gallery ordering; first active image is the cover |
-| custom_properties.caption, custom_properties.alt_text | Editable presentation metadata |
+| custom_properties.caption, custom_properties.alt_text | Legacy presentation metadata; new uploads default to no caption and empty description |
+| custom_properties.decorative | New uploads default to true |
 | custom_properties.draft_removed | Tombstone excluding an image from the draft without deleting published files |
 | custom_properties.width, custom_properties.height | Dimensions recorded during upload processing |
 
@@ -103,7 +106,7 @@ No separate ProjectImage model/table. Reordering uses explicit controls rather t
 
 Removing an image from a draft marks it removed; it must not call Media::delete(), clearMediaCollection(), or another file-deleting operation while a published snapshot references the image. Physically delete only after neither draft nor published content needs the file. Never overwrite existing objects when replacing an image.
 
-Spatie automatically cleans up media when a HasMedia owner is deleted. Therefore draft project removal must retain the owner while its published representation exists (a soft-delete/tombstone strategy will be implemented with Project in Stage 2). Publication cleanup may force-delete that owner only after the old snapshot is replaced and its media is no longer referenced. Portfolio deletion first removes public access, then deletes projects/media through the coordinated deletion action. The exact cleanup job/transaction boundaries are implemented and tested in Stages 3–4, before public galleries ship.
+Spatie automatically cleans up media when a HasMedia owner is deleted. Therefore draft project removal retains the soft-deleted owner while its published representation exists. Publication cleanup may force-delete that owner only after the old snapshot is replaced and its media is no longer referenced. Portfolio deletion first removes public access, then deletes projects/media through the coordinated deletion action. Cleanup boundaries are implemented and tested.
 
 ## Generation
 
@@ -114,11 +117,14 @@ Spatie automatically cleans up media when a HasMedia owner is deleted. Therefore
 | status | queued / running / succeeded / failed |
 | current_step | Safe dashboard stage identifier |
 | progress | Validated JSON of checkpoints and per-project completion |
-| input_snapshot | Frozen validated inputs, including required role and portfolio focus |
+| input_snapshot | Frozen validated inputs: source PDF, normalized repository identity/README evidence and optional focus; no project roles |
 | provider, model, prompt_version | Generation configuration |
 | usage | JSON usage totals; per-step detail where available |
 | error_code | Nullable safe failure identifier |
 | started_at, completed_at | Nullable execution timestamps |
+| run_version | Incrementing retry/cancellation fence |
+| lease_token, lease_expires_at | Nullable current processing lease; stale workers cannot commit |
+| next_run_at | Nullable durable next-step/retry time |
 
 One generation is the initial pipeline, not one provider request. Automatic retries continue that record and reuse completed steps. Successful generation cannot be restarted. A failed initial attempt may be resumed/retried under a defined recovery policy, without regenerating an already completed portfolio.
 

@@ -31,7 +31,7 @@ class DatabaseSeeder extends Seeder
 
             foreach (['laravel/laravel', 'tailwindlabs/tailwindcss'] as $position => $repository) {
                 [$repositoryOwner, $repositoryName] = explode('/', $repository);
-                $project = Project::factory()->for($portfolio)->create(['slug' => $repositoryName, 'repository_owner' => $repositoryOwner, 'repository_name' => $repositoryName, 'position' => $position]);
+                $project = Project::factory()->for($portfolio)->create(['title' => $position === 0 ? 'Laravel demo project' : 'Tailwind CSS demo project', 'slug' => $repositoryName, 'repository_owner' => $repositoryOwner, 'repository_name' => $repositoryName, 'position' => $position]);
                 $project->addMedia(resource_path('fixtures/demo-project.png'))->preservingOriginal()->withCustomProperties(['caption' => 'Synthetic demo screenshot', 'alt_text' => 'Portmyfolio demo project placeholder', 'draft_removed' => false])->toMediaCollection('gallery');
             }
 
@@ -40,6 +40,7 @@ class DatabaseSeeder extends Seeder
 
         Portfolio::factory()->for($owner)->create(['title' => 'A new idea', 'slug' => 'new-idea', 'focus' => null, 'home_content' => null, 'cv_content' => null]);
         $published = Portfolio::factory()->for($owner)->generated()->create(['title' => 'Published example', 'slug' => 'published-example']);
+        $published->projects()->firstOrFail()->update(['title' => 'Published demo project']);
         $published->update(['published_snapshot' => app(BuildPortfolioSnapshot::class)->build($published), 'published_at' => now()]);
         $owner->forceFill(['default_portfolio_id' => $published->id])->save();
     }
