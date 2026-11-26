@@ -1,8 +1,8 @@
 @props(['page'])
-<x-layout :title="($page['cv_content']['name'] ?: 'Portfolio').($page['preview'] ? ' · Draft preview' : '')" :show-account="$page['preview']">
+<x-layout :title="($page['cv_content']['name'] ?: 'Portfolio').($page['preview'] ? ' · Draft preview' : '')" :show-account="$page['preview']" :portfolio-preset="$page['preset']" :portfolio-accent="$page['accent_color']">
     <div @if($page['preview']) data-live-portfolio data-active="{{ in_array($page['generation']['status'] ?? null, ['queued', 'running'], true) ? '1' : '0' }}" data-revision="{{ $page['generation']['revision'] ?? '' }}" @endif>
     @if($page['preview'])
-        <div class="border-y border-orange-200 bg-orange-50 px-6 py-3 text-center text-sm">
+        <div class="owner-toolbar border-y border-orange-200 bg-orange-50 px-6 py-3 text-center text-sm">
             <strong>Private draft preview</strong> · Only you can view this.
             <a href="{{ $page['links']['editor'] }}" class="ml-3 font-semibold underline">Portfolio settings</a>
             @if(in_array($page['generation']['status'] ?? null, ['queued', 'running', 'failed'], true))
@@ -18,11 +18,12 @@
             @endif
             @if(request()->route('portfolio')->isPublished())<a class="ml-3 font-semibold underline" href="{{ route('portfolio.home', [auth()->user()->username, request()->route('portfolio')->slug]) }}">View published ↗</a>@endif
             <x-form-errors />
+            @if($page['editable'] ?? false)<x-portfolio-appearance :page="$page" />@endif
             @if($page['editable'] ?? false)<p class="mt-2 text-xs text-stone-600" data-inline-status role="status">Use a pencil to edit. Save changes here, then publish when ready.</p>@endif
         </div>
     @endif
-    <div class="mx-auto max-w-5xl px-6 py-10" style="--portfolio-accent: {{ $page['accent_color'] }}">
-        <nav aria-label="Portfolio navigation" class="flex flex-wrap items-center justify-between gap-4 border-b border-stone-200 pb-6">
+    <div class="portfolio-content mx-auto max-w-5xl px-6 py-10">
+        <nav aria-label="Portfolio navigation" class="portfolio-nav flex flex-wrap items-center justify-between gap-4 border-b border-stone-200 pb-6">
             <a class="font-semibold" data-portfolio-name href="{{ $page['links']['home'] }}">{{ $page['cv_content']['name'] ?: 'Portfolio' }}</a>
             <div class="flex gap-5 text-sm"><a href="{{ $page['links']['home'] }}" class="underline">Home</a><a href="{{ $page['links']['cv'] }}" class="underline">CV</a></div>
         </nav>

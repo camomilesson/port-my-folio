@@ -229,11 +229,11 @@ Starts after Stages 6.1 and 6.2 are reviewed; apply presets to the redesigned po
 
 ### Work
 
-- Finalize Minimal, Material-inspired, and Editorial directions/names, each with fixed fonts and background styling.
+- Implement Minimal, Material and Editorial with fixed font stacks, backgrounds and layout styling.
 - Add suggested accent swatches, hex entry, and color picker. Validate syntax only; no automatic contrast correction.
 - Preview and publish appearance through the existing snapshot mechanism.
 - Complete responsive layouts, keyboard-accessible controls, empty states, long-content behavior, and useful welcome-page copy.
-- Add the real quota contact email and experimental-hosting wording.
+- Keep welcome copy and experimental-hosting wording aligned with the controlled demo.
 
 ### Completion criteria
 
@@ -249,7 +249,7 @@ Review: visual walkthrough of all three presets and the complete journey.
 ### Work
 
 - Run the appropriate automated suite and build; perform an end-to-end hosted smoke check of login, generation, uploads, editing, publishing, default redirect, and unpublishing.
-- Verify query efficiency, private file access, quota behavior, cleanup, resource limits, and recovery configuration in the deployed environment.
+- Verify query efficiency, private file access, generation history, cleanup, resource limits, and recovery configuration in the deployed environment.
 - Finish README setup/deployment instructions, ER diagram, seed/demo guidance, provider configuration, and documented deviations from assessment guidelines.
 - Verify a clean local installation without live AI credentials using fixtures and the local-only demo login.
 - Capture screenshots and a short demo; prepare a concise presentation emphasizing the data model, backend logic, tradeoffs, and next steps.
@@ -260,7 +260,7 @@ Review: visual walkthrough of all three presets and the complete journey.
 - A fresh local setup can run migrate:fresh --seed and demonstrate the product offline from external AI/Google services.
 - The deployed application passes the real end-to-end smoke check and known limitations are documented.
 - Repository history, documentation, screenshots, and presentation materials are ready for assessment and personal portfolio use.
-- No unresolved data-exposure, ownership, publication-isolation, or quota failures remain.
+- No unresolved data-exposure, ownership, publication-isolation, or recovery failures remain.
 
 Review: decide whether to open the experimental public demo and what hosting lifetime/budget to use.
 
@@ -276,8 +276,8 @@ Review: decide whether to open the experimental public demo and what hosting lif
 - [x] Stage 5 — Input collection and provider contracts (deployed and verified).
 - [x] Stage 6 — Durable initial generation and quota (local walkthrough and hosted generation/publication verified by user).
 - [x] Stage 6.1 — Simple inputs and a portfolio that fills during generation (user reviewed locally, approved promotion and confirmed it works live).
-- [x] Stage 6.2 — Pencil editing and publication on the portfolio (user reviewed and approved promotion; hosted checks pending).
-- [ ] Stage 7 — Three presets and product polish.
+- [x] Stage 6.2 — Pencil editing and publication on the portfolio (reviewed, promoted and user-verified live).
+- [x] Stage 7 — Three presets and product polish (user reviewed and approved promotion; hosted checks pending).
 - [ ] Stage 8 — Release, assessment, and portfolio evidence.
 
 ## Stage 1 execution notes — 23 November 2026 (historical; superseded below)
@@ -493,3 +493,21 @@ Verification: 20 affected photo/gallery tests / 171 assertions pass; Pint, JavaS
 ## Stage 6.2 promotion approval — 26 November 2026
 
 User confirmed the final no-confirmation home-photo flow and explicitly approved pushing the reviewed stage to main. This supersedes earlier awaiting-inspection/no-promotion notes. Promote all Stage 6.2 implementation/refinement commits with their history preserved. Final checks: PostgreSQL 249 tests / 1,262 assertions; SQLite 244 passing / 1,233 assertions and five PostgreSQL-only skips; frontend build, Composer validation and diff checks pass. No migration, new dependency or environment variable is required. Hosted deployment and image/photo/upload/publication smoke checks remain for verification after promotion. Stage 7 is not started by this approval.
+
+
+## Stage 7 implementation review — 26 November 2026
+
+User confirmed Stage 6.2 works live and approved the Stage 7 decisions: Minimal, Material and Editorial; Appearance in the owner toolbar; immediate preview/autosave into the private draft; six swatches, native color picker and six-digit hex entry; fixed fonts/backgrounds per preset; responsive/keyboard/long-content/empty-state and welcome-copy polish. Obsolete quota/contact-email work is removed from the current plan.
+
+Implemented on codex/stage-7-appearance using the existing shared Blade templates. Minimal keeps Instrument Sans on stone; Material uses a fixed Arial/Helvetica stack, cool background and rounded white cards; Editorial uses Georgia/Times serif, warm paper, open spacing and editorial project rows. Existing locally served Instrument Sans and system font stacks require no additional assets or dependencies. Preset styles are scoped above the existing utility layer so live and server-rendered pages agree. All page types and published snapshots accept the three stable identifiers. Accent colors affect navigation details, section headings and preset highlights; backgrounds and fonts remain fixed, with syntax-only hex validation and no automatic contrast correction.
+
+Appearance is owner-only after successful generation. Preset/swatch changes preview immediately; picker/hex inputs stay synchronized and color input is debounced. Saves update a single allowed setting under existing owner/portfolio locks, coalescing and serializing pending changes. Validations, failed-save feedback/retry, pending-navigation protection, Escape/outside-click dismissal and focus styles are included. Content edits, source evidence and other open editors remain intact. Public pages use the last published appearance and contain no owner controls. Publication remains explicit, with the original-PDF disclosure. No AI calls, migrations, new environment variables or dependencies.
+
+Verification: PostgreSQL 265 tests / 1,420 assertions; SQLite 260 passing / 1,391 assertions with five PostgreSQL-only skips. Pint, JavaScript syntax, Composer validation, Blade compilation, production frontend build and diff checks pass. New feature coverage exercises per-setting merges, authorization, malformed/unknown values, all three presets across all page types, unrestricted white/black accents, active/failed-generation locks and publication isolation. Browser verified swatches/hex/native picker synchronization, save/reload persistence, rapid changes, invalid hex handling, keyboard dismissal, all nine preset/page combinations at desktop and 390 px widths with no horizontal overflow, and a 104-character unbroken headline in every preset. Fixed a style-layer precedence issue found during browser QA. The seeded demo's original headline and Minimal/orange appearance were restored; no personal PDF, live AI request, uploaded media or publication was changed.
+
+Stage 7 is implemented and ready for the user's visual walkthrough, not yet marked complete. Preserve atomic local commits. Do not promote/push or start Stage 8 until the user approves.
+
+
+## Stage 7 promotion approval — 26 November 2026
+
+User reviewed the three presets and appearance controls, reported no complaints and explicitly approved pushing to main. This supersedes the earlier awaiting-review/no-promotion note. The reviewed branch is unchanged from its recorded verification: PostgreSQL 265 tests / 1,420 assertions; SQLite 260 passing / 1,391 assertions and five PostgreSQL-only skips, plus build/formatting/browser checks. Preserve the implementation commits when merging. No migrations or environment changes are required. Hosted appearance/publication verification remains after deployment. User requested a briefing on Stage 8; its release/assessment work has not started.

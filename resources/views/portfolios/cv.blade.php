@@ -2,7 +2,7 @@
 @php($editable = $page['editable'] ?? false)
 <x-portfolio-frame :page="$page">
     @if(!($page['generation']['has_extraction'] ?? true))<section class="max-w-3xl py-12"><h1 class="text-4xl font-semibold">Your CV is on its way</h1><p class="mt-5 text-stone-500">Your experience, education and skills will appear here as your CV is read.</p><div class="mt-8 h-40 animate-pulse rounded-xl bg-stone-100 motion-reduce:animate-none" aria-label="CV content pending"></div></section>@endif
-    <article class="mx-auto max-w-3xl py-12">
+    <article class="portfolio-cv mx-auto max-w-3xl py-12">
         <x-inline-edit :page="$page" field="name" :value="$cv['name']" label="Name"><h1 class="break-words text-4xl font-semibold">{{ $cv['name'] }}</h1></x-inline-edit>
         <x-inline-edit :page="$page" field="headline" :value="$cv['headline']" label="Title"><p class="mt-3 break-words text-xl text-stone-600">{{ $cv['headline'] }}</p></x-inline-edit>
         <div class="mt-5 flex flex-wrap gap-x-5 gap-y-3 text-sm">
@@ -19,7 +19,7 @@
         @if($cv['summary'] || $editable)<x-inline-edit :page="$page" field="summary" :value="$cv['summary']" label="CV summary"><p class="mt-8 whitespace-pre-line break-words leading-relaxed text-stone-700">{{ $cv['summary'] ?: 'Add summary' }}</p></x-inline-edit>@endif
         @foreach(['experience' => 'Experience', 'education' => 'Education'] as $section => $label)
             @if(count($cv[$section]))
-                <section class="mt-10 border-t border-stone-200 pt-8">
+                <section class="portfolio-cv-section mt-10 border-t border-stone-200 pt-8">
                     <h2 class="text-2xl font-semibold">{{ $label }}</h2>
                     <div class="mt-6 space-y-8">
                         @foreach($cv[$section] as $entry)
@@ -44,7 +44,7 @@
             @endif
         @endforeach
         @if(count($cv['skills']))
-            <section class="mt-10 border-t border-stone-200 pt-8"><h2 class="text-2xl font-semibold">Skills</h2><div class="mt-5 space-y-4">
+            <section class="portfolio-cv-section mt-10 border-t border-stone-200 pt-8"><h2 class="text-2xl font-semibold">Skills</h2><div class="mt-5 space-y-4">
                 @foreach($cv['skills'] as $group)<div class="space-y-2">
                     <x-inline-edit :page="$page" section="skills" :entry-id="$group['id']" field="name" :value="$group['name']" label="Skill group"><strong class="break-words">{{ $group['name'] }}</strong></x-inline-edit>
                     <x-inline-edit :page="$page" section="skills" :entry-id="$group['id']" field="items" :value="implode(', ', $group['items'])" label="Skills (comma separated)" type="text" />
@@ -52,7 +52,7 @@
             </div></section>
         @endif
         @if(count($cv['languages']))
-            <section class="mt-10 border-t border-stone-200 pt-8"><h2 class="text-2xl font-semibold">Languages</h2><ul class="mt-5 space-y-3">
+            <section class="portfolio-cv-section mt-10 border-t border-stone-200 pt-8"><h2 class="text-2xl font-semibold">Languages</h2><ul class="mt-5 space-y-3">
                 @foreach($cv['languages'] as $language)<li class="space-y-2 break-words">
                     <x-inline-edit :page="$page" section="languages" :entry-id="$language['id']" field="name" :value="$language['name']" label="Language" />
                     @if(($language['proficiency'] ?? null) || $editable)<x-inline-edit :page="$page" section="languages" :entry-id="$language['id']" field="proficiency" :value="$language['proficiency'] ?? null" label="Proficiency" />@endif
@@ -60,7 +60,7 @@
             </ul></section>
         @endif
         @if(count($cv['certifications']))
-            <section class="mt-10 border-t border-stone-200 pt-8"><h2 class="text-2xl font-semibold">Certifications</h2><ul class="mt-5 space-y-4">
+            <section class="portfolio-cv-section mt-10 border-t border-stone-200 pt-8"><h2 class="text-2xl font-semibold">Certifications</h2><ul class="mt-5 space-y-4">
                 @foreach($cv['certifications'] as $entry)<li class="space-y-2 break-words">
                     <x-inline-edit :page="$page" section="certifications" :entry-id="$entry['id']" field="name" :value="$entry['name']" label="Certification name"><strong>{{ $entry['name'] }}</strong></x-inline-edit>
                     @if(($entry['issuer'] ?? null) || $editable)<x-inline-edit :page="$page" section="certifications" :entry-id="$entry['id']" field="issuer" :value="$entry['issuer'] ?? null" label="Issuer" />@endif

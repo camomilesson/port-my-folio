@@ -1,4 +1,4 @@
-@props(['showAccount' => true])
+@props(['showAccount' => true, 'portfolioPreset' => null, 'portfolioAccent' => null])
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,8 +8,8 @@
     <title>{{ $title ?? 'Portmyfolio' }}</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="min-h-screen bg-stone-50 font-sans text-stone-900 antialiased">
-    <header class="mx-auto flex max-w-6xl items-center justify-between gap-6 px-6 py-7">
+<body @if($portfolioPreset) data-portfolio-preset="{{ $portfolioPreset }}" style="--portfolio-accent: {{ $portfolioAccent }}" @endif class="min-h-screen bg-stone-50 font-sans text-stone-900 antialiased">
+    <header class="app-shell mx-auto flex max-w-6xl items-center justify-between gap-6 px-6 py-7">
         <a href="{{ route('home') }}" class="text-xl font-bold tracking-tight">portmyfolio<span class="text-orange-600">.</span></a>
         @if($showAccount)
         <nav aria-label="Account" class="flex items-center gap-5">
@@ -26,6 +26,6 @@
         <div role="status" class="mx-auto max-w-6xl border border-orange-200 bg-orange-50 px-6 py-4">{{ session('status') }}</div>
     @endif
     <main>{{ $slot }}</main>
-    <footer class="mx-auto max-w-6xl border-t border-stone-200 px-6 py-8 text-sm text-stone-500">Portmyfolio · An experimental portfolio builder. Currently in development.</footer>
+    <footer class="app-shell mx-auto max-w-6xl border-t border-stone-200 px-6 py-8 text-sm text-stone-500">Portmyfolio · An experimental demo. Hosting may change or end.</footer>
 </body>
 </html>

@@ -116,8 +116,8 @@ Spatie Media Library 11 manages project galleries through its standard `media` t
 
 ## Current limitations
 
-- Private home/CV/project editing, ordering, gallery management, immutable PDF upload/download, and home/CV/project previews are available. Publication, evidence fetching, Gemini extraction, queued initial generation and recovery are implemented. Active deletion cancels work, redacts checkpoints and queues file cleanup. Stage 6 awaits review.
-- Hosted Google sign-in/logout, direct Supabase PostgreSQL, private CV storage, managed queue processing, and the health endpoint have been verified. User verified Stage 3 hosted image upload/delete and source PDF upload/download on 25 November 2026. Stage 4 is deployed and hosted smoke checks passed; full hosted publication lifecycle verification follows genuine generation in Stage 6.
+- Private home/CV/project editing, ordering, gallery management, immutable PDF upload/download, and home/CV/project previews are available. Publication, evidence fetching, Gemini extraction, queued initial generation and recovery are implemented. Active deletion cancels work, redacts checkpoints and queues file cleanup. Stages 6.1/6.2 were user-verified live; Stage 7 appearance is reviewed and approved for promotion; hosted verification remains pending.
+- Hosted Google sign-in/logout, direct Supabase PostgreSQL, private CV storage, managed queue processing, and the health endpoint have been verified. User verified Stage 3 hosted image upload/delete and source PDF upload/download on 25 November 2026. The generation-to-publication flow and the Stage 6.2 inline-edit/upload journey were user-verified live. Final hosted release checks remain Stage 8 work.
 - The framework scaffold still contains nullable password infrastructure for compatibility; there is no public password authentication feature. The application-owned schema is now implemented. Ownership policies cover portfolios, projects, CV evidence, generations, and gallery media; nested editor and preview routes apply them and check parent/child identity.
 - This is an experimental course/demo project; permanent hosted availability is not promised.
 
@@ -209,3 +209,10 @@ Project galleries now appear after the title, summary and technologies, before O
 ### Gallery simplification — 26 November 2026
 
 The gallery follows the actual Portfolio reference: a padded image area with transparent previous/next controls covering the complete left/right halves and circular arrow indicators. Navigation wraps and supports left/right arrow keys, with no automatic rotation. Uploading is Add images → select files → saved private draft. Caption, description and decorative controls are removed from the portfolio and supporting gallery forms; new uploads use decorative defaults on the server. Existing saved captions remain readable. Publication is still explicit.
+
+
+### Stage 7: appearance
+
+Open a ready portfolio and choose Appearance in its owner toolbar. Minimal, Material and Editorial apply to Home, CV and project pages, each with fixed typography/backgrounds. Choose an accent from six swatches, the native picker or a six-digit #RRGGBB value. Changes preview and save automatically to the private draft. Invalid hex values do not replace the preview; failed saves display Retry saving and remain protected from accidental navigation.
+
+Fonts use the existing locally served Instrument Sans plus fixed system font stacks for Material and Editorial; no new external font service is needed. Public pages keep their published appearance until Publish changes. Existing content pencils, immediate photo/gallery uploads and publication/default routing remain available. No migration, dependency, environment change or AI call is required. Review every page at mobile and desktop widths before promoting this stage.

@@ -23,6 +23,7 @@ class PortfolioPageData
         $data['photo_upload_url'] = route('userzone.photo.store', $portfolio);
         $data['preview'] = true;
         $data['editable'] = $generation?->status === 'succeeded';
+        $data['appearance_url'] = route('userzone.appearance.update', $portfolio);
         $data['inline'] = ['home' => route('userzone.inline.page', [$portfolio, 'home']), 'cv' => route('userzone.inline.page', [$portfolio, 'cv'])];
         $data['links'] = ['home' => route('userzone.preview.home', $portfolio), 'cv' => route('userzone.preview.cv', $portfolio), 'editor' => route('userzone.portfolios.show', $portfolio),
             'pdf' => $data['original_pdf'] ? route('userzone.cv-document.show', $portfolio) : null];
