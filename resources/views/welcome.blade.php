@@ -1,7 +1,7 @@
 <x-layout>
     <section style="--welcome-accent: {{ array_values(config('portmyfolio.accent_swatches'))[0] }}" class="mx-auto grid max-w-6xl items-center gap-14 px-6 pt-12 pb-16 sm:pt-20 sm:pb-24 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-16">
         <div>
-            <h1 class="max-w-xl text-5xl font-semibold leading-[1.08] tracking-tight sm:text-6xl">Building a Portfolio Shouldn't Be Hard</h1>
+            <h1 class="max-w-xl text-5xl font-semibold leading-[1.08] tracking-tight sm:text-6xl">Creating a Portfolio Shouldn't Be Hard</h1>
             <p class="mt-6 max-w-md text-lg leading-relaxed text-stone-600">Build one <span data-welcome-highlight class="font-semibold text-[var(--welcome-accent)]">in seconds</span> from a CV and a few repo links</p>
             <div class="mt-8">
                 @auth
