@@ -14,7 +14,7 @@
                 @php($portfolioUrl = route($portfolio->generations_exists ? 'userzone.preview.home' : 'userzone.portfolios.show', $portfolio))
                 <article class="flex flex-col rounded-2xl border border-stone-200 bg-white p-6">
                     <div class="flex items-center justify-between gap-3 text-xs font-semibold uppercase tracking-wide">
-                        <span class="text-stone-500">{{ $portfolio->isPublished() ? 'Published' : 'Draft' }}</span>
+                        <span class="{{ $portfolio->isPublished() ? 'rounded-full bg-emerald-100 px-2 py-1 text-emerald-800' : 'text-stone-500' }}">{{ $portfolio->isPublished() ? 'Published' : 'Draft' }}</span>
                         @if(auth()->user()->default_portfolio_id === $portfolio->id)<span class="text-orange-700">Default</span>@endif
                     </div>
                     <h2 class="mt-5 break-words text-2xl font-semibold"><a href="{{ $portfolioUrl }}" class="hover:underline">{{ $portfolio->title }}</a></h2>
